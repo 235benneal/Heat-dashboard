@@ -120,13 +120,11 @@ table.data-table tr:hover td { background: #f8fafc; }
 
       <div class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3 text-xs">
         <div>
-          <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Sensor Status (%)</div>
-          <div class="flex items-center gap-1 font-medium text-slate-700 text-[11px]">
-            <span>C: <span id="sum-pct-calera">0%</span></span>
+          <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Sensor Status</div>
+          <div class="flex items-center gap-2 font-medium text-slate-700">
+            <span>CALERA: <span id="sum-pct-primary">—</span></span>
             <span class="text-slate-300">|</span>
-            <span>R2: <span id="sum-pct-core">0%</span></span>
-            <span class="text-slate-300">|</span>
-            <span>FB: <span id="sum-pct-flowbio">0%</span></span>
+            <span>Div: <span id="sum-divergence">—</span></span>
           </div>
         </div>
       </div>
@@ -142,10 +140,9 @@ table.data-table tr:hover td { background: #f8fafc; }
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('processed')">Processed Data</button>
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('charts')">Interactive Charts</button>
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('compare')">Compare Lengths</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('archive')">Saved Reports & Archive</button>
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('sweat')">Sweat</button>
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('events')">Events & Breaks</button>
-    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('archive')">Saved Reports & Archive</button>
-    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('settings')">Settings</button>
   </div>
 </div>
 
@@ -258,6 +255,29 @@ table.data-table tr:hover td { background: #f8fafc; }
   </div>
 </div>
 
+<div id="tab-archive" class="tab-content hidden">
+  <div class="card p-4">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="font-semibold text-sm">Saved Reports & Page Archive</h3>
+      </div>
+      <button onclick="clearArchive()" class="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs transition">Clear Archive</button>
+    </div>
+    <div class="overflow-x-auto border rounded-lg">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date Saved</th><th>Athlete</th><th>Activity</th><th>Duration</th><th>Max Temp (°C)</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="archive-tbody">
+          <tr><td colspan="6" class="text-center text-slate-400 py-4">No saved reports in archive. Save a report from the Dashboard.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <div id="tab-sweat" class="tab-content hidden">
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <div class="card p-4">
@@ -288,36 +308,6 @@ table.data-table tr:hover td { background: #f8fafc; }
   </div>
 </div>
 
-<div id="tab-archive" class="tab-content hidden">
-  <div class="card p-4">
-    <div class="flex items-center justify-between mb-4">
-      <div>
-        <h3 class="font-semibold text-sm">Saved Reports & Page Archive</h3>
-      </div>
-      <button onclick="clearArchive()" class="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs transition">Clear Archive</button>
-    </div>
-    <div class="overflow-x-auto border rounded-lg">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Date Saved</th><th>Athlete</th><th>Activity</th><th>Duration</th><th>Max Temp (°C)</th><th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="archive-tbody">
-          <tr><td colspan="6" class="text-center text-slate-400 py-4">No saved reports in archive. Save a report from the Dashboard.</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<div id="tab-settings" class="tab-content hidden">
-  <div class="card p-4">
-    <h3 class="font-semibold text-sm mb-3">Settings</h3>
-    <p class="text-xs text-slate-500">Configure core temp zones and sensors.</p>
-  </div>
-</div>
-
 </div>
 
 <script>
@@ -336,6 +326,14 @@ function fmtTime(sec) {
   const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
   const s = Math.floor(sec % 60).toString().padStart(2, '0');
   return h + ':' + m + ':' + s;
+}
+
+function parseHHMMSS(str) {
+  if (!str || typeof str !== 'string') return 0;
+  const p = str.trim().split(':');
+  if (p.length === 3) return (parseInt(p[0]) || 0) * 3600 + (parseInt(p[1]) || 0) * 60 + (parseFloat(p[2]) || 0);
+  if (p.length === 2) return (parseInt(p[0]) || 0) * 60 + (parseFloat(p[1]) || 0);
+  return parseFloat(str) || 0;
 }
 
 function fmtNum(v, d) {
@@ -415,7 +413,7 @@ function handleFile(input, type) {
   if (ext === 'csv') {
     Papa.parse(file, {
       header: false, dynamicTyping: true, skipEmptyLines: true,
-      complete: (res) => { const data = processDataArray(type, res.data); AppState.raw[type] = data; document.getElementById('status-' + type).textContent = data.length + ' rows'; updateSensorAvailability(); }
+      complete: (res) => { const data = processDataArray(type, res.data); AppState.raw[type] = data; document.getElementById('status-' + type).textContent = data.length + ' rows'; }
     });
   } else {
     const reader = new FileReader();
@@ -427,28 +425,9 @@ function handleFile(input, type) {
       const parsedData = processDataArray(type, aoa);
       AppState.raw[type] = parsedData;
       document.getElementById('status-' + type).textContent = parsedData.length + ' rows';
-      updateSensorAvailability();
     };
     reader.readAsArrayBuffer(file);
   }
-}
-
-function updateSensorAvailability() {
-  const cCount = AppState.raw.calera.length;
-  const r2Count = AppState.raw.core.length;
-  const fbCount = AppState.raw.flowbio.length;
-  const total = cCount + r2Count + fbCount;
-
-  if (total === 0) {
-    document.getElementById('sum-pct-calera').textContent = '0%';
-    document.getElementById('sum-pct-core').textContent = '0%';
-    document.getElementById('sum-pct-flowbio').textContent = '0%';
-    return;
-  }
-
-  document.getElementById('sum-pct-calera').textContent = Math.round((cCount / total) * 100) + '%';
-  document.getElementById('sum-pct-core').textContent = Math.round((r2Count / total) * 100) + '%';
-  document.getElementById('sum-pct-flowbio').textContent = Math.round((fbCount / total) * 100) + '%';
 }
 
 function normalizeDataset(data, timeCol) {
@@ -552,7 +531,6 @@ function processAllData() {
   renderAthleteSummary();
   renderProcessedTable(1);
   renderChart();
-  updateSensorAvailability();
   alert('Processing complete: ' + processed.length + ' raw rows.');
 }
 
