@@ -177,7 +177,7 @@ table.data-table tr:hover td { background: #f8fafc; }
       <div class="card p-4 lg:col-span-2">
         <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
           <div class="flex items-center">
-            <span data-i18n="sec_core">Core Temperature Kinetics (Tcore)</span>
+            <span data-i18n="sec_core">Core Temp</span>
             <div class="relative tooltip-trigger right-aligned cursor-help no-print ml-2" ontouchstart="toggleTooltip(event, this)">
               <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
               <div class="sci-tooltip" data-i18n="tip_core">Evaluates internal thermal strain. Key indicators include the maximum temperature achieved, total rise from baseline, and how rapidly heat accumulated during the session.</div>
@@ -474,25 +474,25 @@ table.data-table tr:hover td { background: #f8fafc; }
 
 </div>
 
-<!-- TOP-CLASS PROFESSIONAL PDF EXPORT REPORT TEMPLATE -->
-<div id="pdf-report-template" class="hidden bg-white p-5 max-w-[800px] mx-auto text-slate-800" style="font-family: 'Inter', sans-serif; box-sizing: border-box;">
+<!-- TOP-CLASS PROFESSIONAL PDF EXPORT REPORT TEMPLATE (Spread out with larger spacing) -->
+<div id="pdf-report-template" class="hidden bg-white p-6 max-w-[800px] mx-auto text-slate-800" style="font-family: 'Inter', sans-serif; box-sizing: border-box;">
   
   <!-- Header / Branding -->
-  <div class="flex items-center justify-between border-b-2 border-slate-900 pb-3 mb-3">
+  <div class="flex items-center justify-between border-b-2 border-slate-900 pb-4 mb-4">
     <div>
-      <h1 class="text-lg font-bold text-slate-900 uppercase tracking-tight">Heat, Sweat and Hydration Report</h1>
-      <p class="text-[11px] text-slate-500">CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO Integration</p>
+      <h1 class="text-xl font-bold text-slate-900 uppercase tracking-tight">Heat, Sweat and Hydration Report</h1>
+      <p class="text-xs text-slate-500 mt-0.5">CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO Integration</p>
     </div>
     <div class="text-right">
       <div class="text-xs font-bold text-blue-600">ben.neal@canterbury.ac.uk</div>
-      <div class="text-[10px] text-slate-400" id="pdf-rep-date">2026-07-27</div>
+      <div class="text-[10px] text-slate-400 mt-0.5" id="pdf-rep-date">2026-07-27</div>
     </div>
   </div>
 
   <!-- Section 1: Top Metrics Grid (Physiological Response & Reordered Cutoff) -->
-  <div class="grid grid-cols-2 gap-3 mb-3 border border-slate-200 rounded-lg p-2.5 bg-slate-50">
+  <div class="grid grid-cols-2 gap-4 mb-4 border border-slate-200 rounded-lg p-3 bg-slate-50">
     <div>
-      <h3 class="text-[11px] font-bold text-slate-700 uppercase mb-1.5 border-b border-slate-200 pb-1">Core Temperature Kinetics</h3>
+      <h3 class="text-xs font-bold text-slate-700 uppercase mb-2 border-b border-slate-200 pb-1.5">Core Temp</h3>
       <div class="grid grid-cols-4 gap-1 text-center">
         <div><span class="block text-[9px] text-slate-500 uppercase">Start</span><span class="text-sm font-bold text-slate-800" id="pdf-val-start">—</span><span class="block text-[8px] text-slate-400">°C</span></div>
         <div><span class="block text-[9px] text-slate-500 uppercase">Maximum</span><span class="text-sm font-bold text-red-600" id="pdf-val-max">—</span><span class="block text-[8px] text-slate-400">°C</span></div>
@@ -501,7 +501,7 @@ table.data-table tr:hover td { background: #f8fafc; }
       </div>
     </div>
     <div>
-      <h3 class="text-[11px] font-bold text-slate-700 uppercase mb-1.5 border-b border-slate-200 pb-1">Physiological Response</h3>
+      <h3 class="text-xs font-bold text-slate-700 uppercase mb-2 border-b border-slate-200 pb-1.5">Physiological Response</h3>
       <div class="grid grid-cols-2 gap-1 text-center">
         <div><span class="block text-[9px] text-slate-500 uppercase">Avg HR</span><span class="text-sm font-bold text-blue-600" id="pdf-val-avghr">—</span><span class="block text-[8px] text-slate-400">bpm</span></div>
         <div><span class="block text-[9px] text-slate-500 uppercase">Max HR</span><span class="text-sm font-bold text-blue-800" id="pdf-val-maxhr">—</span><span class="block text-[8px] text-slate-400">bpm</span></div>
@@ -510,21 +510,21 @@ table.data-table tr:hover td { background: #f8fafc; }
   </div>
 
   <!-- Chart Panel: Core Temperature & Heart Rate -->
-  <div class="mb-3">
-    <div class="text-[11px] font-bold text-slate-700 uppercase mb-1 flex justify-between">
+  <div class="mb-4">
+    <div class="text-xs font-bold text-slate-700 uppercase mb-1.5 flex justify-between">
       <span>Core Temperature & Heart Rate Dynamics</span>
-      <span class="text-[9px] text-slate-400">Tcore (°C) vs HR (bpm)</span>
+      <span class="text-[10px] text-slate-400">Tcore (°C) vs HR (bpm)</span>
     </div>
-    <div class="relative w-full h-[180px] border border-slate-200 rounded-lg bg-white p-1.5">
+    <div class="relative w-full h-[200px] border border-slate-200 rounded-lg bg-white p-2">
       <canvas id="pdfChartCoreHR"></canvas>
     </div>
   </div>
 
   <!-- Written Summary & Sweat Response Panel -->
-  <div class="grid grid-cols-2 gap-3 mb-3">
-    <div class="border border-slate-200 rounded-lg p-2.5 bg-white">
-      <h3 class="text-[11px] font-bold text-slate-700 uppercase mb-1.5 border-b pb-1">Sweat Response & Fluid Loss</h3>
-      <div class="space-y-1 text-xs">
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <div class="border border-slate-200 rounded-lg p-3 bg-white">
+      <h3 class="text-xs font-bold text-slate-700 uppercase mb-2 border-b pb-1.5">Sweat Response & Fluid Loss</h3>
+      <div class="space-y-1.5 text-xs">
         <div class="flex justify-between"><span class="text-slate-500">Avg Sweat Rate:</span><span class="font-semibold" id="pdf-sw-avg">—</span></div>
         <div class="flex justify-between"><span class="text-slate-500">Max Sweat Rate:</span><span class="font-semibold" id="pdf-sw-max">—</span></div>
         <div class="flex justify-between"><span class="text-slate-500">Total Sensor Loss:</span><span class="font-semibold" id="pdf-sw-total">—</span></div>
@@ -533,28 +533,28 @@ table.data-table tr:hover td { background: #f8fafc; }
     </div>
 
     <!-- Time Spent in Zones Table -->
-    <div class="border border-slate-200 rounded-lg p-2.5 bg-white">
-      <h3 class="text-[11px] font-bold text-slate-700 uppercase mb-1.5 border-b pb-1">Time Spent in Thermal Zones</h3>
+    <div class="border border-slate-200 rounded-lg p-3 bg-white">
+      <h3 class="text-xs font-bold text-slate-700 uppercase mb-2 border-b pb-1.5">Time Spent in Thermal Zones</h3>
       <table class="w-full text-xs">
-        <thead><tr class="text-left text-[9px] text-slate-400 border-b"><th>Zone</th><th>Time</th><th>%</th><th>First Entry</th></tr></thead>
-        <tbody id="pdf-zone-tbody">
-          <tr><td class="py-0.5 zone-1 font-medium">Zone 1 (&lt;38.0)</td><td id="pdf-z1-time">—</td><td id="pdf-z1-pct">—</td><td id="pdf-z1-first">—</td></tr>
-          <tr><td class="py-0.5 zone-2 font-medium">Zone 2 (38.0–38.9)</td><td id="pdf-z2-time">—</td><td id="pdf-z2-pct">—</td><td id="pdf-z2-first">—</td></tr>
-          <tr><td class="py-0.5 zone-3 font-medium">Zone 3 (39.0–39.6)</td><td id="pdf-z3-time">—</td><td id="pdf-z3-pct">—</td><td id="pdf-z3-first">—</td></tr>
-          <tr><td class="py-0.5 zone-4 font-medium">Zone 4 (&ge;39.7)</td><td id="pdf-z4-time">—</td><td id="pdf-z4-pct">—</td><td id="pdf-z4-first">—</td></tr>
+        <thead><tr class="text-left text-[9px] text-slate-400 border-b pb-1"><th>Zone</th><th>Time</th><th>%</th><th>First Entry</th></tr></thead>
+        <tbody id="pdf-zone-tbody" class="divide-y divide-slate-100">
+          <tr><td class="py-1 zone-1 font-medium">Zone 1 (&lt;38.0)</td><td class="py-1" id="pdf-z1-time">—</td><td class="py-1" id="pdf-z1-pct">—</td><td class="py-1" id="pdf-z1-first">—</td></tr>
+          <tr><td class="py-1 zone-2 font-medium">Zone 2 (38.0–38.9)</td><td class="py-1" id="pdf-z2-time">—</td><td class="py-1" id="pdf-z2-pct">—</td><td class="py-1" id="pdf-z2-first">—</td></tr>
+          <tr><td class="py-1 zone-3 font-medium">Zone 3 (39.0–39.6)</td><td class="py-1" id="pdf-z3-time">—</td><td class="py-1" id="pdf-z3-pct">—</td><td class="py-1" id="pdf-z3-first">—</td></tr>
+          <tr><td class="py-1 zone-4 font-medium">Zone 4 (&ge;39.7)</td><td class="py-1" id="pdf-z4-time">—</td><td class="py-1" id="pdf-z4-pct">—</td><td class="py-1" id="pdf-z4-first">—</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
   <!-- Bottom Metadata Table -->
-  <div class="border border-slate-300 rounded text-[10px] overflow-hidden">
-    <div class="bg-slate-100 px-2.5 py-1 font-semibold text-slate-700 border-b border-slate-300">Session Metadata & Configuration</div>
+  <div class="border border-slate-300 rounded text-[11px] overflow-hidden">
+    <div class="bg-slate-100 px-3 py-1.5 font-semibold text-slate-700 border-b border-slate-300">Session Metadata & Configuration</div>
     <div class="grid grid-cols-4 divide-x divide-slate-300">
-      <div class="p-1.5"><span class="block text-[8px] text-slate-400 uppercase">Athlete</span><span class="font-medium" id="pdf-meta-athlete">—</span></div>
-      <div class="p-1.5"><span class="block text-[8px] text-slate-400 uppercase">Sport / Activity</span><span class="font-medium" id="pdf-meta-sport">—</span></div>
-      <div class="p-1.5"><span class="block text-[8px] text-slate-400 uppercase">Duration</span><span class="font-medium" id="pdf-meta-duration">—</span></div>
-      <div class="p-1.5"><span class="block text-[8px] text-slate-400 uppercase">Environment</span><span class="font-medium" id="pdf-meta-env">—</span></div>
+      <div class="p-2"><span class="block text-[9px] text-slate-400 uppercase">Athlete</span><span class="font-medium" id="pdf-meta-athlete">—</span></div>
+      <div class="p-2"><span class="block text-[9px] text-slate-400 uppercase">Sport / Activity</span><span class="font-medium" id="pdf-meta-sport">—</span></div>
+      <div class="p-2"><span class="block text-[9px] text-slate-400 uppercase">Duration</span><span class="font-medium" id="pdf-meta-duration">—</span></div>
+      <div class="p-2"><span class="block text-[9px] text-slate-400 uppercase">Environment</span><span class="font-medium" id="pdf-meta-env">—</span></div>
     </div>
   </div>
 
@@ -588,7 +588,7 @@ const translations = {
     tab_events: "Events & Breaks",
     tab_settings: "Settings",
     sec_session: "Session Information",
-    sec_core: "Core Temperature Kinetics (Tcore)",
+    sec_core: "Core Temp",
     sec_zones: "Time Spent in Zones",
     sec_sweat: "Sweat Response",
     sec_hr: "Heart Rate (HR)",
@@ -720,7 +720,7 @@ const translations = {
     tab_events: "Eventos y Pausas",
     tab_settings: "Ajustes",
     sec_session: "Información de la Sesión",
-    sec_core: "Cinética de Temperatura Central (Tcore)",
+    sec_core: "Temp. Central",
     sec_zones: "Tiempo en Zonas",
     sec_sweat: "Respuesta de Sudor",
     sec_hr: "Frecuencia Cardíaca (FC)",
@@ -852,7 +852,7 @@ const translations = {
     tab_events: "Événements et Pauses",
     tab_settings: "Paramètres",
     sec_session: "Informations sur la Session",
-    sec_core: "Cinétique de Température Corporelle (Tcore)",
+    sec_core: "Temp. Centrale",
     sec_zones: "Temps Passé dans les Zones",
     sec_sweat: "Réponse de Sudation",
     sec_hr: "Fréquence Cardiaque (FC)",
@@ -984,7 +984,7 @@ const translations = {
     tab_events: "Eventos e Pausas",
     tab_settings: "Configurações",
     sec_session: "Informações da Sessão",
-    sec_core: "Cinética da Temperatura Central (Tcore)",
+    sec_core: "Temp. Central",
     sec_zones: "Tempo Gasto nas Zonas",
     sec_sweat: "Resposta ao Suor",
     sec_hr: "Frequência Cardíaca (FC)",
@@ -1116,7 +1116,7 @@ const translations = {
     tab_events: "이벤트 및 휴식",
     tab_settings: "설정",
     sec_session: "세션 정보",
-    sec_core: "심부 체온 동역학 (Tcore)",
+    sec_core: "심부 체온",
     sec_zones: "구간별 소요 시간",
     sec_sweat: "발한 반응",
     sec_hr: "심박수 (HR)",
@@ -1248,7 +1248,7 @@ const translations = {
     tab_events: "イベント・休憩",
     tab_settings: "設定",
     sec_session: "セッション情報",
-    sec_core: "深部体温動態 (Tcore)",
+    sec_core: "深部体温",
     sec_zones: "ゾーン別滞在時間",
     sec_sweat: "発汗反応",
     sec_hr: "心拍数 (HR)",
@@ -1380,7 +1380,7 @@ const translations = {
     tab_events: "事件与间歇",
     tab_settings: "设置",
     sec_session: "会话信息",
-    sec_core: "核心体温动力学 (Tcore)",
+    sec_core: "核心体温",
     sec_zones: "各区间停留时间",
     sec_sweat: "出汗反应",
     sec_hr: "心率 (HR)",
@@ -1512,7 +1512,7 @@ const translations = {
     tab_events: "Ereignisse & Pausen",
     tab_settings: "Einstellungen",
     sec_session: "Sitzungsinformationen",
-    sec_core: "Kerntemperatur-Kinetik (Tcore)",
+    sec_core: "Kerntemperatur",
     sec_zones: "Zeit in Zonen",
     sec_sweat: "Schweißreaktion",
     sec_hr: "Herzfrequenz (HF)",
