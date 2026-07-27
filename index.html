@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Heat and Hydration Analysis Report</title>
+<title>Heat and Hydration Analysis</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -12,242 +12,247 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-body { font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; color: #1e293b; }
-.tab-btn.active { background: #0284c7; color: white; border-color: #0284c7; box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2); }
-.tab-btn:hover:not(.active) { background: #f1f5f9; color: #0f172a; }
-.card { background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04), 0 2px 4px -2px rgba(0,0,0,0.04); border: 1px solid #e2e8f0; margin-bottom: 1.25rem; position: relative; transition: all 0.2s ease; }
-.card:hover { border-color: #cbd5e1; }
-.big-number { font-size: 2rem; font-weight: 700; line-height: 1.1; color: #0f172a; }
+body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; }
+.tab-btn.active { background: #0284c7; color: white; border-color: #0284c7; }
+.tab-btn:hover:not(.active) { background: #e2e8f0; color: #0f172a; }
+.card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 1rem; position: relative; transition: background-color 0.2s ease, border-color 0.2s ease; }
+.card:hover {
+  background-color: #e0f2fe;
+  border-color: #38bdf8;
+}
+.big-number { font-size: 1.75rem; font-weight: 700; line-height: 1; }
+@media (min-width: 768px) { .big-number { font-size: 2.25rem; } }
 .zone-1 { color: #0d9488; }
 .zone-2 { color: #d97706; }
 .zone-3 { color: #ea580c; }
 .zone-4 { color: #dc2626; }
-.badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+.badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
 .badge-green { background: #dcfce7; color: #166534; }
 .badge-yellow { background: #fef9c3; color: #854d0e; }
 .badge-red { background: #fee2e2; color: #991b1b; }
-.drag-zone { border: 2px dashed #cbd5e1; border-radius: 12px; transition: all 0.2s; background: #fafafa; }
-.drag-zone:hover { border-color: #0284c7; background: #f0f9ff; }
-table.data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; }
-table.data-table th { background: #f8fafc; padding: 12px 16px; text-align: left; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; }
-table.data-table td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+.drag-zone { border: 2px dashed #cbd5e1; border-radius: 12px; transition: all 0.2s; }
+.drag-zone:hover, .drag-zone.dragover { border-color: #3b82f6; background: #eff6ff; }
+table.data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; }
+table.data-table th { background: #f8fafc; padding: 8px 12px; text-align: left; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; }
+table.data-table td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
 table.data-table tr:hover td { background: #f8fafc; }
 .cutoff-red { color: #dc2626; }
 
+.sci-tooltip {
+  visibility: hidden;
+  position: absolute;
+  bottom: 105%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f172a;
+  color: #f8fafc;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  width: 280px;
+  line-height: 1.4;
+  z-index: 50;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.sci-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #0f172a transparent transparent transparent;
+}
+.tooltip-trigger:hover .sci-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
 @media print { 
   .no-print { display: none !important; } 
-  .card { box-shadow: none !important; border: 1px solid #cbd5e1 !important; break-inside: avoid; margin-bottom: 1.5rem; } 
-  body { background: white !important; }
-  header { position: static !important; }
-  .pdf-footer { display: block !important; }
+  .card { box-shadow: none; border: 1px solid #e2e8f0; break-inside: avoid; margin-bottom: 1.5rem; } 
+  body { background: white; }
+  header { position: static; }
 }
-.pdf-footer { display: none; text-align: center; font-size: 0.8rem; color: #64748b; margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 </head>
 <body class="text-slate-800">
 
-<header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800 shadow-md">
-  <div class="max-w-[1600px] mx-auto px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-inner"><i class="fa-solid fa-heart-pulse"></i></div>
-      <div>
-        <h1 class="font-bold text-base sm:text-lg tracking-tight">Heat and Hydration Analysis Report</h1>
-        <p class="text-xs text-slate-400">CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO Sweat Analytics</p>
-      </div>
+<header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800">
+  <div class="max-w-[1600px] mx-auto px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+    <div>
+      <h1 class="font-semibold text-base sm:text-lg tracking-wide">Heat and Hydration Analysis Report</h1>
+      <p class="text-[10px] sm:text-xs text-slate-400">CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO Sweat Analytics</p>
     </div>
-    <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end no-print flex-wrap">
-      <button onclick="exportCSV()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-2"><i class="fa-solid fa-download text-slate-400"></i> Export CSV</button>
-      <button onclick="exportPDF()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-2 shadow-sm text-white"><i class="fa-solid fa-file-pdf"></i> Export PDF Report</button>
+    <div class="flex items-center gap-2 w-full sm:w-auto justify-end no-print flex-wrap">
+      <button onclick="exportCSV()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs sm:text-sm transition text-center"><i class="fa-solid fa-download mr-1"></i> Export CSV</button>
+      <button onclick="exportPDF()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs sm:text-sm transition text-center font-medium"><i class="fa-solid fa-file-pdf mr-1"></i> Export PDF Report</button>
     </div>
   </div>
 </header>
 
-<div class="bg-white border-b border-slate-200 shadow-sm no-print">
-  <div class="max-w-[1600px] mx-auto px-6 py-4">
-    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-6 lg:flex lg:flex-wrap gap-3 items-center">
-      <div class="drag-zone px-4 py-3 cursor-pointer" onclick="document.getElementById('file-calera').click()">
+<div class="bg-white border-b border-slate-200 no-print">
+  <div class="max-w-[1600px] mx-auto px-4 py-3">
+    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-6 lg:flex lg:flex-wrap gap-2 sm:gap-3 items-center">
+      <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-calera').click()">
         <input type="file" id="file-calera" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'calera')">
-        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-cloud-arrow-up text-purple-600 text-base"></i><span class="font-semibold truncate">CALERA</span></div>
-        <span class="text-slate-400 text-[11px] block truncate mt-0.5" id="status-calera">No file chosen</span>
+        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-purple-600"></i><span class="font-medium truncate">CALERA</span></div>
+        <span class="text-slate-400 text-[10px] block truncate" id="status-calera">No file</span>
       </div>
-      <div class="drag-zone px-4 py-3 cursor-pointer" onclick="document.getElementById('file-core').click()">
+      <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-core').click()">
         <input type="file" id="file-core" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'core')">
-        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-cloud-arrow-up text-teal-600 text-base"></i><span class="font-semibold truncate">CORE 2</span></div>
-        <span class="text-slate-400 text-[11px] block truncate mt-0.5" id="status-core">No file chosen</span>
+        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-teal-600"></i><span class="font-medium truncate">CORE 2</span></div>
+        <span class="text-slate-400 text-[10px] block truncate" id="status-core">No file</span>
       </div>
-      <div class="drag-zone px-4 py-3 cursor-pointer" onclick="document.getElementById('file-flowbio').click()">
+      <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-flowbio').click()">
         <input type="file" id="file-flowbio" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'flowbio')">
-        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-cloud-arrow-up text-blue-600 text-base"></i><span class="font-semibold truncate">FLOWBIO</span></div>
-        <span class="text-slate-400 text-[11px] block truncate mt-0.5" id="status-flowbio">No file chosen</span>
+        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-blue-600"></i><span class="font-medium truncate">FLOWBIO</span></div>
+        <span class="text-slate-400 text-[10px] block truncate" id="status-flowbio">No file</span>
       </div>
-      <div class="drag-zone px-4 py-3 cursor-pointer" onclick="document.getElementById('file-env').click()">
+      <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-env').click()">
         <input type="file" id="file-env" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'env')">
-        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-cloud-arrow-up text-emerald-600 text-base"></i><span class="font-semibold truncate">Environment</span></div>
-        <span class="text-slate-400 text-[11px] block truncate mt-0.5" id="status-env">No file chosen</span>
+        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-green-600"></i><span class="font-medium truncate">Environment</span></div>
+        <span class="text-slate-400 text-[10px] block truncate" id="status-env">No file</span>
       </div>
 
-      <div class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-4 text-xs">
+      <div class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3 text-xs">
         <div>
-          <div class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Sensor Availability (%)</div>
-          <div class="flex items-center gap-1.5 font-semibold text-slate-700 text-xs mt-0.5">
-            <span class="text-purple-700">C: <span id="sum-pct-calera">0%</span></span>
+          <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Sensor Status (%)</div>
+          <div class="flex items-center gap-1 font-medium text-slate-700 text-[11px]">
+            <span>C: <span id="sum-pct-calera">0%</span></span>
             <span class="text-slate-300">|</span>
-            <span class="text-teal-700">R2: <span id="sum-pct-core">0%</span></span>
+            <span>R2: <span id="sum-pct-core">0%</span></span>
             <span class="text-slate-300">|</span>
-            <span class="text-blue-700">FB: <span id="sum-pct-flowbio">0%</span></span>
+            <span>FB: <span id="sum-pct-flowbio">0%</span></span>
           </div>
         </div>
       </div>
 
-      <button onclick="processAllData()" class="col-span-2 sm:col-span-2 md:grid-cols-6 lg:ml-auto px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 shadow-sm"><i class="fa-solid fa-rotate"></i> Process Data</button>
+      <button onclick="processAllData()" class="col-span-2 sm:col-span-2 md:grid-cols-6 lg:ml-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs sm:text-sm font-medium transition text-center"><i class="fa-solid fa-rotate mr-1"></i> Process Data</button>
     </div>
   </div>
 </div>
 
-<div class="max-w-[1600px] mx-auto px-6 py-4 no-print overflow-x-auto hide-scrollbar">
-  <div class="flex gap-2 bg-slate-200/70 p-1.5 rounded-2xl inline-flex min-w-full sm:min-w-0">
-    <button class="tab-btn active px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition whitespace-nowrap flex items-center gap-2" onclick="showTab('summary')"><i class="fa-solid fa-chart-pie"></i> Dashboard</button>
-    <button class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex items-center gap-2" onclick="showTab('processed')"><i class="fa-solid fa-table-list"></i> Processed Data</button>
-    <button class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex items-center gap-2" onclick="showTab('charts')"><i class="fa-solid fa-chart-line"></i> Interactive Charts</button>
-    <button class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex items-center gap-2" onclick="showTab('compare')"><i class="fa-solid fa-scale-balanced"></i> Compare Lengths</button>
-    <button class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex items-center gap-2" onclick="showTab('sweat')"><i class="fa-solid fa-droplet"></i> Sweat</button>
-    <button class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex items-center gap-2" onclick="showTab('events')"><i class="fa-solid fa-clock-rotate-left"></i> Events & Breaks</button>
-    <button class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex items-center gap-2" onclick="showTab('archive')"><i class="fa-solid fa-box-archive"></i> Saved Reports & Archive</button>
-    <button class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex items-center gap-2" onclick="showTab('settings')"><i class="fa-solid fa-gear"></i> Settings</button>
+<div class="max-w-[1600px] mx-auto px-4 py-3 no-print overflow-x-auto hide-scrollbar">
+  <div class="flex gap-1 bg-slate-200/60 p-1 rounded-xl inline-flex min-w-full sm:min-w-0">
+    <button class="tab-btn active px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap" onclick="showTab('summary')">Dashboard</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('processed')">Processed Data</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('charts')">Interactive Charts</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('compare')">Compare Lengths</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('sweat')">Sweat</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('events')">Events & Breaks</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('archive')">Saved Reports & Archive</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('settings')">Settings</button>
   </div>
 </div>
 
-<div class="max-w-[1600px] mx-auto px-6 pb-12 pt-2" id="pdf-container">
+<div class="max-w-[1600px] mx-auto px-4 pb-12" id="pdf-container">
 
 <div id="tab-summary" class="tab-content">
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="card p-6">
-      <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-user-pen text-blue-600"></i> Session Information</div>
-      <div class="grid grid-cols-2 gap-3.5">
-        <div><label class="text-xs font-medium text-slate-500">Athlete</label><input id="inp-athlete" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm mt-1 no-print-bg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Name"></div>
-        <div><label class="text-xs font-medium text-slate-500">Date</label><input type="date" id="inp-date" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm mt-1 no-print-bg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
-        <div><label class="text-xs font-medium text-slate-500">Activity</label><input id="inp-activity" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm mt-1 no-print-bg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. Match"></div>
-        <div><label class="text-xs font-medium text-slate-500">Distance (km)</label><input id="inp-distance" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm mt-1 no-print-bg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0"></div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Session Information</div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs text-slate-400">Athlete</label><input id="inp-athlete" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="Name"></div>
+        <div><label class="text-xs text-slate-400">Date</label><input type="date" id="inp-date" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg"></div>
+        <div><label class="text-xs text-slate-400">Activity</label><input id="inp-activity" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="e.g. Badminton Match"></div>
+        <div><label class="text-xs text-slate-400">Distance (km)</label><input id="inp-distance" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="0"></div>
       </div>
-      <div class="mt-4 pt-4 border-t border-slate-100 space-y-3">
-        <div class="flex justify-between items-center text-xs sm:text-sm"><span class="text-slate-500 font-medium">Duration</span><span class="font-bold text-slate-800" id="sum-duration">—</span></div>
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-medium text-slate-500">Environment</label>
-          <input id="inp-env" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm no-print-bg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 24.5 °C : 60% RH">
+      <div class="mt-3 pt-3 border-t border-slate-100 space-y-2">
+        <div class="flex justify-between items-center text-xs sm:text-sm"><span class="text-slate-500">Duration</span><span class="font-semibold" id="sum-duration">—</span></div>
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between items-center text-xs sm:text-sm"><span class="text-slate-500">Environment</span></div>
+          <input id="inp-env" class="w-full border rounded px-2 py-1 text-xs sm:text-sm no-print-bg" placeholder="e.g. 24.5 °C : 60% RH">
         </div>
       </div>
-      <div class="mt-5 pt-4 border-t border-slate-100">
-        <button onclick="saveCurrentReportToArchive()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-2 shadow-sm"><i class="fa-solid fa-bookmark"></i> Save Report to Page Archive</button>
+      <div class="mt-4 pt-3 border-t border-slate-100 flex gap-2">
+        <button onclick="saveCurrentReportToArchive()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition"><i class="fa-solid fa-bookmark mr-1"></i> Save Report to Page Archive</button>
       </div>
     </div>
     
-    <div class="card p-6 lg:col-span-2 flex flex-col justify-between">
-      <div>
-        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-temperature-arrow-up text-red-600"></i> Core Temperature Information</div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <div class="text-xs font-medium text-slate-500 mb-1">Start</div>
-            <div class="big-number text-slate-700" id="sum-start">—</div>
-            <div class="text-[11px] text-slate-400 mt-1 font-medium">°C</div>
-          </div>
-          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <div class="text-xs font-medium text-slate-500 mb-1">Maximum</div>
-            <div class="big-number text-red-600" id="sum-max">—</div>
-            <div class="text-[11px] text-slate-400 mt-1 font-medium">°C</div>
-          </div>
-          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <div class="text-xs font-medium text-slate-500 mb-1">Final</div>
-            <div class="big-number text-slate-700" id="sum-final">—</div>
-            <div class="text-[11px] text-slate-400 mt-1 font-medium">°C</div>
-          </div>
-          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <div class="text-xs font-medium text-slate-500 mb-1">Cutoff Reached?</div>
-            <div class="big-number text-slate-800" id="sum-cutoff">—</div>
-            <div class="text-[11px] text-slate-400 mt-1 font-medium">39.7 °C threshold</div>
-          </div>
-        </div>
-      </div>
-      <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
-        <span>Thermal Load Assessment & Strain Analysis</span>
-        <span class="text-slate-400">Continuous telemetry monitoring</span>
+    <div class="card p-4 lg:col-span-2">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Core Temperature Information</div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div><div class="text-xs text-slate-400 mb-1">Start</div><div class="big-number text-slate-700" id="sum-start">—</div><div class="text-[10px] sm:text-xs text-slate-400">°C</div></div>
+        <div><div class="text-xs text-slate-400 mb-1">Maximum</div><div class="big-number" id="sum-max">—</div><div class="text-[10px] sm:text-xs text-slate-400">°C</div></div>
+        <div><div class="text-xs text-slate-400 mb-1">Final</div><div class="big-number text-slate-700" id="sum-final">—</div><div class="text-[10px] sm:text-xs text-slate-400">°C</div></div>
+        <div><div class="text-xs text-slate-400 mb-1">Cutoff Reached?</div><div class="big-number" id="sum-cutoff">—</div><div class="text-[10px] sm:text-xs text-slate-400">39.7 °C threshold</div></div>
       </div>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-    <div class="card p-6 lg:col-span-1">
-      <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-chart-bar text-teal-600"></i> Time Spent in Zones</div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+    <!-- Time Spent in Zones -->
+    <div class="card p-4 lg:col-span-1">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Time Spent in Zones</div>
       <div class="overflow-x-auto">
         <table class="w-full text-xs sm:text-sm">
-          <thead><tr class="text-left text-[11px] font-semibold text-slate-400 border-b border-slate-100"><th class="pb-3">Zone</th><th class="pb-3">Time (min)</th><th class="pb-3">%</th></tr></thead>
+          <thead><tr class="text-left text-[10px] sm:text-xs text-slate-400 border-b border-slate-100"><th class="pb-2">Zone</th><th class="pb-2">Time (min)</th><th class="pb-2">%</th></tr></thead>
           <tbody id="zone-table">
-            <tr><td class="py-2.5 font-semibold zone-1">Zone 1 (&lt;38.0)</td><td class="py-2.5 font-medium" id="z1-time">—</td><td class="py-2.5 font-medium" id="z1-pct">—</td></tr>
-            <tr><td class="py-2.5 font-semibold zone-2">Zone 2 (38.0–38.9)</td><td class="py-2.5 font-medium" id="z2-time">—</td><td class="py-2.5 font-medium" id="z2-pct">—</td></tr>
-            <tr><td class="py-2.5 font-semibold zone-3">Zone 3 (39.0–39.6)</td><td class="py-2.5 font-medium" id="z3-time">—</td><td class="py-2.5 font-medium" id="z3-pct">—</td></tr>
-            <tr><td class="py-2.5 font-semibold zone-4">Zone 4 / Cutoff (&ge;39.7)</td><td class="py-2.5 font-medium" id="z4-time">—</td><td class="py-2.5 font-medium" id="z4-pct">—</td></tr>
+            <tr><td class="py-1.5 font-medium zone-1">Zone 1 (&lt;38.0)</td><td class="py-1.5" id="z1-time">—</td><td class="py-1.5" id="z1-pct">—</td></tr>
+            <tr><td class="py-1.5 font-medium zone-2">Zone 2 (38.0–38.9)</td><td class="py-1.5" id="z2-time">—</td><td class="py-1.5" id="z2-pct">—</td></tr>
+            <tr><td class="py-1.5 font-medium zone-3">Zone 3 (39.0–39.6)</td><td class="py-1.5" id="z3-time">—</td><td class="py-1.5" id="z3-pct">—</td></tr>
+            <tr><td class="py-1.5 font-medium zone-4">Zone 4 / Cutoff (&ge;39.7)</td><td class="py-1.5" id="z4-time">—</td><td class="py-1.5" id="z4-pct">—</td></tr>
         </tbody></table>
       </div>
-      <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 flex justify-between items-center">
-        <span>Zone Transitions:</span>
-        <span class="font-bold text-slate-700" id="sum-transitions">—</span>
+      <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500">Transitions: <span class="font-semibold text-slate-700" id="sum-transitions">—</span></div>
+    </div>
+
+    <!-- Sweat Response -->
+    <div class="card p-4 lg:col-span-1">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Sweat Response</div>
+      <div class="space-y-2 text-xs sm:text-sm">
+        <div class="flex justify-between"><span class="text-slate-500">Avg Sweat Rate</span><span class="font-semibold" id="sum-sweat-avg">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Max Sweat Rate</span><span class="font-semibold" id="sum-sweat-max">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Total Sensor Loss</span><span class="font-semibold" id="sum-sweat-total">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Est. Loss (Mass)</span><span class="font-semibold" id="sum-sweat-mass-sum">—</span></div>
       </div>
     </div>
 
-    <div class="card p-6 lg:col-span-1">
-      <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-droplet text-blue-600"></i> Sweat Response</div>
-      <div class="space-y-3.5 text-xs sm:text-sm">
-        <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl"><span class="text-slate-500 font-medium">Avg Sweat Rate</span><span class="font-bold text-slate-800" id="sum-sweat-avg">—</span></div>
-        <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl"><span class="text-slate-500 font-medium">Max Sweat Rate</span><span class="font-bold text-slate-800" id="sum-sweat-max">—</span></div>
-        <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl"><span class="text-slate-500 font-medium">Total Sensor Loss</span><span class="font-bold text-slate-800" id="sum-sweat-total">—</span></div>
-        <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl"><span class="text-slate-500 font-medium">Est. Loss (Mass)</span><span class="font-bold text-slate-800" id="sum-sweat-mass-sum">—</span></div>
-      </div>
-    </div>
-
-    <div class="card p-6 lg:col-span-1">
-      <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-heart-pulse text-red-500"></i> Heart Rate (HR)</div>
-      <div class="space-y-4 text-xs sm:text-sm">
-        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
-          <div><div class="text-xs font-medium text-slate-500 mb-1">Average HR</div><div class="text-xl font-bold text-slate-800" id="sum-hr-avg">—</div></div>
-          <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-500 text-lg"><i class="fa-solid fa-heart"></i></div>
-        </div>
-        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
-          <div><div class="text-xs font-medium text-slate-500 mb-1">Maximum HR</div><div class="text-xl font-bold text-red-600" id="sum-hr-max">—</div></div>
-          <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600 text-lg"><i class="fa-solid fa-fire"></i></div>
-        </div>
+    <!-- Heart Rate (HR) -->
+    <div class="card p-4 lg:col-span-1">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Heart Rate (HR)</div>
+      <div class="space-y-3 text-xs sm:text-sm">
+        <div class="flex justify-between"><span class="text-slate-500">Average HR</span><span class="font-semibold" id="sum-hr-avg">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Maximum HR</span><span class="font-semibold" id="sum-hr-max">—</span></div>
       </div>
     </div>
   </div>
 
-  <div class="card p-6 mt-6">
-    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-chart-line text-blue-600"></i> Interactive Charts & Trends</div>
-    <div class="relative w-full h-[380px]">
+  <!-- PDF Section: Interactive Charts Overview -->
+  <div class="card p-4 mt-4">
+    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Interactive Charts & Trends</div>
+    <div class="relative w-full h-[350px]">
       <canvas id="pdfThermalChart"></canvas>
     </div>
   </div>
 
-  <div id="pdf-compare-section" class="card p-6 mt-6 hidden">
-    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2"><i class="fa-solid fa-scale-balanced text-teal-600"></i> Length Comparison Analysis</div>
-    <div id="pdf-compare-text" class="text-xs sm:text-sm text-slate-700 mb-4 font-semibold p-3 bg-slate-50 rounded-xl border border-slate-100">No comparison run yet.</div>
-    <div class="relative w-full h-[280px]">
+  <!-- PDF Section: Comparison Results if ran -->
+  <div id="pdf-compare-section" class="card p-4 mt-4 hidden">
+    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Length Comparison Analysis</div>
+    <div id="pdf-compare-text" class="text-xs sm:text-sm text-slate-700 mb-3 font-medium">No comparison run yet.</div>
+    <div class="relative w-full h-[250px]">
       <canvas id="pdfCompareChart"></canvas>
     </div>
-  </div>
-
-  <div class="pdf-footer">
-    Heat and Hydration Analysis Report &middot; Prepared by Ben Neal &middot; Contact: ben.neal@canterbury.ac.uk
   </div>
 </div>
 
 <div id="tab-processed" class="tab-content hidden">
-  <div class="card p-6">
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-      <div class="flex items-center gap-4 flex-wrap">
-        <h3 class="font-bold text-base text-slate-800">Processed Master Timeline</h3>
-        <div class="flex items-center gap-2.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-          <label class="text-xs text-slate-600 font-semibold">Averaging:</label>
-          <select id="avg-interval-select" onchange="renderProcessedTable(1)" class="bg-transparent border-none text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
+  <div class="card p-4">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
+      <div class="flex items-center gap-3">
+        <h3 class="font-semibold text-sm">Processed Master Timeline</h3>
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-slate-500 font-medium">Averaging Interval:</label>
+          <select id="avg-interval-select" onchange="renderProcessedTable(1)" class="border rounded px-2 py-1 text-xs bg-slate-50 font-medium text-slate-700 focus:outline-none">
             <option value="raw">Raw (Every second)</option>
             <option value="10">10 seconds</option>
             <option value="30">30 seconds</option>
@@ -258,9 +263,9 @@ table.data-table tr:hover td { background: #f8fafc; }
           </select>
         </div>
       </div>
-      <div class="flex gap-3 w-full sm:w-auto"><input id="proc-search" class="border border-slate-200 rounded-xl px-3 py-2 text-xs w-full sm:w-56 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search timeline..." oninput="renderProcessedTable(1)"><span class="text-xs font-semibold text-slate-400 self-center shrink-0" id="proc-count">0 rows</span></div>
+      <div class="flex gap-2 w-full sm:w-auto"><input id="proc-search" class="border rounded px-2 py-1 text-xs w-full sm:w-48" placeholder="Search..." oninput="renderProcessedTable(1)"><span class="text-xs text-slate-400 self-center shrink-0" id="proc-count">0 rows</span></div>
     </div>
-    <div class="overflow-x-auto max-h-[550px] border border-slate-200 rounded-xl shadow-inner">
+    <div class="overflow-x-auto max-h-[500px] sm:max-h-[600px] border rounded-lg">
       <table class="data-table">
         <thead><tr>
           <th>Time Window</th><th>Unified Core</th><th>Source</th><th>CALERA</th><th>CORE 2</th><th>Delta</th><th>HR</th><th>Skin</th><th>Sweat Rate</th><th>Ambient</th><th>RH</th><th>Zone</th>
@@ -272,41 +277,40 @@ table.data-table tr:hover td { background: #f8fafc; }
 </div>
 
 <div id="tab-charts" class="tab-content hidden">
-  <div class="card p-6">
+  <div class="card p-4">
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
-      <h3 class="font-bold text-base text-slate-800">Interactive Core Temperature & Sweat Loss Dynamics</h3>
+      <h3 class="font-semibold text-sm">Interactive Core Temperature & Sweat Loss Dynamics</h3>
     </div>
-    <div class="relative w-full h-[480px]">
+    <div class="relative w-full h-[450px]">
       <canvas id="thermalChart"></canvas>
     </div>
   </div>
 </div>
 
 <div id="tab-compare" class="tab-content hidden">
-  <div class="card p-6">
-    <h3 class="font-bold text-base text-slate-800 mb-2">Compare Core Temperatures Across Specific Lengths / Intervals</h3>
-    <p class="text-xs text-slate-500 mb-6 font-medium">Select two different time windows to analyze thermal kinetics and strain differentials side-by-side.</p>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <div class="p-4 border border-slate-200 rounded-2xl bg-slate-50/50">
-        <h4 class="font-bold text-xs text-slate-700 uppercase tracking-wider mb-3">Interval A</h4>
-        <div class="grid grid-cols-2 gap-3">
-          <div><label class="text-[11px] font-medium text-slate-500">Start (min)</label><input type="number" id="cmp-a-start" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs mt-1 bg-white" value="0"></div>
-          <div><label class="text-[11px] font-medium text-slate-500">End (min)</label><input type="number" id="cmp-a-end" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs mt-1 bg-white" value="30"></div>
+  <div class="card p-4">
+    <h3 class="font-semibold text-sm mb-2">Compare Core Temperatures Across Specific Lengths / Intervals</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div class="p-3 border rounded-lg bg-slate-50">
+        <h4 class="font-semibold text-xs text-slate-700 mb-2">Interval A</h4>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="text-[10px] text-slate-500">Start (min)</label><input type="number" id="cmp-a-start" class="w-full border rounded px-2 py-1 text-xs" value="0"></div>
+          <div><label class="text-[10px] text-slate-500">End (min)</label><input type="number" id="cmp-a-end" class="w-full border rounded px-2 py-1 text-xs" value="30"></div>
         </div>
       </div>
-      <div class="p-4 border border-slate-200 rounded-2xl bg-slate-50/50">
-        <h4 class="font-bold text-xs text-slate-700 uppercase tracking-wider mb-3">Interval B</h4>
-        <div class="grid grid-cols-2 gap-3">
-          <div><label class="text-[11px] font-medium text-slate-500">Start (min)</label><input type="number" id="cmp-b-start" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs mt-1 bg-white" value="30"></div>
-          <div><label class="text-[11px] font-medium text-slate-500">End (min)</label><input type="number" id="cmp-b-end" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs mt-1 bg-white" value="60"></div>
+      <div class="p-3 border rounded-lg bg-slate-50">
+        <h4 class="font-semibold text-xs text-slate-700 mb-2">Interval B</h4>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="text-[10px] text-slate-500">Start (min)</label><input type="number" id="cmp-b-start" class="w-full border rounded px-2 py-1 text-xs" value="30"></div>
+          <div><label class="text-[10px] text-slate-500">End (min)</label><input type="number" id="cmp-b-end" class="w-full border rounded px-2 py-1 text-xs" value="60"></div>
         </div>
       </div>
     </div>
-    <button onclick="runCoreComparison()" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition mb-6 shadow-sm"><i class="fa-solid fa-play mr-1.5"></i> Run Comparison Analysis</button>
-    <div id="compare-results" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 hidden">
-      <div class="p-4 border border-slate-200 rounded-2xl bg-white"><div class="text-xs font-bold text-slate-400 uppercase">Interval A Stats</div><div id="cmp-res-a" class="text-sm font-bold text-slate-800 mt-2">—</div></div>
-      <div class="p-4 border border-slate-200 rounded-2xl bg-white"><div class="text-xs font-bold text-slate-400 uppercase">Interval B Stats</div><div id="cmp-res-b" class="text-sm font-bold text-slate-800 mt-2">—</div></div>
-      <div class="p-4 border border-slate-200 rounded-2xl bg-white"><div class="text-xs font-bold text-slate-400 uppercase">Differential & Kinetics</div><div id="cmp-res-diff" class="text-sm font-bold text-blue-600 mt-2">—</div></div>
+    <button onclick="runCoreComparison()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition mb-4">Run Comparison Analysis</button>
+    <div id="compare-results" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 hidden">
+      <div class="p-3 border rounded-lg"><div class="text-xs text-slate-400">Interval A Stats</div><div id="cmp-res-a" class="text-sm font-semibold mt-1">—</div></div>
+      <div class="p-3 border rounded-lg"><div class="text-xs text-slate-400">Interval B Stats</div><div id="cmp-res-b" class="text-sm font-semibold mt-1">—</div></div>
+      <div class="p-3 border rounded-lg"><div class="text-xs text-slate-400">Differential & Kinetics</div><div id="cmp-res-diff" class="text-sm font-semibold mt-1">—</div></div>
     </div>
     <div class="relative w-full h-[350px]">
       <canvas id="compareChart"></canvas>
@@ -315,27 +319,27 @@ table.data-table tr:hover td { background: #f8fafc; }
 </div>
 
 <div id="tab-sweat" class="tab-content hidden">
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="card p-6">
-      <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Body Mass Inputs</div>
-      <div class="space-y-4">
-        <div><label class="text-xs font-medium text-slate-500">Pre-session mass (kg)</label><input type="number" step="0.1" id="sw-pre" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
-        <div><label class="text-xs font-medium text-slate-500">Post-session mass (kg)</label><input type="number" step="0.1" id="sw-post" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Body Mass Inputs</div>
+      <div class="space-y-3">
+        <div><label class="text-xs text-slate-500">Pre-session mass (kg)</label><input type="number" step="0.1" id="sw-pre" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
+        <div><label class="text-xs text-slate-500">Post-session mass (kg)</label><input type="number" step="0.1" id="sw-post" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
       </div>
     </div>
-    <div class="card p-6 lg:col-span-2">
-      <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Calculated Metrics</div>
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100"><div class="text-xs font-medium text-slate-500 mb-1">Est. Loss (Mass)</div><div class="text-xl font-bold text-slate-800" id="sw-mass">—</div></div>
+    <div class="card p-4 lg:col-span-2">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Calculated Metrics</div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div><div class="text-xs text-slate-400">Est. Loss (Mass)</div><div class="font-semibold text-base sm:text-lg" id="sw-mass">—</div></div>
       </div>
     </div>
   </div>
 </div>
 
 <div id="tab-events" class="tab-content hidden">
-  <div class="card p-6">
-    <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-base text-slate-800">Events & Breaks</h3></div>
-    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+  <div class="card p-4">
+    <div class="flex items-center justify-between mb-3"><h3 class="font-semibold text-sm">Events & Breaks</h3></div>
+    <div class="overflow-x-auto border rounded-lg">
       <table class="data-table">
         <thead><tr><th>Start Time</th><th>End Time</th><th>Type</th><th>Description</th></tr></thead>
         <tbody id="events-tbody"></tbody>
@@ -345,15 +349,14 @@ table.data-table tr:hover td { background: #f8fafc; }
 </div>
 
 <div id="tab-archive" class="tab-content hidden">
-  <div class="card p-6">
-    <div class="flex items-center justify-between mb-6">
+  <div class="card p-4">
+    <div class="flex items-center justify-between mb-4">
       <div>
-        <h3 class="font-bold text-base text-slate-800">Saved Reports & Page Archive</h3>
-        <p class="text-xs text-slate-500 mt-0.5">Manage your stored historical session reports locally.</p>
+        <h3 class="font-semibold text-sm">Saved Reports & Page Archive</h3>
       </div>
-      <button onclick="clearArchive()" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl text-xs font-semibold transition border border-red-200">Clear Archive</button>
+      <button onclick="clearArchive()" class="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs transition">Clear Archive</button>
     </div>
-    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+    <div class="overflow-x-auto border rounded-lg">
       <table class="data-table">
         <thead>
           <tr>
@@ -361,7 +364,7 @@ table.data-table tr:hover td { background: #f8fafc; }
           </tr>
         </thead>
         <tbody id="archive-tbody">
-          <tr><td colspan="6" class="text-center text-slate-400 py-6 font-medium">No saved reports in archive. Save a report from the Dashboard.</td></tr>
+          <tr><td colspan="6" class="text-center text-slate-400 py-4">No saved reports in archive. Save a report from the Dashboard.</td></tr>
         </tbody>
       </table>
     </div>
@@ -369,9 +372,9 @@ table.data-table tr:hover td { background: #f8fafc; }
 </div>
 
 <div id="tab-settings" class="tab-content hidden">
-  <div class="card p-6">
-    <h3 class="font-bold text-base text-slate-800 mb-2">Settings</h3>
-    <p class="text-xs text-slate-500 font-medium">Configure core temp zones, sensors, and parameters.</p>
+  <div class="card p-4">
+    <h3 class="font-semibold text-sm mb-3">Settings</h3>
+    <p class="text-xs text-slate-500">Configure core temp zones and sensors.</p>
   </div>
 </div>
 
@@ -707,17 +710,16 @@ function renderPDFCharts() {
     data: {
       labels: p.map(r => r.hhmmss),
       datasets: [
-        { label: 'Core Temp (°C)', data: p.map(r => r.unifiedCore), borderColor: '#dc2626', borderWidth: 2.5, pointRadius: 0, yAxisID: 'y', tension: 0.1 },
-        { label: 'Cumulative Sweat Loss (L)', data: p.map(r => r.cumulativeSweat), borderColor: '#0d9488', borderWidth: 2.5, pointRadius: 0, yAxisID: 'y1', tension: 0.1 }
+        { label: 'Core Temp (°C)', data: p.map(r => r.unifiedCore), borderColor: '#dc2626', borderWidth: 2, pointRadius: 0, yAxisID: 'y', tension: 0.1 },
+        { label: 'Cumulative Sweat Loss (L)', data: p.map(r => r.cumulativeSweat), borderColor: '#0d9488', borderWidth: 2, pointRadius: 0, yAxisID: 'y1', tension: 0.1 }
       ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { font: { weight: '600' } } } },
       scales: {
-        x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 10 } } },
-        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Core Temperature (°C)', font: { weight: '600' } } },
-        y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Sweat Loss (L)', font: { weight: '600' } }, grid: { drawOnChartArea: false } }
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 9 } } },
+        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Core Temperature (°C)' } },
+        y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Sweat Loss (L)' }, grid: { drawOnChartArea: false } }
       }
     }
   });
@@ -785,8 +787,8 @@ function renderProcessedTable(page) {
   let html = '';
   for (const r of rows) {
     html += `<tr>
-      <td class="font-medium">${r.hhmmss}</td>
-      <td class="font-bold">${fmtNum(r.unifiedCore, 2)}</td>
+      <td>${r.hhmmss}</td>
+      <td>${fmtNum(r.unifiedCore, 2)}</td>
       <td><span class="badge badge-green">${r.coreSource || 'Sensor'}</span></td>
       <td>${fmtNum(r.caleraCore, 2)}</td>
       <td>${fmtNum(r.core2Core, 2)}</td>
@@ -796,7 +798,7 @@ function renderProcessedTable(page) {
       <td>${fmtNum(r.sweatRate, 2)}</td>
       <td>${fmtNum(r.ambient, 1)}</td>
       <td>${fmtNum(r.rh, 1)}</td>
-      <td><span class="font-semibold">${r.zone || '—'}</span></td>
+      <td>${r.zone || '—'}</td>
     </tr>`;
   }
   tbody.innerHTML = html;
@@ -816,17 +818,16 @@ function renderChart() {
     data: {
       labels: p.map(r => r.hhmmss),
       datasets: [
-        { label: 'Core Temp (°C)', data: p.map(r => r.unifiedCore), borderColor: '#dc2626', borderWidth: 2.5, pointRadius: 0, yAxisID: 'y', tension: 0.1 },
-        { label: 'Cumulative Sweat Loss (L)', data: p.map(r => r.cumulativeSweat), borderColor: '#0d9488', borderWidth: 2.5, pointRadius: 0, yAxisID: 'y1', tension: 0.1 }
+        { label: 'Core Temp (°C)', data: p.map(r => r.unifiedCore), borderColor: '#dc2626', borderWidth: 2, pointRadius: 0, yAxisID: 'y', tension: 0.1 },
+        { label: 'Cumulative Sweat Loss (L)', data: p.map(r => r.cumulativeSweat), borderColor: '#0d9488', borderWidth: 2, pointRadius: 0, yAxisID: 'y1', tension: 0.1 }
       ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { font: { weight: '600' } } } },
       scales: {
         x: { grid: { display: false }, ticks: { maxTicksLimit: 12 } },
-        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Core Temperature (°C)', font: { weight: '600' } } },
-        y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Cumulative Sweat Loss (L)', font: { weight: '600' } }, grid: { drawOnChartArea: false } }
+        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Core Temperature (°C)' } },
+        y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Cumulative Sweat Loss (L)' }, grid: { drawOnChartArea: false } }
       }
     }
   });
@@ -853,8 +854,9 @@ function runCoreComparison() {
   document.getElementById('cmp-res-diff').innerHTML = `Peak Temp Δ: ${(sB.max - sA.max).toFixed(2)}°C`;
   document.getElementById('compare-results').classList.remove('hidden');
 
+  // Populate PDF Comparison view
   document.getElementById('pdf-compare-section').classList.remove('hidden');
-  document.getElementById('pdf-compare-textлогу')?.textContent || (document.getElementById('pdf-compare-text').textContent = statText);
+  document.getElementById('pdf-compare-text').textContent = statText;
 
   const maxLen = Math.max(subA.length, subB.length);
   const labels = Array.from({length: maxLen}, (_, i) => `Pt ${i+1}`);
@@ -872,14 +874,13 @@ function runCoreComparison() {
     data: {
       labels: labels,
       datasets: [
-        { label: `Interval A (${aStart}-${aEnd}m)`, data: dataA, borderColor: '#0284c7', borderWidth: 2.5, pointRadius: 0 },
-        { label: `Interval B (${bStart}-${bEnd}m)`, data: dataB, borderColor: '#d97706', borderWidth: 2.5, pointRadius: 0 }
+        { label: `Interval A (${aStart}-${aEnd}m)`, data: dataA, borderColor: '#0284c7', borderWidth: 2, pointRadius: 0 },
+        { label: `Interval B (${bStart}-${bEnd}m)`, data: dataB, borderColor: '#d97706', borderWidth: 2, pointRadius: 0 }
       ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { font: { weight: '600' } } } },
-      scales: { x: { grid: { display: false } }, y: { title: { display: true, text: 'Core Temp (°C)', font: { weight: '600' } } } }
+      scales: { x: { grid: { display: false } }, y: { title: { display: true, text: 'Core Temp (°C)' } } }
     }
   };
 
@@ -910,10 +911,10 @@ function renderArchiveTable() {
   if (!tbody) return;
   let archive = [];
   try { archive = JSON.parse(localStorage.getItem('heatReportArchive') || '[]'); } catch(e) {}
-  if (archive.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-slate-400 py-6 font-medium">No saved reports in archive. Save a report from the Dashboard.</td></tr>'; return; }
+  if (archive.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-slate-400 py-4">No saved reports in archive.</td></tr>'; return; }
   let html = '';
   archive.forEach((rec) => {
-    html += `<tr><td class="font-medium">${rec.dateSaved}</td><td class="font-semibold">${rec.athlete}</td><td>${rec.activity}</td><td>${rec.duration}</td><td class="font-bold ${rec.maxTemp >= 39.7 ? 'text-red-600' : 'text-slate-800'}">${rec.maxTemp.toFixed(2)} °C</td><td><span class="text-xs text-blue-600 font-semibold cursor-pointer">View</span></td></tr>`;
+    html += `<tr><td>${rec.dateSaved}</td><td>${rec.athlete}</td><td>${rec.activity}</td><td>${rec.duration}</td><td class="font-semibold">${rec.maxTemp.toFixed(2)} °C</td><td>—</td></tr>`;
   });
   tbody.innerHTML = html;
 }
@@ -928,6 +929,7 @@ function exportCSV() { alert('CSV Export ready.'); }
 function exportPDF() {
   if (AppState.processed.length === 0) { alert('No processed data to export.'); return; }
   
+  // Ensure we are on the dashboard/summary tab so the complete PDF report layout is fully visible & rendered
   showTab('summary');
 
   setTimeout(() => {
