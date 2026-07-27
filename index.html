@@ -3,56 +3,95 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Heat Analysis Dashboard — International Badminton</title>
+<title>Ben Neal Sports Science — Heat Analysis Dashboard</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
-body { font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; color: #0f172a; }
-h1, h2, h3, .font-heading { font-family: 'Playfair Display', serif; }
-.tab-btn.active { background: #0f172a; color: white; border-color: #0f172a; }
-.card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); margin-bottom: 1.25rem; }
-.big-number { font-size: 1.75rem; font-weight: 700; line-height: 1; font-family: 'Inter', sans-serif; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; }
+.tab-btn.active { background: #1e293b; color: white; border-color: #1e293b; }
+.card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 1rem; position: relative; }
+.big-number { font-size: 1.75rem; font-weight: 700; line-height: 1; }
 @media (min-width: 768px) { .big-number { font-size: 2.25rem; } }
 .zone-1 { color: #0d9488; }
 .zone-2 { color: #d97706; }
 .zone-3 { color: #ea580c; }
 .zone-4 { color: #dc2626; }
 .badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
-.badge-green { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-.badge-yellow { background: #fefce8; color: #854d0e; border: 1px solid #fef08a; }
-.badge-red { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-.drag-zone { border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; transition: all 0.2s; }
-.drag-zone:hover, .drag-zone.dragover { border-color: #0f172a; background: #f8fafc; }
+.badge-green { background: #dcfce7; color: #166534; }
+.badge-yellow { background: #fef9c3; color: #854d0e; }
+.badge-red { background: #fee2e2; color: #991b1b; }
+.drag-zone { border: 2px dashed #cbd5e1; border-radius: 12px; transition: all 0.2s; }
+.drag-zone:hover, .drag-zone.dragover { border-color: #3b82f6; background: #eff6ff; }
 table.data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; }
-table.data-table th { background: #f1f5f9; padding: 10px 12px; text-align: left; font-weight: 600; color: #334155; border-bottom: 1px solid #cbd5e1; position: sticky; top: 0; font-family: 'Inter', sans-serif; }
-table.data-table td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; }
+table.data-table th { background: #f8fafc; padding: 8px 12px; text-align: left; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; }
+table.data-table td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
 table.data-table tr:hover td { background: #f8fafc; }
 .cutoff-red { color: #dc2626; }
-@media print { .no-print { display: none !important; } .card { box-shadow: none; border: 1px solid #cbd5e1; break-inside: avoid; } }
+
+/* Custom Tooltip Styling */
+.sci-tooltip {
+  visibility: hidden;
+  position: absolute;
+  bottom: 105%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f172a;
+  color: #f8fafc;
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 400;
+  white-space: nowrap;
+  z-index: 50;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.sci-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -4px;
+  border-width: 4px;
+  border-style: solid;
+  border-color: #0f172a transparent transparent transparent;
+}
+.has-sci-tooltip:hover .sci-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+@media print { .no-print { display: none !important; } .card { box-shadow: none; border: 1px solid #e2e8f0; break-inside: avoid; } }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 </head>
-<body class="text-slate-900">
+<body class="text-slate-800">
 
-<!-- Professional Sports Science Header (Clean Monotone Lab Aesthetic) -->
-<header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50">
-  <div class="max-w-[1600px] mx-auto px-6 py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-    <div class="flex items-center gap-3.5">
-      <div class="w-9 h-9 bg-slate-800 border border-slate-700 rounded flex items-center justify-center shrink-0">
-        <svg class="w-5 h-5 text-slate-200" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+<!-- Professional Sports Science Enterprise Header -->
+<header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800">
+  <div class="max-w-[1600px] mx-auto px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 bg-slate-800 border border-slate-700 rounded flex items-center justify-center shrink-0">
+        <span class="font-bold text-xs text-blue-400 tracking-tighter">BN</span>
       </div>
       <div>
-        <h1 class="font-bold text-base sm:text-lg tracking-tight font-heading" id="txt-app-title">Heat Analysis Dashboard</h1>
-        <p class="text-[11px] text-slate-400 tracking-wide uppercase font-medium">Physiology &middot; Thermoregulation Lab &middot; Canterbury</p>
+        <div class="flex items-center gap-2">
+          <h1 class="font-semibold text-sm sm:text-base tracking-wide" id="txt-app-title">Ben Neal Sports Science</h1>
+          <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-medium border border-slate-700">Physiology & Thermal Lab</span>
+        </div>
+        <p class="text-[10px] sm:text-xs text-slate-400">CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO Sweat Analytics</p>
       </div>
     </div>
-    <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end no-print flex-wrap">
-      <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-slate-800 text-slate-200 border border-slate-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-slate-500">
+    <div class="flex items-center gap-2 w-full sm:w-auto justify-end no-print flex-wrap">
+      <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-2 py-1.5 text-xs sm:text-sm focus:outline-none">
         <option value="en">English (Default)</option>
         <option value="es">Español (Spanish)</option>
         <option value="pt">Português (Portuguese)</option>
@@ -64,92 +103,104 @@ table.data-table tr:hover td { background: #f8fafc; }
         <option value="da">Dansk (Danish)</option>
         <option value="de">Deutsch (German)</option>
       </select>
-      <button onclick="exportCSV()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded text-xs transition text-center font-medium"><i class="fa-solid fa-download mr-1.5 text-slate-400"></i> <span id="btn-export-csv">Export CSV</span></button>
-      <button onclick="exportPDF()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-white text-slate-900 rounded text-xs transition text-center font-semibold shadow-sm"><i class="fa-solid fa-file-pdf mr-1.5 text-red-600"></i> <span id="btn-export-pdf">Export PDF</span></button>
+      <button onclick="exportCSV()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs sm:text-sm transition text-center"><i class="fa-solid fa-download mr-1"></i> <span id="btn-export-csv">Export CSV</span></button>
+      <button onclick="exportPDF()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs sm:text-sm transition text-center font-medium"><i class="fa-solid fa-file-pdf mr-1"></i> <span id="btn-export-pdf">Export PDF</span></button>
     </div>
   </div>
 </header>
 
-<!-- Data Ingestion Sub-Bar -->
-<div class="bg-white border-b border-slate-200 no-print shadow-sm">
-  <div class="max-w-[1600px] mx-auto px-6 py-3">
-    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:flex lg:flex-wrap gap-3">
-      <div class="drag-zone px-3.5 py-2 cursor-pointer flex items-center justify-between" onclick="document.getElementById('file-calera').click()">
+<div class="bg-white border-b border-slate-200 no-print">
+  <div class="max-w-[1600px] mx-auto px-4 py-3">
+    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:flex lg:flex-wrap gap-2 sm:gap-3">
+      <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-calera').click()">
         <input type="file" id="file-calera" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'calera')">
-        <div><div class="text-xs font-semibold text-slate-700">CALERA</div><span class="text-slate-400 text-[10px] block" id="status-calera">No file</span></div>
-        <i class="fa-solid fa-plus text-slate-400 text-xs"></i>
+        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-purple-600"></i><span class="font-medium truncate">CALERA</span></div>
+        <span class="text-slate-400 text-[10px] block truncate" id="status-calera">No file</span>
       </div>
-      <div class="drag-zone px-3.5 py-2 cursor-pointer flex items-center justify-between" onclick="document.getElementById('file-core').click()">
+      <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-core').click()">
         <input type="file" id="file-core" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'core')">
-        <div><div class="text-xs font-semibold text-slate-700">CORE 2</div><span class="text-slate-400 text-[10px] block" id="status-core">No file</span></div>
-        <i class="fa-solid fa-plus text-slate-400 text-xs"></i>
+        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-teal-600"></i><span class="font-medium truncate">CORE 2</span></div>
+        <span class="text-slate-400 text-[10px] block truncate" id="status-core">No file</span>
       </div>
-      <div class="drag-zone px-3.5 py-2 cursor-pointer flex items-center justify-between" onclick="document.getElementById('file-flowbio').click()">
+      <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-flowbio').click()">
         <input type="file" id="file-flowbio" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'flowbio')">
-        <div><div class="text-xs font-semibold text-slate-700">FLOWBIO</div><span class="text-slate-400 text-[10px] block" id="status-flowbio">No file</span></div>
-        <i class="fa-solid fa-plus text-slate-400 text-xs"></i>
+        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-blue-600"></i><span class="font-medium truncate">FLOWBIO</span></div>
+        <span class="text-slate-400 text-[10px] block truncate" id="status-flowbio">No file</span>
       </div>
-      <div class="drag-zone px-3.5 py-2 cursor-pointer flex items-center justify-between" onclick="document.getElementById('file-env').click()">
+      <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-env').click()">
         <input type="file" id="file-env" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'env')">
-        <div><div class="text-xs font-semibold text-slate-700">Environment</div><span class="text-slate-400 text-[10px] block" id="status-env">No file</span></div>
-        <i class="fa-solid fa-plus text-slate-400 text-xs"></i>
+        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-green-600"></i><span class="font-medium truncate">Environment</span></div>
+        <span class="text-slate-400 text-[10px] block truncate" id="status-env">No file</span>
       </div>
-      <button onclick="processAllData()" class="col-span-2 sm:col-span-2 md:col-span-4 lg:ml-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-semibold transition text-center shadow-sm"><i class="fa-solid fa-rotate mr-1.5"></i> <span id="btn-process">Process Data</span></button>
+      <button onclick="processAllData()" class="col-span-2 sm:col-span-2 md:col-span-4 lg:ml-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs sm:text-sm font-medium transition text-center"><i class="fa-solid fa-rotate mr-1"></i> <span id="btn-process">Process Data</span></button>
     </div>
   </div>
 </div>
 
-<!-- Navigation Tabs -->
-<div class="max-w-[1600px] mx-auto px-6 pt-4 no-print overflow-x-auto hide-scrollbar">
-  <div class="flex gap-1.5 bg-slate-200/70 p-1 rounded-lg inline-flex min-w-full sm:min-w-0 border border-slate-300/60">
-    <button class="tab-btn active px-4 py-1.5 rounded text-xs font-medium transition whitespace-nowrap" onclick="showTab('summary')" id="tab-btn-dashboard">Dashboard</button>
-    <button class="tab-btn px-4 py-1.5 rounded text-xs font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('processed')" id="tab-btn-processed">Processed Data</button>
-    <button class="tab-btn px-4 py-1.5 rounded text-xs font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('raw')" id="tab-btn-raw">Raw Data</button>
-    <button class="tab-btn px-4 py-1.5 rounded text-xs font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('sweat')" id="tab-btn-sweat">Sweat</button>
-    <button class="tab-btn px-4 py-1.5 rounded text-xs font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('events')" id="tab-btn-events">Events & Breaks</button>
-    <button class="tab-btn px-4 py-1.5 rounded text-xs font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('settings')" id="tab-btn-settings">Settings</button>
+<div class="max-w-[1600px] mx-auto px-4 py-3 no-print overflow-x-auto hide-scrollbar">
+  <div class="flex gap-1 bg-slate-200/60 p-1 rounded-xl inline-flex min-w-full sm:min-w-0">
+    <button class="tab-btn active px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap" onclick="showTab('summary')" id="tab-btn-dashboard">Dashboard</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('processed')" id="tab-btn-processed">Processed Data</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('raw')" id="tab-btn-raw">Raw Data</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('sweat')" id="tab-btn-sweat">Sweat</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('events')" id="tab-btn-events">Events & Breaks</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('settings')" id="tab-btn-settings">Settings</button>
   </div>
 </div>
 
-<div class="max-w-[1600px] mx-auto px-6 py-4" id="pdf-container">
+<div class="max-w-[1600px] mx-auto px-4 pb-12" id="pdf-container">
 
 <div id="tab-summary" class="tab-content">
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <div class="card p-5">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3.5 font-heading" data-t="session_info">Session Information</h2>
-      <div class="grid grid-cols-2 gap-3">
-        <div><label class="text-[11px] text-slate-500 font-medium" data-t="athlete">Athlete</label><input id="inp-athlete" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs mt-0.5 no-print-bg focus:border-slate-900 focus:outline-none" placeholder="Name"></div>
-        <div><label class="text-[11px] text-slate-500 font-medium" data-t="date">Date</label><input type="date" id="inp-date" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs mt-0.5 no-print-bg focus:border-slate-900 focus:outline-none"></div>
-        <div><label class="text-[11px] text-slate-500 font-medium" data-t="activity">Activity</label><input id="inp-activity" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs mt-0.5 no-print-bg focus:border-slate-900 focus:outline-none" placeholder="e.g. Badminton Match"></div>
-        <div><label class="text-[11px] text-slate-500 font-medium" data-t="distance">Distance (km)</label><input id="inp-distance" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs mt-0.5 no-print-bg focus:border-slate-900 focus:outline-none" placeholder="0"></div>
+    <div class="card p-4 has-sci-tooltip">
+      <div class="sci-tooltip">Metadata regarding athlete profile, environmental context, and session workload</div>
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
+        <span data-t="session_info">Session Information</span>
+        <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
       </div>
-      <div class="mt-4 pt-3.5 border-t border-slate-100 space-y-1.5">
-        <div class="flex justify-between text-xs"><span class="text-slate-500" data-t="duration">Duration</span><span class="font-semibold text-slate-900" id="sum-duration">—</span></div>
-        <div class="flex justify-between text-xs"><span class="text-slate-500" data-t="environment">Environment</span><span class="font-semibold text-slate-900" id="sum-env">—</span></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs text-slate-400" data-t="athlete">Athlete</label><input id="inp-athlete" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="Name"></div>
+        <div><label class="text-xs text-slate-400" data-t="date">Date</label><input type="date" id="inp-date" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg"></div>
+        <div><label class="text-xs text-slate-400" data-t="activity">Activity</label><input id="inp-activity" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="e.g. Badminton Match"></div>
+        <div><label class="text-xs text-slate-400" data-t="distance">Distance (km)</label><input id="inp-distance" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="0"></div>
+      </div>
+      <div class="mt-3 pt-3 border-t border-slate-100">
+        <div class="flex justify-between text-xs sm:text-sm"><span class="text-slate-500" data-t="duration">Duration</span><span class="font-semibold" id="sum-duration">—</span></div>
+        <div class="flex justify-between text-xs sm:text-sm mt-1"><span class="text-slate-500" data-t="environment">Environment</span><span class="font-semibold" id="sum-env">—</span></div>
       </div>
     </div>
-    <div class="card p-5 lg:col-span-2">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3.5 font-heading" data-t="core_temp">Core Temperature</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div><div class="text-[11px] text-slate-500 font-medium mb-1" data-t="start">Start</div><div class="big-number text-slate-800" id="sum-start">—</div><div class="text-[10px] text-slate-400">°C</div></div>
-        <div><div class="text-[11px] text-slate-500 font-medium mb-1" data-t="maximum">Maximum</div><div class="big-number text-slate-900" id="sum-max">—</div><div class="text-[10px] text-slate-400">°C</div></div>
-        <div><div class="text-[11px] text-slate-500 font-medium mb-1" data-t="final">Final</div><div class="big-number text-slate-800" id="sum-final">—</div><div class="text-[10px] text-slate-400">°C</div></div>
-        <div><div class="text-[11px] text-slate-500 font-medium mb-1" data-t="cutoff_reached">Cutoff Reached?</div><div class="big-number text-slate-900" id="sum-cutoff">—</div><div class="text-[10px] text-slate-400" id="sum-cutoff-sub">39.7 °C threshold</div></div>
+    
+    <div class="card p-4 lg:col-span-2 has-sci-tooltip">
+      <div class="sci-tooltip">Core temperature profile parameters indicating thermal strain and physiological adaptation metrics</div>
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
+        <span data-t="core_temp">Core Temperature</span>
+        <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
       </div>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t border-slate-100">
-        <div><div class="text-[11px] text-slate-500 font-medium mb-1" data-t="total_rise">Total Rise</div><div class="font-semibold text-sm sm:text-base text-slate-900" id="sum-rise">—</div><div class="text-[10px] text-slate-400">°C</div></div>
-        <div><div class="text-[11px] text-slate-500 font-medium mb-1" data-t="net_change">Net Change</div><div class="font-semibold text-sm sm:text-base text-slate-900" id="sum-net">—</div><div class="text-[10px] text-slate-400">°C</div></div>
-        <div><div class="text-[11px] text-slate-500 font-medium mb-1" data-t="rate_rise">Rate of Rise</div><div class="font-semibold text-sm sm:text-base text-slate-900" id="sum-rate">—</div><div class="text-[10px] text-slate-400">°C/min</div></div>
-        <div><div class="text-[11px] text-slate-500 font-medium mb-1" data-t="time_to_max">Time to Max</div><div class="font-semibold text-sm sm:text-base text-slate-900" id="sum-timetomax">—</div><div class="text-[10px] text-slate-400">min</div></div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div><div class="text-xs text-slate-400 mb-1" data-t="start">Start</div><div class="big-number text-slate-700" id="sum-start">—</div><div class="text-[10px] sm:text-xs text-slate-400">°C</div></div>
+        <div><div class="text-xs text-slate-400 mb-1" data-t="maximum">Maximum</div><div class="big-number" id="sum-max">—</div><div class="text-[10px] sm:text-xs text-slate-400">°C</div></div>
+        <div><div class="text-xs text-slate-400 mb-1" data-t="final">Final</div><div class="big-number text-slate-700" id="sum-final">—</div><div class="text-[10px] sm:text-xs text-slate-400">°C</div></div>
+        <div><div class="text-xs text-slate-400 mb-1" data-t="cutoff_reached">Cutoff Reached?</div><div class="big-number" id="sum-cutoff">—</div><div class="text-[10px] sm:text-xs text-slate-400" id="sum-cutoff-sub">39.7 °C threshold</div></div>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-4 pt-4 border-t border-slate-100">
+        <div><div class="text-xs text-slate-400 mb-1" data-t="total_rise">Total Rise</div><div class="font-semibold text-base sm:text-lg" id="sum-rise">—</div><div class="text-[10px] sm:text-xs text-slate-400">°C</div></div>
+        <div><div class="text-xs text-slate-400 mb-1" data-t="net_change">Net Change</div><div class="font-semibold text-base sm:text-lg" id="sum-net">—</div><div class="text-[10px] sm:text-xs text-slate-400">°C</div></div>
+        <div><div class="text-xs text-slate-400 mb-1" data-t="rate_rise">Rate of Rise</div><div class="font-semibold text-base sm:text-lg" id="sum-rate">—</div><div class="text-[10px] sm:text-xs text-slate-400">°C/min</div></div>
+        <div><div class="text-xs text-slate-400 mb-1" data-t="time_to_max">Time to Max</div><div class="font-semibold text-base sm:text-lg" id="sum-timetomax">—</div><div class="text-[10px] sm:text-xs text-slate-400">min</div></div>
       </div>
     </div>
   </div>
+  
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <div class="card p-5">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3.5 font-heading" data-t="heat_exposure">Heat Exposure</h2>
+    <div class="card p-4 has-sci-tooltip">
+      <div class="sci-tooltip">Distribution of exercise duration spent within standardized thermal strain zones</div>
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
+        <span data-t="heat_exposure">Heat Exposure</span>
+        <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+      </div>
       <div class="overflow-x-auto">
-        <table class="w-full text-xs">
-          <thead><tr class="text-left text-[10px] text-slate-400 border-b border-slate-100 font-semibold"><th class="pb-2" data-t="zone">Zone</th><th class="pb-2" data-t="time">Time</th><th class="pb-2">%</th><th class="pb-2" data-t="first_entry">First Entry</th></tr></thead>
+        <table class="w-full text-xs sm:text-sm">
+          <thead><tr class="text-left text-[10px] sm:text-xs text-slate-400 border-b border-slate-100"><th class="pb-2" data-t="zone">Zone</th><th class="pb-2" data-t="time">Time</th><th class="pb-2">%</th><th class="pb-2" data-t="first_entry">First Entry</th></tr></thead>
           <tbody id="zone-table">
             <tr><td class="py-1.5 font-medium zone-1">Zone 1 (&lt;38.0)</td><td class="py-1.5" id="z1-time">—</td><td class="py-1.5" id="z1-pct">—</td><td class="py-1.5" id="z1-first">—</td></tr>
             <tr><td class="py-1.5 font-medium zone-2">Zone 2 (38.0–38.9)</td><td class="py-1.5" id="z2-time">—</td><td class="py-1.5" id="z2-pct">—</td><td class="py-1.5" id="z2-first">—</td></tr>
@@ -157,52 +208,67 @@ table.data-table tr:hover td { background: #f8fafc; }
             <tr><td class="py-1.5 font-medium zone-4">Zone 4 / Cutoff (&ge;39.7)</td><td class="py-1.5" id="z4-time">—</td><td class="py-1.5" id="z4-pct">—</td><td class="py-1.5" id="z4-first">—</td></tr>
         </tbody></table>
       </div>
-      <div class="mt-3.5 pt-3 border-t border-slate-100 text-xs text-slate-500"><span data-t="transitions">Transitions</span>: <span class="font-semibold text-slate-900" id="sum-transitions">—</span></div>
+      <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500"><span data-t="transitions">Transitions</span>: <span class="font-semibold text-slate-700" id="sum-transitions">—</span></div>
     </div>
-    <div class="card p-5">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3.5 font-heading" data-t="sweat_response">Sweat Response</h2>
-      <div class="space-y-2 text-xs">
-        <div class="flex justify-between"><span class="text-slate-500" data-t="avg_sweat_rate">Avg Sweat Rate</span><span class="font-semibold text-slate-900" id="sum-sweat-avg">—</span></div>
-        <div class="flex justify-between"><span class="text-slate-500" data-t="max_sweat_rate">Max Sweat Rate</span><span class="font-semibold text-slate-900" id="sum-sweat-max">—</span></div>
-        <div class="flex justify-between"><span class="text-slate-500" data-t="total_sensor_loss">Total Sensor Loss</span><span class="font-semibold text-slate-900" id="sum-sweat-total">—</span></div>
-        <div class="flex justify-between"><span class="text-slate-500" data-t="est_loss_mass">Est. Loss (Mass)</span><span class="font-semibold text-slate-900" id="sum-sweat-mass-sum">—</span></div>
-        <div class="flex justify-between"><span class="text-slate-500" data-t="sodium_loss">Sodium Loss</span><span class="font-semibold text-slate-900" id="sum-sodium">—</span></div>
+    
+    <div class="card p-4 has-sci-tooltip">
+      <div class="sci-tooltip">Hydration dynamics, sweat output rates, and estimated electrolyte losses</div>
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
+        <span data-t="sweat_response">Sweat Response</span>
+        <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
       </div>
-      <div class="mt-3.5 pt-3 border-t border-slate-100 text-[11px] text-slate-400" data-t="sensor_derived_note">Sensor-derived unless marked user-entered</div>
+      <div class="space-y-2 text-xs sm:text-sm">
+        <div class="flex justify-between"><span class="text-slate-500" data-t="avg_sweat_rate">Avg Sweat Rate</span><span class="font-semibold" id="sum-sweat-avg">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500" data-t="max_sweat_rate">Max Sweat Rate</span><span class="font-semibold" id="sum-sweat-max">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500" data-t="total_sensor_loss">Total Sensor Loss</span><span class="font-semibold" id="sum-sweat-total">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500" data-t="est_loss_mass">Est. Loss (Mass)</span><span class="font-semibold" id="sum-sweat-mass-sum">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500" data-t="sodium_loss">Sodium Loss</span><span class="font-semibold" id="sum-sodium">—</span></div>
+      </div>
+      <div class="mt-3 pt-3 border-t border-slate-100 text-[10px] sm:text-xs text-slate-400" data-t="sensor_derived_note">Sensor-derived unless marked user-entered</div>
     </div>
-    <div class="card p-5">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3.5 font-heading" data-t="hr_breaks">Heart Rate & Breaks</h2>
-      <div class="space-y-2 text-xs mb-3.5">
-        <div class="flex justify-between"><span class="text-slate-500" data-t="average_hr">Average HR</span><span class="font-semibold text-slate-900" id="sum-hr-avg">—</span></div>
-        <div class="flex justify-between"><span class="text-slate-500" data-t="maximum_hr">Maximum HR</span><span class="font-semibold text-slate-900" id="sum-hr-max">—</span></div>
+    
+    <div class="card p-4 has-sci-tooltip">
+      <div class="sci-tooltip">Cardiovascular strain metrics and recovery efficiency during structured breaks</div>
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
+        <span data-t="hr_breaks">Heart Rate & Breaks</span>
+        <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
       </div>
-      <div class="border-t border-slate-100 pt-3.5 space-y-2 text-xs">
-        <div class="flex justify-between"><span class="text-slate-500" data-t="breaks">Breaks</span><span class="font-semibold text-slate-900" id="sum-breaks-count">—</span></div>
-        <div class="flex justify-between"><span class="text-slate-500" data-t="total_break_time">Total Break Time</span><span class="font-semibold text-slate-900" id="sum-breaks-total">—</span></div>
-        <div class="flex justify-between"><span class="text-slate-500" data-t="largest_decline">Largest &Delta;T Decline</span><span class="font-semibold text-slate-900" id="sum-breaks-largest">—</span></div>
-        <div class="flex justify-between"><span class="text-slate-500" data-t="avg_decline">Avg Decline</span><span class="font-semibold text-slate-900" id="sum-breaks-avg">—</span></div>
+      <div class="space-y-2 text-xs sm:text-sm mb-3">
+        <div class="flex justify-between"><span class="text-slate-500" data-t="average_hr">Average HR</span><span class="font-semibold" id="sum-hr-avg">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500" data-t="maximum_hr">Maximum HR</span><span class="font-semibold" id="sum-hr-max">—</span></div>
+      </div>
+      <div class="border-t border-slate-100 pt-3 space-y-2 text-xs sm:text-sm">
+        <div class="flex justify-between"><span class="text-slate-500" data-t="breaks">Breaks</span><span class="font-semibold" id="sum-breaks-count">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500" data-t="total_break_time">Total Break Time</span><span class="font-semibold" id="sum-breaks-total">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500" data-t="largest_decline">Largest &Delta;T Decline</span><span class="font-semibold" id="sum-breaks-largest">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500" data-t="avg_decline">Avg Decline</span><span class="font-semibold" id="sum-breaks-avg">—</span></div>
       </div>
     </div>
   </div>
-  <div class="card p-5">
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3.5 font-heading" data-t="sensor_status">Sensor Status & Data Quality</h2>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="text-xs"><div class="text-slate-400 text-[11px]" data-t="primary_sensor">Primary Sensor</div><div class="font-semibold text-slate-900">CALERA</div></div>
-      <div class="text-xs"><div class="text-slate-400 text-[11px]" data-t="pct_primary">% Primary</div><div class="font-semibold text-slate-900" id="sum-pct-primary">—</div></div>
-      <div class="text-xs"><div class="text-slate-400 text-[11px]" data-t="pct_backup">% Backup</div><div class="font-semibold text-slate-900" id="sum-pct-backup">—</div></div>
-      <div class="text-xs"><div class="text-slate-400 text-[11px]" data-t="max_divergence">Max Divergence</div><div class="font-semibold text-slate-900" id="sum-divergence">—</div></div>
+  
+  <div class="card p-4 has-sci-tooltip">
+    <div class="sci-tooltip">Telemetry signal validation, primary sensor reliability, and multi-sensor tracking metrics</div>
+    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
+      <span data-t="sensor_status">Sensor Status & Data Quality</span>
+      <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
     </div>
-    <div class="mt-3.5 flex flex-wrap gap-2" id="quality-badges"><span class="badge badge-green" data-t="ready">Ready</span></div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div class="text-xs sm:text-sm"><div class="text-slate-400 text-[10px] sm:text-xs" data-t="primary_sensor">Primary Sensor</div><div class="font-semibold">CALERA</div></div>
+      <div class="text-xs sm:text-sm"><div class="text-slate-400 text-[10px] sm:text-xs" data-t="pct_primary">% Primary</div><div class="font-semibold" id="sum-pct-primary">—</div></div>
+      <div class="text-xs sm:text-sm"><div class="text-slate-400 text-[10px] sm:text-xs" data-t="pct_backup">% Backup</div><div class="font-semibold" id="sum-pct-backup">—</div></div>
+      <div class="text-xs sm:text-sm"><div class="text-slate-400 text-[10px] sm:text-xs" data-t="max_divergence">Max Divergence</div><div class="font-semibold" id="sum-divergence">—</div></div>
+    </div>
+    <div class="mt-3 flex flex-wrap gap-2" id="quality-badges"><span class="badge badge-green" data-t="ready">Ready</span></div>
   </div>
 </div>
 
 <div id="tab-processed" class="tab-content hidden">
-  <div class="card p-5">
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3.5">
-      <h3 class="font-bold text-sm font-heading" data-t="master_timeline">Processed Master Timeline</h3>
-      <div class="flex gap-2 w-full sm:w-auto"><input id="proc-search" class="border border-slate-300 rounded px-2.5 py-1 text-xs w-full sm:w-48 focus:border-slate-900 focus:outline-none" placeholder="Search..." oninput="renderProcessedTable(1)"><span class="text-xs text-slate-400 self-center shrink-0" id="proc-count">0 rows</span></div>
+  <div class="card p-4">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
+      <h3 class="font-semibold text-sm" data-t="master_timeline">Processed Master Timeline</h3>
+      <div class="flex gap-2 w-full sm:w-auto"><input id="proc-search" class="border rounded px-2 py-1 text-xs w-full sm:w-48" placeholder="Search..." oninput="renderProcessedTable(1)"><span class="text-xs text-slate-400 self-center shrink-0" id="proc-count">0 rows</span></div>
     </div>
-    <div class="overflow-x-auto max-h-[500px] sm:max-h-[600px] border border-slate-200 rounded">
+    <div class="overflow-x-auto max-h-[500px] sm:max-h-[600px] border rounded-lg">
       <table class="data-table">
         <thead><tr>
           <th data-t="th_elapsed">Elapsed (s)</th><th data-t="th_time">HH:MM:SS</th><th data-t="th_interval">Interval (s)</th><th data-t="th_core">Unified Core</th><th data-t="th_source">Source</th><th data-t="th_calera">CALERA</th><th data-t="th_core2">CORE 2</th><th data-t="th_delta">Delta</th><th data-t="th_hr">HR</th><th data-t="th_skin">Skin</th><th data-t="th_sweat">Sweat</th><th data-t="th_ambient">Ambient</th><th data-t="th_rh">RH</th><th data-t="th_zone">Zone</th><th data-t="th_break">Break?</th>
@@ -215,33 +281,33 @@ table.data-table tr:hover td { background: #f8fafc; }
 
 <div id="tab-raw" class="tab-content hidden">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <div class="card p-5"><h3 class="font-bold text-sm mb-2 font-heading">RAW CALERA DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-calera-info">No data imported</div><div class="overflow-x-auto max-h-[350px] border border-slate-200 rounded"><table class="data-table" id="raw-calera-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
-    <div class="card p-5"><h3 class="font-bold text-sm mb-2 font-heading">RAW CORE DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-core-info">No data imported</div><div class="overflow-x-auto max-h-[350px] border border-slate-200 rounded"><table class="data-table" id="raw-core-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
-    <div class="card p-5"><h3 class="font-bold text-sm mb-2 font-heading">RAW FLOWBIO DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-flowbio-info">No data imported</div><div class="overflow-x-auto max-h-[350px] border border-slate-200 rounded"><table class="data-table" id="raw-flowbio-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
-    <div class="card p-5"><h3 class="font-bold text-sm mb-2 font-heading">RAW ENVIRONMENTAL DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-env-info">No data imported</div><div class="overflow-x-auto max-h-[350px] border border-slate-200 rounded"><table class="data-table" id="raw-env-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
+    <div class="card p-4"><h3 class="font-semibold text-sm mb-2">RAW CALERA DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-calera-info">No data imported</div><div class="overflow-x-auto max-h-[350px] border rounded-lg"><table class="data-table" id="raw-calera-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
+    <div class="card p-4"><h3 class="font-semibold text-sm mb-2">RAW CORE DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-core-info">No data imported</div><div class="overflow-x-auto max-h-[350px] border rounded-lg"><table class="data-table" id="raw-core-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
+    <div class="card p-4"><h3 class="font-semibold text-sm mb-2">RAW FLOWBIO DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-flowbio-info">No data imported</div><div class="overflow-x-auto max-h-[350px] border rounded-lg"><table class="data-table" id="raw-flowbio-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
+    <div class="card p-4"><h3 class="font-semibold text-sm mb-2">RAW ENVIRONMENTAL DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-env-info">No data imported</div><div class="overflow-x-auto max-h-[350px] border rounded-lg"><table class="data-table" id="raw-env-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
   </div>
 </div>
 
 <div id="tab-sweat" class="tab-content hidden">
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <div class="card p-5">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3.5 font-heading" data-t="body_mass_inputs">Body Mass Inputs</h2>
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3" data-t="body_mass_inputs">Body Mass Inputs</div>
       <div class="space-y-3">
-        <div><label class="text-xs text-slate-500 font-medium" data-t="pre_mass">Pre-session mass (kg)</label><input type="number" step="0.1" id="sw-pre" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-sm mt-1 no-print-bg focus:border-slate-900 focus:outline-none" onchange="calculateSweatMetrics()"></div>
-        <div><label class="text-xs text-slate-500 font-medium" data-t="post_mass">Post-session mass (kg)</label><input type="number" step="0.1" id="sw-post" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-sm mt-1 no-print-bg focus:border-slate-900 focus:outline-none" onchange="calculateSweatMetrics()"></div>
-        <div><label class="text-xs text-slate-500 font-medium" data-t="fluid_consumed">Fluid consumed (L)</label><input type="number" step="0.1" id="sw-fluid" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-sm mt-1 no-print-bg focus:border-slate-900 focus:outline-none" onchange="calculateSweatMetrics()"></div>
-        <div><label class="text-xs text-slate-500 font-medium" data-t="urine_output">Urine output (L)</label><input type="number" step="0.1" id="sw-urine" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-sm mt-1 no-print-bg focus:border-slate-900 focus:outline-none" onchange="calculateSweatMetrics()"></div>
+        <div><label class="text-xs text-slate-500" data-t="pre_mass">Pre-session mass (kg)</label><input type="number" step="0.1" id="sw-pre" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
+        <div><label class="text-xs text-slate-500" data-t="post_mass">Post-session mass (kg)</label><input type="number" step="0.1" id="sw-post" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
+        <div><label class="text-xs text-slate-500" data-t="fluid_consumed">Fluid consumed (L)</label><input type="number" step="0.1" id="sw-fluid" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
+        <div><label class="text-xs text-slate-500" data-t="urine_output">Urine output (L)</label><input type="number" step="0.1" id="sw-urine" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
       </div>
     </div>
-    <div class="card p-5 lg:col-span-2">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3.5 font-heading" data-t="calc_metrics">Calculated Metrics</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <div><div class="text-xs text-slate-500" data-t="avg_sweat_rate">Avg Sweat Rate</div><div class="font-semibold text-base sm:text-lg text-slate-900" id="sw-avg">—</div></div>
-        <div><div class="text-xs text-slate-500" data-t="max_sweat_rate">Max Sweat Rate</div><div class="font-semibold text-base sm:text-lg text-slate-900" id="sw-max">—</div></div>
-        <div><div class="text-xs text-slate-500" data-t="min_sweat_rate">Min Sweat Rate</div><div class="font-semibold text-base sm:text-lg text-slate-900" id="sw-min">—</div></div>
-        <div><div class="text-xs text-slate-500" data-t="total_sensor_loss">Total Sensor Loss</div><div class="font-semibold text-base sm:text-lg text-slate-900" id="sw-total">—</div></div>
-        <div><div class="text-xs text-slate-500" data-t="est_loss_mass">Est. Loss (Mass)</div><div class="font-semibold text-base sm:text-lg text-slate-900" id="sw-mass">—</div></div>
-        <div><div class="text-xs text-slate-500" data-t="sodium_loss">Sodium Loss</div><div class="font-semibold text-base sm:text-lg text-slate-900" id="sw-sodium">—</div></div>
+    <div class="card p-4 lg:col-span-2">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3" data-t="calc_metrics">Calculated Metrics</div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div><div class="text-xs text-slate-400" data-t="avg_sweat_rate">Avg Sweat Rate</div><div class="font-semibold text-base sm:text-lg" id="sw-avg">—</div></div>
+        <div><div class="text-xs text-slate-400" data-t="max_sweat_rate">Max Sweat Rate</div><div class="font-semibold text-base sm:text-lg" id="sw-max">—</div></div>
+        <div><div class="text-xs text-slate-400" data-t="min_sweat_rate">Min Sweat Rate</div><div class="font-semibold text-base sm:text-lg" id="sw-min">—</div></div>
+        <div><div class="text-xs text-slate-400" data-t="total_sensor_loss">Total Sensor Loss</div><div class="font-semibold text-base sm:text-lg" id="sw-total">—</div></div>
+        <div><div class="text-xs text-slate-400" data-t="est_loss_mass">Est. Loss (Mass)</div><div class="font-semibold text-base sm:text-lg" id="sw-mass">—</div></div>
+        <div><div class="text-xs text-slate-400" data-t="sodium_loss">Sodium Loss</div><div class="font-semibold text-base sm:text-lg" id="sw-sodium">—</div></div>
       </div>
     </div>
   </div>
@@ -249,18 +315,18 @@ table.data-table tr:hover td { background: #f8fafc; }
 
 <div id="tab-events" class="tab-content hidden">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <div class="card p-5">
-      <div class="flex items-center justify-between mb-3.5"><h3 class="font-bold text-sm font-heading" data-t="events_breaks">Events & Breaks</h3><button onclick="addEventRow()" class="no-print px-3 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-medium" data-t="add_event">+ Add Event</button></div>
-      <div class="overflow-x-auto border border-slate-200 rounded">
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-3"><h3 class="font-semibold text-sm" data-t="events_breaks">Events & Breaks</h3><button onclick="addEventRow()" class="no-print px-3 py-1 bg-slate-900 text-white rounded text-xs" data-t="add_event">+ Add Event</button></div>
+      <div class="overflow-x-auto border rounded-lg">
         <table class="data-table">
           <thead><tr><th data-t="start_s">Start (s)</th><th data-t="end_s">End (s)</th><th data-t="type">Type</th><th data-t="desc">Description</th><th class="no-print"></th></tr></thead>
           <tbody id="events-tbody"></tbody>
         </table>
       </div>
     </div>
-    <div class="card p-5">
-      <h3 class="font-bold text-sm mb-3.5 font-heading" data-t="break_analysis">Break Analysis</h3>
-      <div class="overflow-x-auto border border-slate-200 rounded">
+    <div class="card p-4">
+      <h3 class="font-semibold text-sm mb-3" data-t="break_analysis">Break Analysis</h3>
+      <div class="overflow-x-auto border rounded-lg">
         <table class="data-table">
           <thead><tr><th data-t="break_num">Break #</th><th data-t="duration">Duration</th><th data-t="tcore_start">Tcore Start</th><th data-t="tcore_end">Tcore End</th><th data-t="delta_t">&Delta;T</th><th data-t="rate">Rate</th></tr></thead>
           <tbody id="breaks-tbody"></tbody>
@@ -272,58 +338,58 @@ table.data-table tr:hover td { background: #f8fafc; }
 
 <div id="tab-settings" class="tab-content hidden">
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div class="card p-5">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3.5 font-heading">Core Temp Zones</h2>
-      <div class="grid grid-cols-2 gap-3">
-        <div><label class="text-[11px] text-slate-500 font-medium">Zone 1 Max (°C)</label><input type="number" step="0.1" id="set-z1max" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:border-slate-900 focus:outline-none" value="38.0"></div>
-        <div><label class="text-[11px] text-slate-500 font-medium">Zone 2 Min (°C)</label><input type="number" step="0.1" id="set-z2min" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:border-slate-900 focus:outline-none" value="38.0"></div>
-        <div><label class="text-[11px] text-slate-500 font-medium">Zone 2 Max (°C)</label><input type="number" step="0.1" id="set-z2max" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:border-slate-900 focus:outline-none" value="38.9"></div>
-        <div><label class="text-[11px] text-slate-500 font-medium">Zone 3 Min (°C)</label><input type="number" step="0.1" id="set-z3min" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:border-slate-900 focus:outline-none" value="39.0"></div>
-        <div><label class="text-[11px] text-slate-500 font-medium">Zone 3 Max (°C)</label><input type="number" step="0.1" id="set-z3max" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:border-slate-900 focus:outline-none" value="39.6"></div>
-        <div><label class="text-[11px] text-slate-500 font-medium">Cutoff (°C)</label><input type="number" step="0.1" id="set-cutoff" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs font-semibold focus:border-slate-900 focus:outline-none" value="39.7"></div>
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Core Temp Zones</div>
+      <div class="grid grid-cols-2 gap-2 sm:gap-3">
+        <div><label class="text-[10px] sm:text-xs text-slate-500">Zone 1 Max (°C)</label><input type="number" step="0.1" id="set-z1max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38.0"></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500">Zone 2 Min (°C)</label><input type="number" step="0.1" id="set-z2min" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38.0"></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500">Zone 2 Max (°C)</label><input type="number" step="0.1" id="set-z2max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38.9"></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500">Zone 3 Min (°C)</label><input type="number" step="0.1" id="set-z3min" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="39.0"></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500">Zone 3 Max (°C)</label><input type="number" step="0.1" id="set-z3max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="39.6"></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500">Cutoff (°C)</label><input type="number" step="0.1" id="set-cutoff" class="w-full border rounded px-2 py-1 text-xs sm:text-sm font-semibold" value="39.7"></div>
       </div>
     </div>
-    <div class="card p-5">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3.5 font-heading">Sensor Config</h2>
-      <div class="space-y-3">
-        <div><label class="text-[11px] text-slate-500 font-medium">Primary Sensor</label><select id="set-primary" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs mt-1 focus:border-slate-900 focus:outline-none"><option value="CALERA" selected>CALERA</option><option value="CORE 2">CORE 2</option></select></div>
-        <div class="flex items-center gap-2 pt-1"><input type="checkbox" id="set-fallback" checked class="rounded border-slate-300"><label class="text-xs text-slate-700 font-medium">Fallback to backup</label></div>
-        <div><label class="text-[11px] text-slate-500 font-medium">Tolerance (s)</label><input type="number" id="set-tolerance" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:border-slate-900 focus:outline-none" value="3"></div>
-        <div><label class="text-[11px] text-slate-500 font-medium">CALERA Quality Flags</label><input type="text" id="set-quality" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:border-slate-900 focus:outline-none" value="17,High,Medium"></div>
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Sensor Config</div>
+      <div class="space-y-2">
+        <div><label class="text-[10px] sm:text-xs text-slate-500">Primary Sensor</label><select id="set-primary" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-1"><option value="CALERA" selected>CALERA</option><option value="CORE 2">CORE 2</option></select></div>
+        <div class="flex items-center gap-2"><input type="checkbox" id="set-fallback" checked class="rounded"><label class="text-xs sm:text-sm text-slate-700">Fallback to backup</label></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500">Tolerance (s)</label><input type="number" id="set-tolerance" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="3"></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500">CALERA Quality Flags</label><input type="text" id="set-quality" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="17,High,Medium"></div>
       </div>
     </div>
-    <div class="card p-5">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3.5 font-heading">CALERA Mapping</h2>
-      <div class="grid grid-cols-2 gap-2.5">
-        <div><label class="text-[10px] text-slate-500">Time</label><input type="text" id="map-c-time" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:border-slate-900 focus:outline-none" value="time"></div>
-        <div><label class="text-[10px] text-slate-500">Core Temp</label><input type="text" id="map-c-core" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:border-slate-900 focus:outline-none" value="cbt [mC]"></div>
-        <div><label class="text-[10px] text-slate-500">Skin Temp</label><input type="text" id="map-c-skin" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:border-slate-900 focus:outline-none" value="temp_a0 [mC]"></div>
-        <div><label class="text-[10px] text-slate-500">Quality</label><input type="text" id="map-c-quality" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:border-slate-900 focus:outline-none" value="status"></div>
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">CALERA Mapping</div>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="text-[10px] text-slate-500">Time</label><input type="text" id="map-c-time" class="w-full border rounded px-2 py-1 text-xs" value="time"></div>
+        <div><label class="text-[10px] text-slate-500">Core Temp</label><input type="text" id="map-c-core" class="w-full border rounded px-2 py-1 text-xs" value="cbt [mC]"></div>
+        <div><label class="text-[10px] text-slate-500">Skin Temp</label><input type="text" id="map-c-skin" class="w-full border rounded px-2 py-1 text-xs" value="temp_a0 [mC]"></div>
+        <div><label class="text-[10px] text-slate-500">Quality</label><input type="text" id="map-c-quality" class="w-full border rounded px-2 py-1 text-xs" value="status"></div>
       </div>
     </div>
-    <div class="card p-5">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3.5 font-heading">CORE 2 Mapping</h2>
-      <div class="grid grid-cols-2 gap-2.5">
-        <div><label class="text-[10px] text-slate-500">Time</label><input type="text" id="map-r-time" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:border-slate-900 focus:outline-none" value="time"></div>
-        <div><label class="text-[10px] text-slate-500">Heart Rate</label><input type="text" id="map-r-hr" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:border-slate-900 focus:outline-none" value="heartrate"></div>
-        <div><label class="text-[10px] text-slate-500">Core Temp</label><input type="text" id="map-r-core" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:border-slate-900 focus:outline-none" value="core_temperature"></div>
-        <div><label class="text-[10px] text-slate-500">Skin Temp</label><input type="text" id="map-r-skin" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:border-slate-900 focus:outline-none" value=""></div>
-        <div><label class="text-[10px] text-slate-500">Ambient Temp</label><input type="text" id="map-r-ambient" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:border-slate-900 focus:outline-none" value="temp"></div>
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">CORE 2 Mapping</div>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="text-[10px] text-slate-500">Time</label><input type="text" id="map-r-time" class="w-full border rounded px-2 py-1 text-xs" value="time"></div>
+        <div><label class="text-[10px] text-slate-500">Heart Rate</label><input type="text" id="map-r-hr" class="w-full border rounded px-2 py-1 text-xs" value="heartrate"></div>
+        <div><label class="text-[10px] text-slate-500">Core Temp</label><input type="text" id="map-r-core" class="w-full border rounded px-2 py-1 text-xs" value="core_temperature"></div>
+        <div><label class="text-[10px] text-slate-500">Skin Temp</label><input type="text" id="map-r-skin" class="w-full border rounded px-2 py-1 text-xs" value=""></div>
+        <div><label class="text-[10px] text-slate-500">Ambient Temp</label><input type="text" id="map-r-ambient" class="w-full border rounded px-2 py-1 text-xs" value="temp"></div>
       </div>
     </div>
-    <div class="card p-5">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3.5 font-heading">Environmental Mapping</h2>
-      <div class="grid grid-cols-2 gap-2.5">
-        <div><label class="text-[10px] text-slate-500">Time</label><input type="text" id="map-e-time" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:border-slate-900 focus:outline-none" value="Date/Time"></div>
-        <div><label class="text-[10px] text-slate-500">Ambient Temp</label><input type="text" id="map-e-ambient" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:border-slate-900 focus:outline-none" value="058 [°C]"></div>
-        <div><label class="text-[10px] text-slate-500">Relative Humidity</label><input type="text" id="map-e-rh" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:border-slate-900 focus:outline-none" value="058 [%RH]"></div>
-        <div><label class="text-[10px] text-slate-500">WBGT</label><input type="text" id="map-e-wbgt" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:border-slate-900 focus:outline-none" value="058 Wet bulb temperature [°C]"></div>
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Environmental Mapping</div>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="text-[10px] text-slate-500">Time</label><input type="text" id="map-e-time" class="w-full border rounded px-2 py-1 text-xs" value="Date/Time"></div>
+        <div><label class="text-[10px] text-slate-500">Ambient Temp</label><input type="text" id="map-e-ambient" class="w-full border rounded px-2 py-1 text-xs" value="058 [°C]"></div>
+        <div><label class="text-[10px] text-slate-500">Relative Humidity</label><input type="text" id="map-e-rh" class="w-full border rounded px-2 py-1 text-xs" value="058 [%RH]"></div>
+        <div><label class="text-[10px] text-slate-500">WBGT</label><input type="text" id="map-e-wbgt" class="w-full border rounded px-2 py-1 text-xs" value="058 Wet bulb temperature [°C]"></div>
       </div>
     </div>
   </div>
-  <div class="mt-4 flex flex-col sm:flex-row gap-2.5">
-    <button onclick="saveSettings()" class="px-4 py-2 bg-slate-900 text-white rounded text-xs font-semibold">Save Settings</button>
-    <button onclick="loadSettings()" class="px-4 py-2 bg-white border border-slate-300 rounded text-xs font-semibold">Reset Defaults</button>
+  <div class="mt-4 flex flex-col sm:flex-row gap-2">
+    <button onclick="saveSettings()" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs sm:text-sm font-medium">Save Settings</button>
+    <button onclick="loadSettings()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-medium">Reset Defaults</button>
   </div>
 </div>
 
@@ -337,7 +403,7 @@ const AppState = {
 
 const translations = {
   en: {
-    app_title: "Heat Analysis Dashboard",
+    app_title: "Ben Neal Sports Science",
     export_csv: "Export CSV",
     export_pdf: "Export PDF",
     process: "Process Data",
@@ -411,7 +477,7 @@ const translations = {
     start_s: "Start (s)", end_s: "End (s)", type: "Type", desc: "Description", break_num: "Break #", tcore_start: "Tcore Start", tcore_end: "Tcore End", delta_t: "ΔT", rate: "Rate"
   },
   es: {
-    app_title: "Panel de Análisis de Calor",
+    app_title: "Ben Neal Ciencia Deportiva",
     export_csv: "Exportar CSV",
     export_pdf: "Exportar PDF",
     process: "Procesar Datos",
@@ -485,7 +551,7 @@ const translations = {
     start_s: "Inicio (s)", end_s: "Fin (s)", type: "Tipo", desc: "Descripción", break_num: "Pausa #", tcore_start: "Tcore Inicio", tcore_end: "Tcore Fin", delta_t: "ΔT", rate: "Tasa"
   },
   pt: {
-    app_title: "Painel de Análise de Calor",
+    app_title: "Ben Neal Ciência do Esporte",
     export_csv: "Exportar CSV",
     export_pdf: "Exportar PDF",
     process: "Processar Dados",
@@ -559,7 +625,7 @@ const translations = {
     start_s: "Início (s)", end_s: "Fim (s)", type: "Tipo", desc: "Descrição", break_num: "Pausa #", tcore_start: "Tcore Início", tcore_end: "Tcore Fim", delta_t: "ΔT", rate: "Taxa"
   },
   ko: {
-    app_title: "열 분석 대시보드",
+    app_title: "벤 닐 스포츠 과학",
     export_csv: "CSV 내보내기",
     export_pdf: "PDF 내보내기",
     process: "데이터 처리",
@@ -633,7 +699,7 @@ const translations = {
     start_s: "시작 (s)", end_s: "종료 (s)", type: "유형", desc: "설명", break_num: "휴식 #", tcore_start: "시작 심부온", tcore_end: "종료 심부온", delta_t: "ΔT", rate: "하락률"
   },
   ja: {
-    app_title: "熱分析ダッシュボード",
+    app_title: "ベン・ニール スポーツ科学",
     export_csv: "CSVエクスポート",
     export_pdf: "PDFエクスポート",
     process: "データ処理",
@@ -707,7 +773,7 @@ const translations = {
     start_s: "開始 (s)", end_s: "終了 (s)", type: "タイプ", desc: "説明", break_num: "休憩 #", tcore_start: "開始時深部温", tcore_end: "終了時深部温", delta_t: "ΔT", rate: "低下速度"
   },
   fr: {
-    app_title: "Tableau de Bord d'Analyse Thermique",
+    app_title: "Ben Neal Science du Sport",
     export_csv: "Exporter CSV",
     export_pdf: "Exporter PDF",
     process: "Traiter les Données",
@@ -781,7 +847,7 @@ const translations = {
     start_s: "Début (s)", end_s: "Fin (s)", type: "Type", desc: "Description", break_num: "Pause #", tcore_start: "Tcore Début", tcore_end: "Tcore Fin", delta_t: "ΔT", rate: "Taux"
   },
   zh: {
-    app_title: "热 负荷 分析 仪表板",
+    app_title: "本·尼尔 运动科学",
     export_csv: "导出 CSV",
     export_pdf: "导出 PDF",
     process: "处理数据",
@@ -855,7 +921,7 @@ const translations = {
     start_s: "开始 (s)", end_s: "结束 (s)", type: "类型", desc: "说明", break_num: "休息 #", tcore_start: "开始核心温", tcore_end: "结束核心温", delta_t: "ΔT", rate: "降温速率"
   },
   id: {
-    app_title: "Dasbor Analisis Panas",
+    app_title: "Ilmu Olahraga Ben Neal",
     export_csv: "Ekspor CSV",
     export_pdf: "Ekspor PDF",
     process: "Proses Data",
@@ -929,7 +995,7 @@ const translations = {
     start_s: "Mulai (s)", end_s: "Selesai (s)", type: "Tipe", desc: "Deskripsi", break_num: "Istirahat #", tcore_start: "Tcore Mulai", tcore_end: "Tcore Selesai", delta_t: "ΔT", rate: "Laju"
   },
   da: {
-    app_title: "Varmeanalysedashboard",
+    app_title: "Ben Neal Idrætsvidenskab",
     export_csv: "Eksporter CSV",
     export_pdf: "Eksporter PDF",
     process: "Behandl Data",
@@ -1003,7 +1069,7 @@ const translations = {
     start_s: "Start (s)", end_s: "Slut (s)", type: "Type", desc: "Beskrivelse", break_num: "Pause #", tcore_start: "Tcore Start", tcore_end: "Tcore Slut", delta_t: "ΔT", rate: "Rate"
   },
   de: {
-    app_title: "Hitze-Analyse-Dashboard",
+    app_title: "Ben Neal Sportwissenschaft",
     export_csv: "CSV exportieren",
     export_pdf: "PDF exportieren",
     process: "Daten verarbeiten",
@@ -1552,9 +1618,9 @@ function renderAthleteSummary() {
 
   let badges = '';
   if (m.max >= settings.zones.cutoff) {
-    badges += `<span class="badge badge-red">${t('cutoff_reached_status')} (${fmtNum(m.max, 2)}°C)</span>`;
+    badges += `<span class="badge badge-red"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${t('cutoff_reached_status')} (${fmtNum(m.max, 2)}°C)</span>`;
   } else {
-    badges += `<span class="badge badge-green">${t('normal_load')}</span>`;
+    badges += `<span class="badge badge-green"><i class="fa-solid fa-check mr-1"></i> ${t('normal_load')}</span>`;
   }
   
   const qb = document.getElementById('quality-badges');
@@ -1628,11 +1694,11 @@ function renderEventsTable() {
   let html = '';
   AppState.events.forEach((e, i) => {
     html += `<tr>
-      <td><input type="number" value="${e.start}" class="w-16 border border-slate-300 rounded px-1 text-xs no-print-bg focus:border-slate-900 focus:outline-none" onchange="AppState.events[${i}].start=parseFloat(this.value)"></td>
-      <td><input type="number" value="${e.end}" class="w-16 border border-slate-300 rounded px-1 text-xs no-print-bg focus:border-slate-900 focus:outline-none" onchange="AppState.events[${i}].end=parseFloat(this.value)"></td>
+      <td><input type="number" value="${e.start}" class="w-16 border rounded px-1 no-print-bg" onchange="AppState.events[${i}].start=parseFloat(this.value)"></td>
+      <td><input type="number" value="${e.end}" class="w-16 border rounded px-1 no-print-bg" onchange="AppState.events[${i}].end=parseFloat(this.value)"></td>
       <td>${e.type}</td>
       <td>${e.desc}</td>
-      <td class="no-print"><button onclick="AppState.events.splice(${i},1); renderEventsTable(); renderBreakAnalysis();" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></td>
+      <td class="no-print"><button onclick="AppState.events.splice(${i},1); renderEventsTable(); renderBreakAnalysis();" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>
     </tr>`;
   });
   tbody.innerHTML = html;
@@ -1664,7 +1730,7 @@ function exportCSV() {
   if (AppState.processed.length === 0) { alert('No processed data to export. Please process data first.'); return; }
   
   const m = AppState.metrics;
-  let csv = "HEAT ANALYSIS REPORT\n\n";
+  let csv = "BEN NEAL SPORTS SCIENCE — HEAT ANALYSIS REPORT\n\n";
   
   csv += "SESSION INFORMATION\n";
   csv += `Athlete,${document.getElementById('inp-athlete').value}\n`;
@@ -1730,7 +1796,7 @@ function exportCSV() {
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'Heat_Analysis_Master_Export.csv'; a.click(); URL.revokeObjectURL(url);
+  a.href = url; a.download = 'BenNeal_Heat_Analysis_Master_Export.csv'; a.click(); URL.revokeObjectURL(url);
 }
 
 function exportPDF() {
@@ -1783,14 +1849,26 @@ function exportPDF() {
   }
 
   const html = `
-    <div style="padding: 30px; font-family: 'Inter', Helvetica, Arial, sans-serif; color: #0f172a; font-size: 13px; line-height: 1.5; background-color: #ffffff;">
+    <div style="padding: 30px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1e293b; font-size: 13px; line-height: 1.5; background-color: #ffffff;">
       
-      <!-- Top Bordered Header Block -->
-      <div style="border: 2px solid #0f172a; padding: 15px; border-radius: 6px; margin-bottom: 25px; background-color: #f8fafc;">
-        <h2 style="font-family: 'Playfair Display', serif; margin: 0 0 10px 0; color: #0f172a; text-transform: uppercase; font-size: 16px; letter-spacing: 1px; text-align: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px;">${t('report_title')}</h2>
+      <!-- Enterprise Branding & Report Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px;">
+        <div>
+          <h1 style="margin: 0; font-size: 18px; color: #0f172a; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Ben Neal Sports Science</h1>
+          <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b;">Applied Physiology & Thermal Physiology Laboratory</p>
+        </div>
+        <div style="text-align: right; font-size: 11px; color: #475569;">
+          <div><strong>Report:</strong> Heat Strain Analysis</div>
+          <div><strong>Date:</strong> ${date}</div>
+        </div>
+      </div>
+
+      <!-- Top Bordered Session Summary Block -->
+      <div style="border: 1px solid #cbd5e1; padding: 15px; border-radius: 6px; margin-bottom: 25px; background-color: #f8fafc;">
+        <h2 style="margin: 0 0 10px 0; color: #0f172a; text-transform: uppercase; font-size: 14px; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">${t('report_title')}</h2>
         <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
           <tr>
-            <td style="padding: 3px 0;"><strong>${t('time_generated')}:</strong> ${currentTime} (${date})</td>
+            <td style="padding: 3px 0;"><strong>${t('time_generated')}:</strong> ${currentTime}</td>
             <td style="padding: 3px 0;"><strong>${t('athlete_name')}:</strong> ${name}</td>
           </tr>
           <tr>
@@ -1800,12 +1878,12 @@ function exportPDF() {
         </table>
       </div>
 
-      <h3 style="font-family: 'Playfair Display', serif; border-bottom: 2px solid #0f172a; padding-bottom: 4px; color: #0f172a; margin-top: 0; font-size: 14px;">${t('session_info')}</h3>
+      <h3 style="border-bottom: 2px solid #0f172a; padding-bottom: 4px; color: #0f172a; margin-top: 0; font-size: 14px;">${t('session_info')}</h3>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
         <tr><th style="text-align: left; border: 1px solid #cbd5e1; padding: 7px; background: #f1f5f9; width: 40%; color: #334155;">${t('distance')}</th><td style="border: 1px solid #cbd5e1; padding: 7px;">${distance} km</td></tr>
       </table>
 
-      <h3 style="font-family: 'Playfair Display', serif; border-bottom: 2px solid #0f172a; padding-bottom: 4px; color: #0f172a; font-size: 14px;">${t('core_temp')}</h3>
+      <h3 style="border-bottom: 2px solid #0f172a; padding-bottom: 4px; color: #0f172a; font-size: 14px;">${t('core_temp')}</h3>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
         <tr><th style="text-align: left; border: 1px solid #cbd5e1; padding: 7px; background: #f1f5f9; width: 40%; color: #334155;">${t('start')}</th><td style="border: 1px solid #cbd5e1; padding: 7px;">${fmtNum(m.start, 2)} °C</td></tr>
         <tr><th style="text-align: left; border: 1px solid #cbd5e1; padding: 7px; background: #f1f5f9; color: #334155;">${t('maximum')}</th><td style="border: 1px solid #cbd5e1; padding: 7px; color: #dc2626; font-weight: bold;">${fmtNum(m.max, 2)} °C</td></tr>
@@ -1817,7 +1895,7 @@ function exportPDF() {
         <tr><th style="text-align: left; border: 1px solid #cbd5e1; padding: 7px; background: #f1f5f9; color: #334155;">${t('cutoff_reached')}</th><td style="border: 1px solid #cbd5e1; padding: 7px;">${m.cutoffReached} (${settings.zones.cutoff} °C threshold)</td></tr>
       </table>
 
-      <h3 style="font-family: 'Playfair Display', serif; border-bottom: 2px solid #0f172a; padding-bottom: 4px; color: #0f172a; font-size: 14px;">${t('heat_exposure')} (${m.transitions} ${t('transitions')})</h3>
+      <h3 style="border-bottom: 2px solid #0f172a; padding-bottom: 4px; color: #0f172a; font-size: 14px;">${t('heat_exposure')} (${m.transitions} ${t('transitions')})</h3>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
         <thead>
           <tr>
@@ -1835,7 +1913,7 @@ function exportPDF() {
         </tbody>
       </table>
 
-      <h3 style="font-family: 'Playfair Display', serif; border-bottom: 2px solid #0f172a; padding-bottom: 4px; color: #0f172a; font-size: 14px;">${t('hr_breaks')} & ${t('sensor_status')}</h3>
+      <h3 style="border-bottom: 2px solid #0f172a; padding-bottom: 4px; color: #0f172a; font-size: 14px;">${t('hr_breaks')} & ${t('sensor_status')}</h3>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
         <tr><th style="text-align: left; border: 1px solid #cbd5e1; padding: 7px; background: #f1f5f9; width: 40%; color: #334155;">${t('average_hr')}</th><td style="border: 1px solid #cbd5e1; padding: 7px;">${m.hrAvg != null ? fmtNum(m.hrAvg, 1) + ' bpm' : '—'}</td></tr>
         <tr><th style="text-align: left; border: 1px solid #cbd5e1; padding: 7px; background: #f1f5f9; color: #334155;">${t('maximum_hr')}</th><td style="border: 1px solid #cbd5e1; padding: 7px;">${m.hrMax != null ? fmtNum(m.hrMax, 1) + ' bpm' : '—'}</td></tr>
@@ -1846,7 +1924,7 @@ function exportPDF() {
       <!-- Force Page Break so Events & Breaks aren't awkwardly cut in half -->
       <div style="page-break-before: always;"></div>
 
-      <h3 style="font-family: 'Playfair Display', serif; border-bottom: 2px solid #0f172a; padding-bottom: 4px; color: #0f172a; margin-top: 20px; font-size: 14px;">${t('events_breaks')}</h3>
+      <h3 style="border-bottom: 2px solid #0f172a; padding-bottom: 4px; color: #0f172a; margin-top: 20px; font-size: 14px;">${t('events_breaks')}</h3>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
         <thead>
           <tr>
@@ -1859,7 +1937,7 @@ function exportPDF() {
         <tbody>${eventsHtml}</tbody>
       </table>
 
-      <h3 style="font-family: 'Playfair Display', serif; border-bottom: 2px solid #0f172a; padding-bottom: 4px; color: #0f172a; font-size: 14px;">${t('break_analysis')}</h3>
+      <h3 style="border-bottom: 2px solid #0f172a; padding-bottom: 4px; color: #0f172a; font-size: 14px;">${t('break_analysis')}</h3>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
         <thead>
           <tr>
@@ -1873,9 +1951,10 @@ function exportPDF() {
         <tbody>${breaksHtml}</tbody>
       </table>
 
-      <!-- Footer contact information -->
-      <div style="border-top: 1px solid #cbd5e1; padding-top: 12px; text-align: center; font-size: 11px; color: #64748b;">
-        ${t('contact_footer')} <a href="mailto:ben.neal@canterbury.ac.uk" style="color: #0f172a; text-decoration: underline;">ben.neal@canterbury.ac.uk</a>
+      <!-- Professional Enterprise Footer -->
+      <div style="border-top: 1px solid #cbd5e1; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b;">
+        <div>Ben Neal Sports Science &middot; Professional Physiology Services</div>
+        <div>${t('contact_footer')} <a href="mailto:ben.neal@canterbury.ac.uk" style="color: #1e293b; text-decoration: underline;">ben.neal@canterbury.ac.uk</a></div>
       </div>
 
     </div>
@@ -1894,7 +1973,7 @@ function exportPDF() {
   const cleanDate = date.replace(/\//g, '-');
   const opt = {
     margin:       0.4,
-    filename:     `${cleanName}_${cleanDate}_Heat_Report.pdf`,
+    filename:     `${cleanName}_${cleanDate}_BenNeal_Heat_Report.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2 },
     jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
