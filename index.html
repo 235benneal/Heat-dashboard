@@ -17,8 +17,8 @@ body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; }
 .tab-btn:hover:not(.active) { background: #e2e8f0; color: #0f172a; }
 .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 1rem; position: relative; transition: background-color 0.2s ease, border-color 0.2s ease; }
 .card:hover {
-  background-color: #f0fdf4;
-  border-color: #86efac;
+  background-color: #f0f9ff;
+  border-color: #7dd3fc;
 }
 .big-number { font-size: 1.75rem; font-weight: 700; line-height: 1; }
 @media (min-width: 768px) { .big-number { font-size: 2.25rem; } }
@@ -724,7 +724,7 @@ const translations = {
     set_sensor_config: "Config. de Sensor", set_primary_sensor: "Sensor Primário", set_fallback_backup: "Usar backup se falhar", set_tolerance: "Tolerância (s)", set_quality_flags: "Flags de Qualidade CALERA",
     set_calera_mapping: "Mapeamento CALERA", set_core2_mapping: "Mapeamento CORE 2", set_env_mapping: "Mapeamento Ambiental",
     btn_save_settings: "Salvar Configurações", btn_reset_defaults: "Restaurar Padrões",
-    interactive_charts_title: "Dinâmica Interativa de Temperatura Central e Perda de Suor",
+    interactive_charts_title: "Dinámica Interativa de Temperatura Central e Perda de Suor",
     charts_subtitle: "Passe o cursor sobre o gráfico para inspecionar a temperatura da pele.",
     tooltip_session: "<strong>Informações e Contexto da Sessão:</strong> Captura metadados do atleta, data, modalidade, distância, duração e condições ambientais.",
     tooltip_core: "<strong>Cinética da Temperatura Central:</strong> Avalia a tensão térmica interna através da temperatura inicial, pico, valor final, aumento absoluto e taxa de aumento.",
@@ -2393,7 +2393,7 @@ window.addEventListener('DOMContentLoaded', function() {
   loadSettings();
   renderEventsTable();
   if (AppState.events.length === 0) {
-    AppState.events.push({ start: 480, end: 540, type: 'Break', desc: 'Hydration stop' });
+    AppState.events.states.push({ start: 480, end: 540, type: 'Break', desc: 'Hydration stop' });
     renderEventsTable();
   }
 });
