@@ -474,42 +474,90 @@ table.data-table tr:hover td { background: #f8fafc; }
 
 </div>
 
-<!-- HIDDEN MULTI-CHART STACKED REPORT TEMPLATE FOR PDF EXPORT -->
-<div id="pdf-report-template" class="hidden bg-white p-6 max-w-[800px] mx-auto text-slate-800">
-  <div class="flex items-center justify-between border-b pb-4 mb-4">
+<!-- TOP-CLASS PROFESSIONAL PDF EXPORT REPORT TEMPLATE -->
+<div id="pdf-report-template" class="hidden bg-white p-6 max-w-[800px] mx-auto text-slate-800" style="font-family: 'Inter', sans-serif;">
+  
+  <!-- Header / Branding -->
+  <div class="flex items-center justify-between border-b-2 border-slate-900 pb-4 mb-4">
     <div>
-      <h2 class="text-lg font-bold text-slate-900" data-i18n="app_title">Heat, Sweat and Hydration Analysis</h2>
-      <p class="text-xs text-slate-500">Graded Exercise & Thermal Strain Report</p>
+      <h1 class="text-xl font-bold text-slate-900 uppercase tracking-tight">Thermal & Hydration Lab Report</h1>
+      <p class="text-xs text-slate-500">CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO Integration</p>
     </div>
-    <div class="text-right text-xs text-slate-500">
-      <div><span class="font-semibold" id="pdf-rep-athlete">—</span></div>
-      <div id="pdf-rep-date">—</div>
+    <div class="text-right">
+      <div class="text-sm font-bold text-blue-600">Upside Strength &middot; Sports Science</div>
+      <div class="text-[10px] text-slate-400" id="pdf-rep-date">2026-07-27</div>
     </div>
   </div>
 
-  <!-- Chart 1: Core Temperature & Heart Rate -->
+  <!-- Section 1: Maximal & Core Metrics Grid (Like BodyStats style) -->
+  <div class="grid grid-cols-2 gap-4 mb-4 border border-slate-200 rounded-lg p-3 bg-slate-50">
+    <div>
+      <h3 class="text-xs font-bold text-slate-700 uppercase mb-2 border-b border-slate-200 pb-1">Core Temperature Kinetics</h3>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div><span class="block text-[10px] text-slate-500 uppercase">Start</span><span class="text-base font-bold text-slate-800" id="pdf-val-start">—</span><span class="text-[9px] text-slate-400">°C</span></div>
+        <div><span class="block text-[10px] text-slate-500 uppercase">Maximum</span><span class="text-base font-bold text-red-600" id="pdf-val-max">—</span><span class="text-[9px] text-slate-400">°C</span></div>
+        <div><span class="block text-[10px] text-slate-500 uppercase">Total Rise</span><span class="text-base font-bold text-slate-800" id="pdf-val-rise">—</span><span class="text-[9px] text-slate-400">°C</span></div>
+      </div>
+    </div>
+    <div>
+      <h3 class="text-xs font-bold text-slate-700 uppercase mb-2 border-b border-slate-200 pb-1">Cardiovascular & Strain</h3>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div><span class="block text-[10px] text-slate-500 uppercase">Avg HR</span><span class="text-base font-bold text-blue-600" id="pdf-val-avghr">—</span><span class="text-[9px] text-slate-400">bpm</span></div>
+        <div><span class="block text-[10px] text-slate-500 uppercase">Max HR</span><span class="text-base font-bold text-blue-800" id="pdf-val-maxhr">—</span><span class="text-[9px] text-slate-400">bpm</span></div>
+        <div><span class="block text-[10px] text-slate-500 uppercase">Cutoff?</span><span class="text-base font-bold text-slate-800" id="pdf-val-cutoff">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart Panel: Core Temperature & Heart Rate -->
   <div class="mb-4">
-    <div class="text-xs font-bold text-slate-700 uppercase mb-1">Core Temperature & Heart Rate</div>
-    <div class="relative w-full h-[200px] border rounded bg-white p-1">
-      <canvas id="pdfChart1"></canvas>
+    <div class="text-xs font-bold text-slate-700 uppercase mb-1 flex justify-between">
+      <span>Core Temperature & Heart Rate Dynamics</span>
+      <span class="text-[10px] text-slate-400">Tcore (°C) vs HR (bpm)</span>
+    </div>
+    <div class="relative w-full h-[220px] border border-slate-200 rounded-lg bg-white p-2">
+      <canvas id="pdfChartCoreHR"></canvas>
     </div>
   </div>
 
-  <!-- Chart 2: Sweat Dynamics -->
-  <div class="mb-4">
-    <div class="text-xs font-bold text-slate-700 uppercase mb-1">Cumulative Sweat & Hydration Loss</div>
-    <div class="relative w-full h-[200px] border rounded bg-white p-1">
-      <canvas id="pdfChart2"></canvas>
+  <!-- Written Summary & Sweat Response Panel -->
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <div class="border border-slate-200 rounded-lg p-3 bg-white">
+      <h3 class="text-xs font-bold text-slate-700 uppercase mb-2 border-b pb-1">Sweat Response & Fluid Loss</h3>
+      <div class="space-y-1.5 text-xs">
+        <div class="flex justify-between"><span class="text-slate-500">Avg Sweat Rate:</span><span class="font-semibold" id="pdf-sw-avg">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Max Sweat Rate:</span><span class="font-semibold" id="pdf-sw-max">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Total Sensor Loss:</span><span class="font-semibold" id="pdf-sw-total">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Est. Loss (Mass Diff):</span><span class="font-semibold" id="pdf-sw-mass">—</span></div>
+      </div>
+    </div>
+
+    <!-- Time Spent in Zones Table -->
+    <div class="border border-slate-200 rounded-lg p-3 bg-white">
+      <h3 class="text-xs font-bold text-slate-700 uppercase mb-2 border-b pb-1">Time Spent in Thermal Zones</h3>
+      <table class="w-full text-xs">
+        <thead><tr class="text-left text-[10px] text-slate-400 border-b"><th>Zone</th><th>Time</th><th>%</th><th>First Entry</th></tr></thead>
+        <tbody id="pdf-zone-tbody">
+          <tr><td class="py-1 zone-1 font-medium">Zone 1 (&lt;38.0)</td><td id="pdf-z1-time">—</td><td id="pdf-z1-pct">—</td><td id="pdf-z1-first">—</td></tr>
+          <tr><td class="py-1 zone-2 font-medium">Zone 2 (38.0–38.9)</td><td id="pdf-z2-time">—</td><td id="pdf-z2-pct">—</td><td id="pdf-z2-first">—</td></tr>
+          <tr><td class="py-1 zone-3 font-medium">Zone 3 (39.0–39.6)</td><td id="pdf-z3-time">—</td><td id="pdf-z3-pct">—</td><td id="pdf-z3-first">—</td></tr>
+          <tr><td class="py-1 zone-4 font-medium">Zone 4 (&ge;39.7)</td><td id="pdf-z4-time">—</td><td id="pdf-z4-pct">—</td><td id="pdf-z4-first">—</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <!-- Chart 3: Environmental / Skin / Secondary Metric -->
-  <div class="mb-2">
-    <div class="text-xs font-bold text-slate-700 uppercase mb-1">Thermal Zones & Progression</div>
-    <div class="relative w-full h-[200px] border rounded bg-white p-1">
-      <canvas id="pdfChart3"></canvas>
+  <!-- Bottom Metadata Table (Like BodyStats professional layout) -->
+  <div class="border border-slate-300 rounded text-[11px] overflow-hidden">
+    <div class="bg-slate-100 px-3 py-1 font-semibold text-slate-700 border-b border-slate-300">Session Metadata & Configuration</div>
+    <div class="grid grid-cols-4 divide-x divide-slate-300">
+      <div class="p-2"><span class="block text-[9px] text-slate-400 uppercase">Athlete</span><span class="font-medium" id="pdf-meta-athlete">—</span></div>
+      <div class="p-2"><span class="block text-[9px] text-slate-400 uppercase">Sport / Activity</span><span class="font-medium" id="pdf-meta-sport">—</span></div>
+      <div class="p-2"><span class="block text-[9px] text-slate-400 uppercase">Duration</span><span class="font-medium" id="pdf-meta-duration">—</span></div>
+      <div class="p-2"><span class="block text-[9px] text-slate-400 uppercase">Environment</span><span class="font-medium" id="pdf-meta-env">—</span></div>
     </div>
   </div>
+
 </div>
 
 <script>
@@ -520,9 +568,7 @@ const AppState = {
 
 let thermalChartStandaloneInstance = null;
 let compareChartInstance = null;
-let pdfChart1Instance = null;
-let pdfChart2Instance = null;
-let pdfChart3Instance = null;
+let pdfChartCoreHRInstance = null;
 
 const translations = {
   en: {
@@ -1045,7 +1091,7 @@ const translations = {
     chart_sweat_label: "Perda Acumulada de Suor (L)",
     chart_y_core: "Temperatura Central (°C)",
     chart_y_sweat: "Perda de Suor (L)",
-    tip_session: "Metadados sobre o atleta, data, hora, esporte e condições ambientais.",
+    tip_session: "Metadatos sobre o atleta, data, hora, esporte e condições ambientais.",
     tip_core: "Avalia a tensão térmica interna.",
     tip_zones: "Quantifica a duração e porcentagem da sessão nas faixas de tensão térmica.",
     tip_sweat: "Avalia a perda total de líquidos e taxa de suor.",
@@ -1644,14 +1690,6 @@ function fmtTime(sec) {
   return h + ':' + m + ':' + s;
 }
 
-function parseHHMMSS(str) {
-  if (!str || typeof str !== 'string') return 0;
-  const p = str.trim().split(':');
-  if (p.length === 3) return parseInt(p[0]) * 3600 + parseInt(p[1]) * 60 + parseFloat(p[2]);
-  if (p.length === 2) return parseInt(p[0]) * 60 + parseFloat(p[1]);
-  return parseFloat(str) || 0;
-}
-
 function fmtNum(v, d = 2) {
   if (v == null || isNaN(v)) return '—';
   return v.toFixed(d);
@@ -2141,21 +2179,52 @@ function exportPDF() {
   const reportTemplate = document.getElementById('pdf-report-template');
   reportTemplate.classList.remove('hidden');
 
-  document.getElementById('pdf-rep-athlete').textContent = document.getElementById('inp-athlete').value || 'Athlete';
+  const athleteName = document.getElementById('inp-athlete').value || 'Athlete';
+  const sportName = document.getElementById('inp-activity').value || 'Trial';
+  const envText = document.getElementById('inp-env').value || '—';
+  const durationText = document.getElementById('sum-duration').textContent || '—';
+
   document.getElementById('pdf-rep-date').textContent = new Date().toLocaleDateString();
+  document.getElementById('pdf-meta-athlete').textContent = athleteName;
+  document.getElementById('pdf-meta-sport').textContent = sportName;
+  document.getElementById('pdf-meta-duration').textContent = durationText;
+  document.getElementById('pdf-meta-env').textContent = envText;
+
+  const m = AppState.metrics || {};
+  document.getElementById('pdf-val-start').textContent = fmtNum(m.start, 2);
+  document.getElementById('pdf-val-max').textContent = fmtNum(m.max, 2);
+  document.getElementById('pdf-val-rise').textContent = fmtNum(m.totalRise, 2);
+  document.getElementById('pdf-val-avghr').textContent = m.hrAvg != null ? fmtNum(m.hrAvg, 0) : '—';
+  document.getElementById('pdf-val-maxhr').textContent = m.hrMax != null ? fmtNum(m.hrMax, 0) : '—';
+  document.getElementById('pdf-val-cutoff').textContent = m.cutoffReached || 'NO';
+
+  // Sweat response panel on PDF
+  document.getElementById('pdf-sw-avg').textContent = document.getElementById('sum-sweat-avg').textContent || '—';
+  document.getElementById('pdf-sw-max').textContent = document.getElementById('sum-sweat-max').textContent || '—';
+  document.getElementById('pdf-sw-total').textContent = document.getElementById('sum-sweat-total').textContent || '—';
+  document.getElementById('pdf-sw-mass').textContent = document.getElementById('sum-sweat-mass-sum').textContent || '—';
+
+  // Zones table mapping
+  if (m.zones) {
+    const zmap = { 'Zone 1': 'pdf-z1', 'Zone 2': 'pdf-z2', 'Zone 3': 'pdf-z3', 'Zone 4/Cutoff': 'pdf-z4' };
+    for (const k in zmap) {
+      const zd = m.zones[k];
+      if (zd) {
+        document.getElementById(zmap[k] + '-time').textContent = fmtNum(zd.time / 60, 1) + 'm';
+        document.getElementById(zmap[k] + '-pct').textContent = fmtNum(zd.pct, 1) + '%';
+        document.getElementById(zmap[k] + '-first').textContent = zd.first != null ? fmtTime(zd.first) : '—';
+      }
+    }
+  }
 
   const p = AppState.processed;
   const labels = p.map(r => r.hhmmss);
   const coreData = p.map(r => r.unifiedCore);
   const hrData = p.map(r => r.hr);
-  const sweatData = p.map(r => r.cumulativeSweat);
 
-  if (pdfChart1Instance) pdfChart1Instance.destroy();
-  if (pdfChart2Instance) pdfChart2Instance.destroy();
-  if (pdfChart3Instance) pdfChart3Instance.destroy();
+  if (pdfChartCoreHRInstance) pdfChartCoreHRInstance.destroy();
 
-  // Chart 1: Core Temperature & Heart Rate
-  pdfChart1Instance = new Chart(document.getElementById('pdfChart1'), {
+  pdfChartCoreHRInstance = new Chart(document.getElementById('pdfChartCoreHR'), {
     type: 'line',
     data: {
       labels: labels,
@@ -2174,47 +2243,11 @@ function exportPDF() {
     }
   });
 
-  // Chart 2: Cumulative Sweat Loss
-  pdfChart2Instance = new Chart(document.getElementById('pdfChart2'), {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [
-        { label: 'Cumulative Sweat Loss (L)', data: sweatData, borderColor: '#0d9488', backgroundColor: 'rgba(13, 148, 136, 0.1)', fill: true, borderWidth: 2, pointRadius: 0 }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      scales: {
-        x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
-        y: { title: { display: true, text: 'Sweat (L)' } }
-      }
-    }
-  });
-
-  // Chart 3: Thermal Zone Profile / Progression
-  pdfChart3Instance = new Chart(document.getElementById('pdfChart3'), {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [
-        { label: 'Core Temp Progression', data: coreData, backgroundColor: '#f97316' }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      scales: {
-        x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
-        y: { min: 35, title: { display: true, text: '°C' } }
-      }
-    }
-  });
-
   setTimeout(() => {
     if (typeof html2pdf !== 'undefined') {
       html2pdf().set({
         margin: 0.3,
-        filename: 'Diagnostic_Report.pdf',
+        filename: 'Thermal_Lab_Report.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
