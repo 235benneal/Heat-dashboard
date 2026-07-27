@@ -351,6 +351,7 @@ table.data-table tr:hover td { background: #f8fafc; }
           <div><label class="text-xs text-slate-500" data-i18n="lbl_post_mass">Post-session mass (kg)</label><input type="number" step="0.1" id="sw-post" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
           <div><label class="text-xs text-slate-500" data-i18n="lbl_fluid_consumed">Fluid consumed (L)</label><input type="number" step="0.1" id="sw-fluid" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
           <div><label class="text-[10px] text-slate-500" data-i18n="lbl_urine_output">Urine output (L)</label><input type="number" step="0.1" id="sw-urine" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
+          <div><label class="text-[10px] text-slate-500">Sweat Sodium Concentration (mmol/L)</label><input type="number" step="1" id="sw-sodium-conc" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" value="50" onchange="calculateSweatMetrics()"></div>
         </div>
       </div>
       <div class="card p-4 lg:col-span-2">
@@ -360,6 +361,7 @@ table.data-table tr:hover td { background: #f8fafc; }
           <div><div class="text-xs text-slate-400" data-i18n="lbl_max_sweat">Max Sweat Rate</div><div class="font-semibold text-base sm:text-lg" id="sw-max">—</div></div>
           <div><div class="text-xs text-slate-400" data-i18n="lbl_total_sensor_loss">Total Sensor Loss</div><div class="font-semibold text-base sm:text-lg" id="sw-total">—</div></div>
           <div><div class="text-xs text-slate-400" data-i18n="lbl_est_loss_mass">Est. Loss (Mass)</div><div class="font-semibold text-base sm:text-lg" id="sw-mass">—</div></div>
+          <div><div class="text-xs text-slate-400">Total Sodium Loss</div><div class="font-semibold text-base sm:text-lg" id="sw-sodium-total">—</div></div>
         </div>
       </div>
     </div>
@@ -369,7 +371,7 @@ table.data-table tr:hover td { background: #f8fafc; }
   <div id="tab-events" class="tab-content hidden">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div class="card p-4">
-        <div class="flex items-center justify-between mb-3"><h3 class="font-semibold text-sm" data-i18n="tab_events">Events & Breaks</h3><button type="button" onclick="addEventRow()" class="no-print px-3 py-1 bg-slate-900 text-white rounded text-xs cursor-pointer" data-i18n="btn_add_event">+ Add Event</button></div>
+        <div class="flex items-center justify-between mb-3"><h3 class="font-semibold text-sm" data-i18n="tab_events">Events & Breaks</h3><button type="button" id="add-event-btn" class="no-print px-3 py-1 bg-slate-900 text-white rounded text-xs cursor-pointer" data-i18n="btn_add_event">+ Add Event</button></div>
         <div class="overflow-x-auto border rounded-lg">
           <table class="data-table">
             <thead><tr><th data-i18n="th_start_time">Start Time</th><th data-i18n="th_end_time">End Time</th><th data-i18n="th_type">Type</th><th data-i18n="th_desc">Description</th><th class="no-print"></th></tr></thead>
@@ -520,15 +522,19 @@ table.data-table tr:hover td { background: #f8fafc; }
     </div>
   </div>
 
-  <!-- Written Summary & Sweat Response Panel -->
+  <!-- Written Summary & Sweat Response Panel (Updated with Body Mass Pre/Post, Calculation & Sodium Loss) -->
   <div class="grid grid-cols-2 gap-4 mb-4">
     <div class="border border-slate-200 rounded-lg p-3 bg-white">
-      <h3 class="text-xs font-bold text-slate-700 uppercase mb-2 border-b pb-1.5">Sweat Response & Fluid Loss</h3>
+      <h3 class="text-xs font-bold text-slate-700 uppercase mb-2 border-b pb-1.5">Sweat Response & Hydration Balance</h3>
       <div class="space-y-1.5 text-xs">
+        <div class="flex justify-between"><span class="text-slate-500">Pre-session Mass:</span><span class="font-semibold" id="pdf-sw-pre">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Post-session Mass:</span><span class="font-semibold" id="pdf-sw-post">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Fluid Consumed / Urine:</span><span class="font-semibold" id="pdf-sw-fluid">—</span></div>
+        <div class="flex justify-between border-t pt-1"><span class="text-slate-500">Est. Loss (Mass Diff):</span><span class="font-semibold text-blue-700" id="pdf-sw-mass">—</span></div>
         <div class="flex justify-between"><span class="text-slate-500">Avg Sweat Rate:</span><span class="font-semibold" id="pdf-sw-avg">—</span></div>
         <div class="flex justify-between"><span class="text-slate-500">Max Sweat Rate:</span><span class="font-semibold" id="pdf-sw-max">—</span></div>
         <div class="flex justify-between"><span class="text-slate-500">Total Sensor Loss:</span><span class="font-semibold" id="pdf-sw-total">—</span></div>
-        <div class="flex justify-between"><span class="text-slate-500">Est. Loss (Mass Diff):</span><span class="font-semibold" id="pdf-sw-mass">—</span></div>
+        <div class="flex justify-between border-t pt-1"><span class="text-slate-500 font-bold">Total Sodium Loss:</span><span class="font-bold text-red-700" id="pdf-sw-sodium">—</span></div>
       </div>
     </div>
 
@@ -2215,10 +2221,21 @@ function calculateSweatMetrics() {
   const post = parseFloat(document.getElementById('sw-post')?.value) || 0;
   const fluid = parseFloat(document.getElementById('sw-fluid')?.value) || 0;
   const urine = parseFloat(document.getElementById('sw-urine')?.value) || 0;
+  const sodiumConc = parseFloat(document.getElementById('sw-sodium-conc')?.value) || 50;
+
   if (pre > 0 && post > 0) {
-    const lossMass = (pre - post) + fluid - urine;
-    document.getElementById('sw-mass').textContent = fmtNum(lossMass, 2) + ' kg';
-    document.getElementById('sum-sweat-mass-sum').textContent = fmtNum(lossMass, 2) + ' kg';
+    const lossMassKg = (pre - post) + fluid - urine;
+    const lossMassLiters = Math.max(0, lossMassKg); // Assuming 1kg ≈ 1L sweat density
+    const totalSodiumLossMg = lossMassLiters * 1000 * (sodiumConc * 22.99 / 1000); // converting mmol/L to mg or similar standard calculation
+
+    document.getElementById('sw-mass').textContent = fmtNum(lossMassKg, 2) + ' kg (' + fmtNum(lossMassLiters, 2) + ' L)';
+    document.getElementById('sum-sweat-mass-sum').textContent = fmtNum(lossMassKg, 2) + ' kg';
+    
+    // Calculate total sodium loss in mg and mmol (Sodium Na+ atomic weight ~22.99 mg/mmol)
+    const sodiumLossMmol = lossMassLiters * sodiumConc;
+    const sodiumLossMg = sodiumLossMmol * 22.99;
+    document.getElementById('sw-sodium-total').textContent = fmtNum(sodiumLossMg, 0) + ' mg (' + fmtNum(sodiumLossMmol, 0) + ' mmol)';
+    document.getElementById('sum-sodium').textContent = fmtNum(sodiumLossMg, 0) + ' mg';
   }
 }
 
@@ -2256,11 +2273,20 @@ function exportPDF() {
   document.getElementById('pdf-val-maxhr').textContent = m.hrMax != null ? fmtNum(m.hrMax, 0) : '—';
   document.getElementById('pdf-val-cutoff').textContent = m.cutoffReached || 'NO';
 
-  // Sweat response panel on PDF
+  // Sweat response & body mass integration on PDF
+  const preVal = document.getElementById('sw-pre').value;
+  const postVal = document.getElementById('sw-post').value;
+  const fluidVal = document.getElementById('sw-fluid').value;
+  const urineVal = document.getElementById('sw-urine').value;
+
+  document.getElementById('pdf-sw-pre').textContent = preVal ? preVal + ' kg' : '—';
+  document.getElementById('pdf-sw-post').textContent = postVal ? postVal + ' kg' : '—';
+  document.getElementById('pdf-sw-fluid').textContent = (fluidVal || '0') + ' L consumed / ' + (urineVal || '0') + ' L urine';
+  document.getElementById('pdf-sw-mass').textContent = document.getElementById('sw-mass').textContent || '—';
   document.getElementById('pdf-sw-avg').textContent = document.getElementById('sum-sweat-avg').textContent || '—';
   document.getElementById('pdf-sw-max').textContent = document.getElementById('sum-sweat-max').textContent || '—';
   document.getElementById('pdf-sw-total').textContent = document.getElementById('sum-sweat-total').textContent || '—';
-  document.getElementById('pdf-sw-mass').textContent = document.getElementById('sum-sweat-mass-sum').textContent || '—';
+  document.getElementById('pdf-sw-sodium').textContent = document.getElementById('sw-sodium-total').textContent || '—';
 
   // Zones table mapping
   if (m.zones) {
@@ -2325,10 +2351,15 @@ window.addEventListener('DOMContentLoaded', () => {
   loadSettings(); 
   renderEventsTable();
 
-  // Explicit event listener for upload dropdown toggle
+  // Explicit event listener for upload dropdown toggle & add event button
   const uploadToggleBtn = document.getElementById('upload-toggle-btn');
   if (uploadToggleBtn) {
     uploadToggleBtn.addEventListener('click', toggleUploadDropdown);
+  }
+
+  const addEventBtn = document.getElementById('add-event-btn');
+  if (addEventBtn) {
+    addEventBtn.addEventListener('click', addEventRow);
   }
 
   // Explicit event listeners for tab buttons
