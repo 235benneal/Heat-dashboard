@@ -188,7 +188,7 @@ table.data-table tr:hover td { background: #f8fafc; }
           <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_start">Start</div><div class="big-number text-slate-700" id="sum-start">—</div><div class="text-[10px] text-slate-400">°C</div></div>
           <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_maximum">Maximum</div><div class="big-number" id="sum-max">—</div><div class="text-[10px] text-slate-400">°C</div></div>
           <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_final">Final</div><div class="big-number text-slate-700" id="sum-final">—</div><div class="text-[10px] text-slate-400">°C</div></div>
-          <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_cutoff_reached">Cutoff Reached?</div><div class="big-number" id="sum-cutoff">—</div><div class="text-[10px] text-slate-400" id="sum-cutoff-sub"><span data-i18n="lbl_cutoff_threshold">39.7 °C threshold</span></div></div>
+          <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_cutoff_reached">Cutoff Reached?</div><div class="big-number" id="sum-cutoff">—</div><div class="text-[10px] text-slate-400" id="sum-cutoff-sub"><span id="sum-cutoff-threshold-text">39.7 °C threshold</span></div></div>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-4 pt-4 border-t border-slate-100">
           <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_total_rise">Total Rise</div><div class="font-semibold text-base sm:text-lg" id="sum-rise">—</div><div class="text-[10px] text-slate-400">°C</div></div>
@@ -214,10 +214,10 @@ table.data-table tr:hover td { background: #f8fafc; }
           <table class="w-full text-xs sm:text-sm">
             <thead><tr class="text-left text-[10px] sm:text-xs text-slate-400 border-b border-slate-100"><th class="pb-2" data-i18n="tbl_zone">Zone</th><th class="pb-2" data-i18n="tbl_time">Time</th><th class="pb-2">%</th><th class="pb-2" data-i18n="tbl_first_entry">First Entry</th></tr></thead>
             <tbody id="zone-table">
-              <tr><td class="py-1.5 font-medium zone-1" data-i18n="z1_name">Zone 1 (&lt;38.0)</td><td class="py-1.5" id="z1-time">—</td><td class="py-1.5" id="z1-pct">—</td><td class="py-1.5" id="z1-first">—</td></tr>
-              <tr><td class="py-1.5 font-medium zone-2" data-i18n="z2_name">Zone 2 (38.0–38.9)</td><td class="py-1.5" id="z2-time">—</td><td class="py-1.5" id="z2-pct">—</td><td class="py-1.5" id="z2-first">—</td></tr>
-              <tr><td class="py-1.5 font-medium zone-3" data-i18n="z3_name">Zone 3 (39.0–39.6)</td><td class="py-1.5" id="z3-time">—</td><td class="py-1.5" id="z3-pct">—</td><td class="py-1.5" id="z3-first">—</td></tr>
-              <tr><td class="py-1.5 font-medium zone-4" data-i18n="z4_name">Zone 4 / Cutoff (&ge;39.7)</td><td class="py-1.5" id="z4-time">—</td><td class="py-1.5" id="z4-pct">—</td><td class="py-1.5" id="z4-first">—</td></tr>
+              <tr><td class="py-1.5 font-medium zone-1" id="dash-z1-label">Zone 1 (&lt;38.0)</td><td class="py-1.5" id="z1-time">—</td><td class="py-1.5" id="z1-pct">—</td><td class="py-1.5" id="z1-first">—</td></tr>
+              <tr><td class="py-1.5 font-medium zone-2" id="dash-z2-label">Zone 2 (38.0–38.9)</td><td class="py-1.5" id="z2-time">—</td><td class="py-1.5" id="z2-pct">—</td><td class="py-1.5" id="z2-first">—</td></tr>
+              <tr><td class="py-1.5 font-medium zone-3" id="dash-z3-label">Zone 3 (39.0–39.6)</td><td class="py-1.5" id="z3-time">—</td><td class="py-1.5" id="z3-pct">—</td><td class="py-1.5" id="z3-first">—</td></tr>
+              <tr><td class="py-1.5 font-medium zone-4" id="dash-z4-label">Zone 4 / Cutoff (&ge;39.7)</td><td class="py-1.5" id="z4-time">—</td><td class="py-1.5" id="z4-pct">—</td><td class="py-1.5" id="z4-first">—</td></tr>
             </tbody>
           </table>
         </div>
@@ -499,7 +499,7 @@ table.data-table tr:hover td { background: #f8fafc; }
         <div><span class="block text-[9px] text-slate-500 uppercase">Start</span><span class="text-sm font-bold text-slate-800" id="pdf-val-start">—</span><span class="block text-[8px] text-slate-400">°C</span></div>
         <div><span class="block text-[9px] text-slate-500 uppercase">Maximum</span><span class="text-sm font-bold text-red-600" id="pdf-val-max">—</span><span class="block text-[8px] text-slate-400">°C</span></div>
         <div><span class="block text-[9px] text-slate-500 uppercase">Total Rise</span><span class="text-sm font-bold text-slate-800" id="pdf-val-rise">—</span><span class="block text-[8px] text-slate-400">°C</span></div>
-        <div><span class="block text-[9px] text-slate-500 uppercase">Cutoff?</span><span class="text-sm font-bold text-slate-800" id="pdf-val-cutoff">—</span><span class="block text-[8px] text-slate-400">&ge;39.7°C</span></div>
+        <div><span class="block text-[9px] text-slate-500 uppercase">Cutoff?</span><span class="text-sm font-bold text-slate-800" id="pdf-val-cutoff">—</span><span class="block text-[8px] text-slate-400" id="pdf-cutoff-label-text">&ge;39.7°C</span></div>
       </div>
     </div>
     <div>
@@ -522,7 +522,7 @@ table.data-table tr:hover td { background: #f8fafc; }
     </div>
   </div>
 
-  <!-- Written Summary & Sweat Response Panel (Updated with Body Mass Pre/Post, Calculation & Sodium Loss) -->
+  <!-- Written Summary & Sweat Response Panel -->
   <div class="grid grid-cols-2 gap-4 mb-4">
     <div class="border border-slate-200 rounded-lg p-3 bg-white">
       <h3 class="text-xs font-bold text-slate-700 uppercase mb-2 border-b pb-1.5">Sweat Response & Hydration Balance</h3>
@@ -544,10 +544,10 @@ table.data-table tr:hover td { background: #f8fafc; }
       <table class="w-full text-xs">
         <thead><tr class="text-left text-[9px] text-slate-400 border-b pb-1"><th>Zone</th><th>Time</th><th>%</th><th>First Entry</th></tr></thead>
         <tbody id="pdf-zone-tbody" class="divide-y divide-slate-100">
-          <tr><td class="py-1 zone-1 font-medium">Zone 1 (&lt;38.0)</td><td class="py-1" id="pdf-z1-time">—</td><td class="py-1" id="pdf-z1-pct">—</td><td class="py-1" id="pdf-z1-first">—</td></tr>
-          <tr><td class="py-1 zone-2 font-medium">Zone 2 (38.0–38.9)</td><td class="py-1" id="pdf-z2-time">—</td><td class="py-1" id="pdf-z2-pct">—</td><td class="py-1" id="pdf-z2-first">—</td></tr>
-          <tr><td class="py-1 zone-3 font-medium">Zone 3 (39.0–39.6)</td><td class="py-1" id="pdf-z3-time">—</td><td class="py-1" id="pdf-z3-pct">—</td><td class="py-1" id="pdf-z3-first">—</td></tr>
-          <tr><td class="py-1 zone-4 font-medium">Zone 4 (&ge;39.7)</td><td class="py-1" id="pdf-z4-time">—</td><td class="py-1" id="pdf-z4-pct">—</td><td class="py-1" id="pdf-z4-first">—</td></tr>
+          <tr><td class="py-1 zone-1 font-medium" id="pdf-z1-label">Zone 1 (&lt;38.0)</td><td class="py-1" id="pdf-z1-time">—</td><td class="py-1" id="pdf-z1-pct">—</td><td class="py-1" id="pdf-z1-first">—</td></tr>
+          <tr><td class="py-1 zone-2 font-medium" id="pdf-z2-label">Zone 2 (38.0–38.9)</td><td class="py-1" id="pdf-z2-time">—</td><td class="py-1" id="pdf-z2-pct">—</td><td class="py-1" id="pdf-z2-first">—</td></tr>
+          <tr><td class="py-1 zone-3 font-medium" id="pdf-z3-label">Zone 3 (39.0–39.6)</td><td class="py-1" id="pdf-z3-time">—</td><td class="py-1" id="pdf-z3-pct">—</td><td class="py-1" id="pdf-z3-first">—</td></tr>
+          <tr><td class="py-1 zone-4 font-medium" id="pdf-z4-label">Zone 4 (&ge;39.7)</td><td class="py-1" id="pdf-z4-time">—</td><td class="py-1" id="pdf-z4-pct">—</td><td class="py-1" id="pdf-z4-first">—</td></tr>
         </tbody>
       </table>
     </div>
@@ -662,10 +662,6 @@ const translations = {
     tbl_zone: "Zone",
     tbl_time: "Time",
     tbl_first_entry: "First Entry",
-    z1_name: "Zone 1 (<38.0)",
-    z2_name: "Zone 2 (38.0–38.9)",
-    z3_name: "Zone 3 (39.0–39.6)",
-    z4_name: "Zone 4 / Cutoff (≥39.7)",
     th_elapsed_s: "Elapsed (s)",
     th_hhmmss: "HH:MM:SS",
     th_interval_s: "Interval (s)",
@@ -796,10 +792,6 @@ const translations = {
     tbl_zone: "Zona",
     tbl_time: "Tiempo",
     tbl_first_entry: "Primera Entrada",
-    z1_name: "Zona 1 (<38.0)",
-    z2_name: "Zona 2 (38.0–38.9)",
-    z3_name: "Zona 3 (39.0–39.6)",
-    z4_name: "Zona 4 / Límite (≥39.7)",
     th_elapsed_s: "Transcurrido (s)",
     th_hhmmss: "HH:MM:SS",
     th_interval_s: "Intervalo (s)",
@@ -930,10 +922,6 @@ const translations = {
     tbl_zone: "Zone",
     tbl_time: "Temps",
     tbl_first_entry: "Première Entrée",
-    z1_name: "Zone 1 (<38.0)",
-    z2_name: "Zone 2 (38.0–38.9)",
-    z3_name: "Zone 3 (39.0–39.6)",
-    z4_name: "Zone 4 / Seuil (≥39.7)",
     th_elapsed_s: "Écoulé (s)",
     th_hhmmss: "HH:MM:SS",
     th_interval_s: "Intervalle (s)",
@@ -1064,10 +1052,6 @@ const translations = {
     tbl_zone: "Zona",
     tbl_time: "Tempo",
     tbl_first_entry: "Primeira Entrada",
-    z1_name: "Zona 1 (<38.0)",
-    z2_name: "Zona 2 (38.0–38.9)",
-    z3_name: "Zona 3 (39.0–39.6)",
-    z4_name: "Zona 4 / Limite (≥39.7)",
     th_elapsed_s: "Decorrido (s)",
     th_hhmmss: "HH:MM:SS",
     th_interval_s: "Intervalo (s)",
@@ -1198,10 +1182,6 @@ const translations = {
     tbl_zone: "구간",
     tbl_time: "시간",
     tbl_first_entry: "최초 진입 시간",
-    z1_name: "구간 1 (<38.0)",
-    z2_name: "구간 2 (38.0–38.9)",
-    z3_name: "구간 3 (39.0–39.6)",
-    z4_name: "구간 4 / 임계 (≥39.7)",
     th_elapsed_s: "경과 시간 (초)",
     th_hhmmss: "HH:MM:SS",
     th_interval_s: "간격 (초)",
@@ -1332,10 +1312,6 @@ const translations = {
     tbl_zone: "ゾーン",
     tbl_time: "時間",
     tbl_first_entry: "初回進入時間",
-    z1_name: "ゾーン 1 (<38.0)",
-    z2_name: "ゾーン 2 (38.0–38.9)",
-    z3_name: "ゾーン 3 (39.0–39.6)",
-    z4_name: "ゾーン 4 / 上限 (≥39.7)",
     th_elapsed_s: "経過 (秒)",
     th_hhmmss: "HH:MM:SS",
     th_interval_s: "間隔 (秒)",
@@ -1466,10 +1442,6 @@ const translations = {
     tbl_zone: "区间",
     tbl_time: "时间",
     tbl_first_entry: "首次进入时间",
-    z1_name: "区间 1 (<38.0)",
-    z2_name: "区间 2 (38.0–38.9)",
-    z3_name: "区间 3 (39.0–39.6)",
-    z4_name: "区间 4 / 上限 (≥39.7)",
     th_elapsed_s: "已用时间 (秒)",
     th_hhmmss: "HH:MM:SS",
     th_interval_s: "间隔 (秒)",
@@ -1600,10 +1572,6 @@ const translations = {
     tbl_zone: "Zone",
     tbl_time: "Zeit",
     tbl_first_entry: "Erster Eintritt",
-    z1_name: "Zone 1 (<38.0)",
-    z2_name: "Zone 2 (38.0–38.9)",
-    z3_name: "Zone 3 (39.0–39.6)",
-    z4_name: "Zone 4 / Grenzwert (≥39.7)",
     th_elapsed_s: "Verstrichen (s)",
     th_hhmmss: "HH:MM:SS",
     th_interval_s: "Intervall (s)",
@@ -1699,9 +1667,44 @@ function changeLanguage(langCode) {
     }
   });
 
+  updateZoneLabelsDisplay();
+
   if (AppState.processed.length > 0) {
     renderChart();
   }
+}
+
+function updateZoneLabelsDisplay() {
+  const z = settings.zones;
+  
+  // Dashboard Zone Labels
+  const dashZ1 = document.getElementById('dash-z1-label');
+  const dashZ2 = document.getElementById('dash-z2-label');
+  const dashZ3 = document.getElementById('dash-z3-label');
+  const dashZ4 = document.getElementById('dash-z4-label');
+  
+  if (dashZ1) dashZ1.textContent = `Zone 1 (<${z.z1Max.toFixed(1)})`;
+  if (dashZ2) dashZ2.textContent = `Zone 2 (${z.z2Min.toFixed(1)}–${z.z2Max.toFixed(1)})`;
+  if (dashZ3) dashZ3.textContent = `Zone 3 (${z.z3Min.toFixed(1)}–${z.z3Max.toFixed(1)})`;
+  if (dashZ4) dashZ4.textContent = `Zone 4 / Cutoff (≥${z.cutoff.toFixed(1)})`;
+
+  // PDF Report Zone Labels
+  const pdfZ1 = document.getElementById('pdf-z1-label');
+  const pdfZ2 = document.getElementById('pdf-z2-label');
+  const pdfZ3 = document.getElementById('pdf-z3-label');
+  const pdfZ4 = document.getElementById('pdf-z4-label');
+  
+  if (pdfZ1) pdfZ1.textContent = `Zone 1 (<${z.z1Max.toFixed(1)})`;
+  if (pdfZ2) pdfZ2.textContent = `Zone 2 (${z.z2Min.toFixed(1)}–${z.z2Max.toFixed(1)})`;
+  if (pdfZ3) pdfZ3.textContent = `Zone 3 (${z.z3Min.toFixed(1)}–${z.z3Max.toFixed(1)})`;
+  if (pdfZ4) pdfZ4.textContent = `Zone 4 (≥${z.cutoff.toFixed(1)})`;
+
+  // Threshold labels
+  const cutoffText = document.getElementById('sum-cutoff-threshold-text');
+  if (cutoffText) cutoffText.textContent = `${z.cutoff.toFixed(1)} °C threshold`;
+  
+  const pdfCutoffLabel = document.getElementById('pdf-cutoff-label-text');
+  if (pdfCutoffLabel) pdfCutoffLabel.textContent = `≥${z.cutoff.toFixed(1)}°C`;
 }
 
 function fmtTime(sec) {
@@ -1789,7 +1792,13 @@ function saveSettings() {
   settings.mapEnv.wbgt = document.getElementById('map-e-wbgt').value;
   
   localStorage.setItem('heatSettings', JSON.stringify(settings));
-  alert('Settings saved. Click Process Data to apply.');
+  updateZoneLabelsDisplay();
+
+  if (AppState.processed.length > 0) {
+    calculateMetrics();
+    renderAthleteSummary();
+  }
+  alert('Settings saved and dynamically applied across dashboard, reports, and zones.');
 }
 
 function loadSettings() {
@@ -1823,6 +1832,8 @@ function loadSettings() {
   document.getElementById('map-e-ambient').value = settings.mapEnv.ambient;
   document.getElementById('map-e-rh').value = settings.mapEnv.rh;
   document.getElementById('map-e-wbgt').value = settings.mapEnv.wbgt;
+
+  updateZoneLabelsDisplay();
 }
 
 function processDataArray(type, aoa) {
@@ -2289,6 +2300,7 @@ function exportPDF() {
   document.getElementById('pdf-sw-sodium').textContent = document.getElementById('sw-sodium-total').textContent || '—';
 
   // Zones table mapping
+  updateZoneLabelsDisplay();
   if (m.zones) {
     const zmap = { 'Zone 1': 'pdf-z1', 'Zone 2': 'pdf-z2', 'Zone 3': 'pdf-z3', 'Zone 4/Cutoff': 'pdf-z4' };
     for (const k in zmap) {
