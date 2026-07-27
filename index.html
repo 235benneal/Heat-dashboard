@@ -1722,7 +1722,7 @@ function showTab(name) {
   document.getElementById('tab-' + name).classList.remove('hidden');
   document.querySelectorAll('.tab-btn').forEach(el => { el.classList.remove('active'); el.classList.add('text-slate-600'); });
   document.querySelectorAll('.tab-btn').forEach(el => {
-    if (el.getAttribute('onclick') && el.getAttribute('onclick'].includes("'" + name + "'")) { el.classList.add('active'); el.classList.remove('text-slate-600'); }
+    if (el.getAttribute('onclick') && el.getAttribute('onclick').includes("'" + name + "'")) { el.classList.add('active'); el.classList.remove('text-slate-600'); }
   });
   if (name === 'charts') renderChart();
   if (name === 'archive') renderArchiveTable();
@@ -2235,7 +2235,6 @@ function exportPDF() {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      layout: { padding: { right: 10 } },
       scales: {
         x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
         y: { position: 'left', title: { display: true, text: 'Core (°C)' } },
