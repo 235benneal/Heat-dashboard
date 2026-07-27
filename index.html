@@ -27,7 +27,7 @@ body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; }
 .badge-green { background: #dcfce7; color: #166534; }
 .badge-yellow { background: #fef9c3; color: #854d0e; }
 .badge-red { background: #fee2e2; color: #991b1b; }
-.drag-zone { border: 2px dashed #cbd5e1; border-radius: 12px; transition: all 0.2s; }
+.drag-zone { border: 2px dashed #cbd5e1; border-radius: 12px; transition: all 0.2s; background: white; }
 .drag-zone:hover, .drag-zone.dragover { border-color: #3b82f6; background: #eff6ff; }
 table.data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; }
 table.data-table th { background: #f8fafc; padding: 8px 12px; text-align: left; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; }
@@ -50,7 +50,6 @@ table.data-table tr:hover td { background: #f8fafc; }
 .tooltip-trigger.right-aligned .sci-tooltip { left: auto; right: 0; transform: none; } 
 .tooltip-trigger.right-aligned .sci-tooltip::after { left: auto; right: 12px; margin-left: 0; }
 
-/* PDF & Print Professional Formatting */
 @media print { 
   .no-print { display: none !important; } 
   body { background: white; color: black; }
@@ -88,41 +87,38 @@ table.data-table tr:hover td { background: #f8fafc; }
   </div>
 </header>
 
+<!-- UPLOAD FILE DROPDOWN SECTION -->
 <div class="bg-white border-b border-slate-200 no-print">
-  <div class="max-w-[1600px] mx-auto px-4 py-3">
-    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-6 lg:flex lg:flex-wrap gap-2 sm:gap-3 items-center">
-      <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-calera').click()">
+  <div class="max-w-[1600px] mx-auto px-4 py-2.5">
+    <button onclick="toggleUploadDropdown()" class="w-full flex items-center justify-between text-xs sm:text-sm font-semibold text-slate-700 py-1.5 focus:outline-none">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-cloud-arrow-up text-blue-600"></i>
+        <span id="txt-upload-toggle">Manage & Upload Data Files (CALERA, CORE 2, FLOWBIO, Environment)</span>
+      </div>
+      <i id="upload-dropdown-icon" class="fa-solid fa-chevron-down transition-transform"></i>
+    </button>
+    <div id="upload-dropdown-content" class="hidden pt-3 pb-3 border-t border-slate-100 mt-2 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-3 items-center">
+      <div class="drag-zone px-3 py-2 cursor-pointer" onclick="document.getElementById('file-calera').click()">
         <input type="file" id="file-calera" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'calera')">
         <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-purple-600"></i><span class="font-medium truncate">CALERA</span></div>
         <span class="text-slate-400 text-[10px] block truncate" id="status-calera">No file</span>
       </div>
-      <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-core').click()">
+      <div class="drag-zone px-3 py-2 cursor-pointer" onclick="document.getElementById('file-core').click()">
         <input type="file" id="file-core" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'core')">
         <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-teal-600"></i><span class="font-medium truncate">CORE 2</span></div>
         <span class="text-slate-400 text-[10px] block truncate" id="status-core">No file</span>
       </div>
-      <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-flowbio').click()">
+      <div class="drag-zone px-3 py-2 cursor-pointer" onclick="document.getElementById('file-flowbio').click()">
         <input type="file" id="file-flowbio" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'flowbio')">
         <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-blue-600"></i><span class="font-medium truncate">FLOWBIO</span></div>
         <span class="text-slate-400 text-[10px] block truncate" id="status-flowbio">No file</span>
       </div>
-      <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-env').click()">
+      <div class="drag-zone px-3 py-2 cursor-pointer" onclick="document.getElementById('file-env').click()">
         <input type="file" id="file-env" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'env')">
         <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-green-600"></i><span class="font-medium truncate">Environment</span></div>
         <span class="text-slate-400 text-[10px] block truncate" id="status-env">No file</span>
       </div>
-      <div class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3 text-xs">
-        <div>
-          <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Sensor Status</div>
-          <div class="flex items-center gap-2 font-medium text-slate-700">
-            <span id="top-sensor-primary">CALERA: <span id="sum-pct-primary">—</span></span>
-            <span class="text-slate-300">|</span>
-            <span id="top-sensor-div">Div: <span id="sum-divergence">—</span></span>
-            <div id="quality-badges" class="inline-flex"><span class="badge badge-green scale-90 origin-left">Ready</span></div>
-          </div>
-        </div>
-      </div>
-      <button onclick="processAllData()" class="col-span-2 sm:col-span-2 md:grid-cols-6 lg:ml-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs sm:text-sm font-medium transition text-center"><i class="fa-solid fa-rotate mr-1"></i> <span id="btn-process">Process Data</span></button>
+      <button onclick="processAllData()" class="w-full px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs sm:text-sm font-medium transition text-center col-span-2 sm:col-span-1"><i class="fa-solid fa-rotate mr-1"></i> <span id="btn-process">Process Data</span></button>
     </div>
   </div>
 </div>
@@ -413,7 +409,7 @@ table.data-table tr:hover td { background: #f8fafc; }
     </div>
   </div>
 
-  <!-- SETTINGS TAB (RESTORED FULLY) -->
+  <!-- SETTINGS TAB -->
   <div id="tab-settings" class="tab-content hidden">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="card p-4">
@@ -493,6 +489,7 @@ const translations = {
     export_csv: "Export CSV",
     export_pdf: "Export PDF",
     process: "Process Data",
+    upload_toggle: "Manage & Upload Data Files (CALERA, CORE 2, FLOWBIO, Environment)",
     tab_dashboard: "Dashboard",
     tab_processed: "Processed Data",
     tab_charts: "Interactive Charts",
@@ -514,6 +511,7 @@ const translations = {
     export_csv: "Exportar CSV",
     export_pdf: "Exportar PDF",
     process: "Procesar Datos",
+    upload_toggle: "Gestionar y Subir Archivos (CALERA, CORE 2, FLOWBIO, Entorno)",
     tab_dashboard: "Panel Principal",
     tab_processed: "Datos Procesados",
     tab_charts: "Gráficos Interactivos",
@@ -535,6 +533,7 @@ const translations = {
     export_csv: "Exporter CSV",
     export_pdf: "Exporter PDF",
     process: "Traiter les Données",
+    upload_toggle: "Gérer et Importer des Fichiers (CALERA, CORE 2, FLOWBIO, Environnement)",
     tab_dashboard: "Tableau de Bord",
     tab_processed: "Données Traitées",
     tab_charts: "Graphiques Interactifs",
@@ -548,8 +547,118 @@ const translations = {
     sec_zones: "Temps Passé dans les Zones",
     sec_sweat: "Réponse de Sudation",
     sec_hr: "Fréquence Cardiaque (FC)",
-    sec_compare: "Comparer les Températures par Intervalles",
+    sec_compare: "Comparar Temperaturas Centrales por Intervalos",
     sec_charts: "Dynamique Interactive Température et Sueur"
+  },
+  pt: {
+    app_title: "Análise de Calor, Suor e Hidratação",
+    export_csv: "Exportar CSV",
+    export_pdf: "Exportar PDF",
+    process: "Processar Dados",
+    upload_toggle: "Gerenciar e Enviar Arquivos (CALERA, CORE 2, FLOWBIO, Ambiente)",
+    tab_dashboard: "Painel",
+    tab_processed: "Dados Processados",
+    tab_charts: "Gráficos Interativos",
+    tab_compare: "Comparar Períodos",
+    tab_archive: "Relatórios Salvos",
+    tab_sweat: "Suor",
+    tab_events: "Eventos e Pausas",
+    tab_settings: "Configurações",
+    sec_session: "Informações da Sessão",
+    sec_core: "Cinética da Temperatura Central (Tcore)",
+    sec_zones: "Tempo Gasto nas Zonas",
+    sec_sweat: "Resposta ao Suor",
+    sec_hr: "Frequência Cardíaca (FC)",
+    sec_compare: "Comparar Temperaturas Centrais por Intervalos",
+    sec_charts: "Dinâmica Interativa de Temperatura Central e Suor"
+  },
+  ko: {
+    app_title: "열, 땀 및 수분 분석",
+    export_csv: "CSV 내보내기",
+    export_pdf: "PDF 내보내기",
+    process: "데이터 처리",
+    upload_toggle: "데이터 파일 관리 및 업로드 (CALERA, CORE 2, FLOWBIO, 환경)",
+    tab_dashboard: "대시보드",
+    tab_processed: "처리된 데이터",
+    tab_charts: "인터랙티브 차트",
+    tab_compare: "구간 비교",
+    tab_archive: "저장된 보고서",
+    tab_sweat: "땀",
+    tab_events: "이벤트 및 휴식",
+    tab_settings: "설정",
+    sec_session: "세션 정보",
+    sec_core: "심부 체온 동역학 (Tcore)",
+    sec_zones: "구간별 소요 시간",
+    sec_sweat: "발한 반응",
+    sec_hr: "심박수 (HR)",
+    sec_compare: "특정 구간별 심부 체온 비교",
+    sec_charts: "인터랙티브 심부 체온 및 땀 배출 역학"
+  },
+  ja: {
+    app_title: "熱・発汗・水分分析",
+    export_csv: "CSVエクスポート",
+    export_pdf: "PDFエクスポート",
+    process: "データ処理",
+    upload_toggle: "データファイルの管理・アップロード",
+    tab_dashboard: "ダッシュボード",
+    tab_processed: "処理済みデータ",
+    tab_charts: "インタラクティブチャート",
+    tab_compare: "区間比較",
+    tab_archive: "保存済みレポート",
+    tab_sweat: "発汗",
+    tab_events: "イベント・休憩",
+    tab_settings: "設定",
+    sec_session: "セッション情報",
+    sec_core: "深部体温動態 (Tcore)",
+    sec_zones: "ゾーン別滞在時間",
+    sec_sweat: "発汗反応",
+    sec_hr: "心拍数 (HR)",
+    sec_compare: "区間ごとの深部体温比較",
+    sec_charts: "深部体温および発汗量のインタラクティブダイナミクス"
+  },
+  zh: {
+    app_title: "热量、出汗与水合分析",
+    export_csv: "导出 CSV",
+    export_pdf: "导出 PDF",
+    process: "处理数据",
+    upload_toggle: "管理和上传数据文件",
+    tab_dashboard: "仪表板",
+    tab_processed: "已处理数据",
+    tab_charts: "交互式图表",
+    tab_compare: "区间对比",
+    tab_archive: "已保存报告",
+    tab_sweat: "出汗",
+    tab_events: "事件与间歇",
+    tab_settings: "设置",
+    sec_session: "会话信息",
+    sec_core: "核心体温动力学 (Tcore)",
+    sec_zones: "各区间停留时间",
+    sec_sweat: "出汗反应",
+    sec_hr: "心率 (HR)",
+    sec_compare: "对比特定区间核心体温",
+    sec_charts: "核心体温与出汗量交互动态"
+  },
+  de: {
+    app_title: "Hitze-, Schweiß- und Hydrationsanalyse",
+    export_csv: "CSV exportieren",
+    export_pdf: "PDF exportieren",
+    process: "Daten verarbeiten",
+    upload_toggle: "Dateien verwalten & hochladen",
+    tab_dashboard: "Dashboard",
+    tab_processed: "Verarbeitete Daten",
+    tab_charts: "Interaktive Diagramme",
+    tab_compare: "Abschnitte vergleichen",
+    tab_archive: "Gespeicherte Berichte",
+    tab_sweat: "Schweiß",
+    tab_events: "Ereignisse & Pausen",
+    tab_settings: "Einstellungen",
+    sec_session: "Sitzungsinformationen",
+    sec_core: "Kerntemperatur-Kinetik (Tcore)",
+    sec_zones: "Zeit in Zonen",
+    sec_sweat: "Schweißreaktion",
+    sec_hr: "Herzfrequenz (HF)",
+    sec_compare: "Kerntemperaturen über Intervalle vergleichen",
+    sec_charts: "Interaktive Kerntemperatur- und Schweißverlust-Dynamik"
   }
 };
 
@@ -562,6 +671,13 @@ const DEFAULT_SETTINGS = {
 };
 let settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
 
+function toggleUploadDropdown() {
+  const content = document.getElementById('upload-dropdown-content');
+  const icon = document.getElementById('upload-dropdown-icon');
+  content.classList.toggle('hidden');
+  icon.classList.toggle('rotate-180');
+}
+
 function changeLanguage(langCode) {
   AppState.currentLang = langCode;
   const dict = translations[langCode] || translations['en'];
@@ -570,6 +686,7 @@ function changeLanguage(langCode) {
   document.getElementById('btn-export-csv').innerHTML = dict.export_csv;
   document.getElementById('btn-export-pdf').innerHTML = dict.export_pdf;
   document.getElementById('btn-process').innerHTML = dict.process;
+  document.getElementById('txt-upload-toggle').innerHTML = dict.upload_toggle;
   
   document.getElementById('tab-btn-dashboard').innerHTML = dict.tab_dashboard;
   document.getElementById('tab-btn-processed').innerHTML = dict.tab_processed;
