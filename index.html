@@ -53,7 +53,7 @@ table.data-table tr:hover td { background: #f8fafc; }
 @media print { 
   .no-print { display: none !important; } 
   body { background: white; color: black; }
-  .card { box-shadow: none; border: 1px solid #cbd5e1; break-inside: avoid; margin-bottom: 1.5rem; }
+  .card { box-shadow: none; border: 1px solid #cbd5e1; break-inside: avoid; margin-bottom: 1rem; }
   .pdf-page-break { page-break-before: always; break-before: page; }
   #pdf-footer-content { display: block !important; position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 8px; }
 }
@@ -474,6 +474,44 @@ table.data-table tr:hover td { background: #f8fafc; }
 
 </div>
 
+<!-- HIDDEN MULTI-CHART STACKED REPORT TEMPLATE FOR PDF EXPORT -->
+<div id="pdf-report-template" class="hidden bg-white p-6 max-w-[800px] mx-auto text-slate-800">
+  <div class="flex items-center justify-between border-b pb-4 mb-4">
+    <div>
+      <h2 class="text-lg font-bold text-slate-900" data-i18n="app_title">Heat, Sweat and Hydration Analysis</h2>
+      <p class="text-xs text-slate-500">Graded Exercise & Thermal Strain Report</p>
+    </div>
+    <div class="text-right text-xs text-slate-500">
+      <div><span class="font-semibold" id="pdf-rep-athlete">—</span></div>
+      <div id="pdf-rep-date">—</div>
+    </div>
+  </div>
+
+  <!-- Chart 1: Core Temperature & Heart Rate -->
+  <div class="mb-4">
+    <div class="text-xs font-bold text-slate-700 uppercase mb-1">Core Temperature & Heart Rate</div>
+    <div class="relative w-full h-[200px] border rounded bg-white p-1">
+      <canvas id="pdfChart1"></canvas>
+    </div>
+  </div>
+
+  <!-- Chart 2: Sweat Dynamics -->
+  <div class="mb-4">
+    <div class="text-xs font-bold text-slate-700 uppercase mb-1">Cumulative Sweat & Hydration Loss</div>
+    <div class="relative w-full h-[200px] border rounded bg-white p-1">
+      <canvas id="pdfChart2"></canvas>
+    </div>
+  </div>
+
+  <!-- Chart 3: Environmental / Skin / Secondary Metric -->
+  <div class="mb-2">
+    <div class="text-xs font-bold text-slate-700 uppercase mb-1">Thermal Zones & Progression</div>
+    <div class="relative w-full h-[200px] border rounded bg-white p-1">
+      <canvas id="pdfChart3"></canvas>
+    </div>
+  </div>
+</div>
+
 <script>
 const AppState = {
   raw: { calera: [], core: [], flowbio: [], env: [] },
@@ -482,6 +520,9 @@ const AppState = {
 
 let thermalChartStandaloneInstance = null;
 let compareChartInstance = null;
+let pdfChart1Instance = null;
+let pdfChart2Instance = null;
+let pdfChart3Instance = null;
 
 const translations = {
   en: {
@@ -1560,14 +1601,12 @@ function toggleUploadDropdown() {
 
 function toggleTooltip(event, el) {
   event.stopPropagation();
-  // Close other open tooltips
   document.querySelectorAll('.tooltip-trigger').forEach(item => {
     if (item !== el) item.classList.remove('active-tap');
   });
   el.classList.toggle('active-tap');
 }
 
-// Close tooltips when tapping anywhere else on the screen (for iPad/touch usability)
 window.addEventListener('touchstart', (e) => {
   if (!e.target.closest('.tooltip-trigger')) {
     document.querySelectorAll('.tooltip-trigger').forEach(item => item.classList.remove('active-tap'));
@@ -1578,7 +1617,6 @@ function changeLanguage(langCode) {
   AppState.currentLang = langCode;
   const dict = translations[langCode] || translations['en'];
   
-  // Translate elements with data-i18n
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     if (dict[key]) {
@@ -1586,7 +1624,6 @@ function changeLanguage(langCode) {
     }
   });
 
-  // Translate placeholders with data-i18n-ph
   document.querySelectorAll('[data-i18n-ph]').forEach(el => {
     const key = el.getAttribute('data-i18n-ph');
     if (dict[key]) {
@@ -2100,56 +2137,97 @@ function exportCSV() {
 
 function exportPDF() {
   if (AppState.processed.length === 0) { alert('No processed data to export.'); return; }
-  
-  const allTabs = document.querySelectorAll('.tab-content');
-  allTabs.forEach(t => t.classList.add('hidden', 'no-print'));
-  
-  const summaryTab = document.getElementById('tab-summary');
-  const chartsTab = document.getElementById('tab-charts');
-  const compareTab = document.getElementById('tab-compare');
-  
-  summaryTab.classList.remove('hidden', 'no-print');
-  chartsTab.classList.remove('hidden', 'no-print');
-  chartsTab.classList.add('pdf-page-break');
-  
-  const compareHasData = !document.getElementById('compare-results').classList.contains('hidden');
-  if (compareHasData) {
-    compareTab.classList.remove('hidden', 'no-print');
-  }
 
-  const footer = document.getElementById('pdf-footer-content');
-  footer.classList.remove('hidden');
+  const reportTemplate = document.getElementById('pdf-report-template');
+  reportTemplate.classList.remove('hidden');
 
-  renderChart(); 
+  document.getElementById('pdf-rep-athlete').textContent = document.getElementById('inp-athlete').value || 'Athlete';
+  document.getElementById('pdf-rep-date').textContent = new Date().toLocaleDateString();
 
-  const element = document.getElementById('pdf-container');
-  
-  if (typeof html2pdf !== 'undefined') {
-    html2pdf().set({
-      margin: 0.4,
-      filename: 'Heat_And_Hydration_Report.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    }).from(element).save().then(() => {
-      restoreTabs();
-    }).catch(() => {
+  const p = AppState.processed;
+  const labels = p.map(r => r.hhmmss);
+  const coreData = p.map(r => r.unifiedCore);
+  const hrData = p.map(r => r.hr);
+  const sweatData = p.map(r => r.cumulativeSweat);
+
+  if (pdfChart1Instance) pdfChart1Instance.destroy();
+  if (pdfChart2Instance) pdfChart2Instance.destroy();
+  if (pdfChart3Instance) pdfChart3Instance.destroy();
+
+  // Chart 1: Core Temperature & Heart Rate
+  pdfChart1Instance = new Chart(document.getElementById('pdfChart1'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Core Temp (°C)', data: coreData, borderColor: '#dc2626', borderWidth: 2, pointRadius: 0, yAxisID: 'y' },
+        { label: 'Heart Rate (bpm)', data: hrData, borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 0, yAxisID: 'y1' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
+        y: { position: 'left', title: { display: true, text: 'Core (°C)' } },
+        y1: { position: 'right', title: { display: true, text: 'HR (bpm)' }, grid: { drawOnChartArea: false } }
+      }
+    }
+  });
+
+  // Chart 2: Cumulative Sweat Loss
+  pdfChart2Instance = new Chart(document.getElementById('pdfChart2'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Cumulative Sweat Loss (L)', data: sweatData, borderColor: '#0d9488', backgroundColor: 'rgba(13, 148, 136, 0.1)', fill: true, borderWidth: 2, pointRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
+        y: { title: { display: true, text: 'Sweat (L)' } }
+      }
+    }
+  });
+
+  // Chart 3: Thermal Zone Profile / Progression
+  pdfChart3Instance = new Chart(document.getElementById('pdfChart3'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Core Temp Progression', data: coreData, backgroundColor: '#f97316' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
+        y: { min: 35, title: { display: true, text: '°C' } }
+      }
+    }
+  });
+
+  setTimeout(() => {
+    if (typeof html2pdf !== 'undefined') {
+      html2pdf().set({
+        margin: 0.3,
+        filename: 'Diagnostic_Report.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      }).from(reportTemplate).save().then(() => {
+        reportTemplate.classList.add('hidden');
+      }).catch(() => {
+        reportTemplate.classList.add('hidden');
+      });
+    } else {
       window.print();
-      restoreTabs();
-    });
-  } else {
-    window.print();
-    restoreTabs();
-  }
-
-  function restoreTabs() {
-    footer.classList.add('hidden');
-    chartsTab.classList.remove('pdf-page-break');
-    allTabs.forEach(t => t.classList.remove('no-print'));
-    const activeBtn = document.querySelector('.tab-btn.active');
-    if (activeBtn) activeBtn.click();
-    else showTab('summary');
-  }
+      reportTemplate.classList.add('hidden');
+    }
+  }, 500);
 }
 
 window.addEventListener('DOMContentLoaded', () => { 
