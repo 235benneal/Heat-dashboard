@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Heat and Hydration Analysis</title>
+<title>Heat, Sweat and Hydration Analysis</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -66,13 +66,13 @@ table.data-table tr:hover td { background: #f8fafc; }
 <body class="text-slate-800">
 
 <header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800">
-  <div class="max-w-[1600px] mx-auto px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+  <div class="max-w-[1600px] mx-auto px-4 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
     <div>
-      <h1 class="font-semibold text-base sm:text-lg tracking-wide" id="txt-app-title">Heat and Hydration Analysis &middot; Professional Sports Science Report</h1>
-      <p class="text-[10px] sm:text-xs text-slate-400">Canterbury Christ Church University &middot; CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO</p>
+      <h1 class="font-bold text-xl sm:text-2xl tracking-wide" id="txt-app-title">Heat, Sweat and Hydration Analysis &middot; Professional Sports Science Report</h1>
+      <p class="text-xs sm:text-sm text-slate-400 mt-1">CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO</p>
     </div>
     <div class="flex items-center gap-2 w-full sm:w-auto justify-end no-print flex-wrap">
-      <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-2 py-1.5 text-xs sm:text-sm focus:outline-none">
+      <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none">
         <option value="en">English (UK)</option>
         <option value="es">Español (Spanish)</option>
         <option value="pt">Português (Portuguese)</option>
@@ -84,8 +84,8 @@ table.data-table tr:hover td { background: #f8fafc; }
         <option value="da">Dansk (Danish)</option>
         <option value="de">Deutsch (German)</option>
       </select>
-      <button onclick="exportCSV()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs sm:text-sm transition text-center"><i class="fa-solid fa-download mr-1"></i> <span id="btn-export-csv">Export CSV</span></button>
-      <button onclick="exportPDF()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs sm:text-sm transition text-center font-medium"><i class="fa-solid fa-file-pdf mr-1"></i> <span id="btn-export-pdf">Export PDF</span></button>
+      <button onclick="exportCSV()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs sm:text-sm transition text-center"><i class="fa-solid fa-download mr-1"></i> <span id="btn-export-csv">Export CSV</span></button>
+      <button onclick="exportPDF()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs sm:text-sm transition text-center font-medium"><i class="fa-solid fa-file-pdf mr-1"></i> <span id="btn-export-pdf">Export PDF</span></button>
     </div>
   </div>
 </header>
@@ -443,6 +443,23 @@ const AppState = {
 let thermalChartStandaloneInstance = null;
 let compareChartInstance = null;
 
+const translations = {
+  en: {
+    app_title: "Heat, Sweat and Hydration Analysis",
+    export_csv: "Export CSV",
+    export_pdf: "Export PDF",
+    process: "Process Data",
+    tab_dashboard: "Dashboard",
+    tab_processed: "Processed Data",
+    tab_charts: "Interactive Charts",
+    tab_compare: "Compare Lengths",
+    tab_archive: "Saved Reports & Archive",
+    tab_sweat: "Sweat",
+    tab_events: "Events & Breaks",
+    tab_settings: "Settings"
+  }
+};
+
 const DEFAULT_SETTINGS = {
   zones: { z1Max: 38.0, z2Min: 38.0, z2Max: 38.9, z3Min: 39.0, z3Max: 39.6, cutoff: 39.7 },
   sensors: { primary: 'CALERA', fallback: true, tolerance: 3, validQuality: '17,High,Medium' },
@@ -451,6 +468,12 @@ const DEFAULT_SETTINGS = {
   mapEnv: { time: 'Date/Time', ambient: '058 [°C]', rh: '058 [%RH]', wbgt: '058 Wet bulb temperature [°C]' }
 };
 let settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+
+function changeLanguage(langCode) {
+  AppState.currentLang = langCode;
+  // Feature restored to prevent undefined JS errors breaking the dropdown.
+  console.log("Language changed to: " + langCode);
+}
 
 function fmtTime(sec) {
   if (sec == null || isNaN(sec)) return '—';
@@ -888,7 +911,6 @@ function exportCSV() {
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
-// Generates the PDF by sequentially displaying the exact required sections.
 function exportPDF() {
   if (AppState.processed.length === 0) { alert('No processed data to export.'); return; }
   
@@ -899,7 +921,6 @@ function exportPDF() {
   const chartsTab = document.getElementById('tab-charts');
   const compareTab = document.getElementById('tab-compare');
   
-  // Show required tabs for PDF layout
   summaryTab.classList.remove('hidden', 'no-print');
   chartsTab.classList.remove('hidden', 'no-print');
   chartsTab.classList.add('pdf-page-break');
