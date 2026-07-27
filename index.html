@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ben Neal Sports Science — Heat & Hydration Analysis</title>
+<title>Heat and Hydration Analysis</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -14,7 +14,11 @@
 body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; }
 .tab-btn.active { background: #0284c7; color: white; border-color: #0284c7; }
 .tab-btn:hover:not(.active) { background: #e2e8f0; color: #0f172a; }
-.card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 1rem; position: relative; }
+.card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 1rem; position: relative; transition: background-color 0.2s ease, border-color 0.2s ease; }
+.card:hover {
+  background-color: #f0fdf4;
+  border-color: #86efac;
+}
 .big-number { font-size: 1.75rem; font-weight: 700; line-height: 1; }
 @media (min-width: 768px) { .big-number { font-size: 2.25rem; } }
 .zone-1 { color: #0d9488; }
@@ -33,7 +37,7 @@ table.data-table td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
 table.data-table tr:hover td { background: #f8fafc; }
 .cutoff-red { color: #dc2626; }
 
-/* Custom Detailed Tooltip Styling */
+/* Custom Detailed Tooltip Styling triggered ONLY on question mark hover */
 .sci-tooltip {
   visibility: hidden;
   position: absolute;
@@ -65,7 +69,7 @@ table.data-table tr:hover td { background: #f8fafc; }
   border-style: solid;
   border-color: #0f172a transparent transparent transparent;
 }
-.has-sci-tooltip:hover .sci-tooltip {
+.tooltip-trigger:hover .sci-tooltip {
   visibility: visible;
   opacity: 1;
 }
@@ -77,16 +81,16 @@ table.data-table tr:hover td { background: #f8fafc; }
 </head>
 <body class="text-slate-800">
 
-<!-- Professional Sports Science Enterprise Header without Logo or Thermal Lab badge -->
+<!-- Professional Sports Science Enterprise Header without Name or Thermal Lab badge -->
 <header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800">
   <div class="max-w-[1600px] mx-auto px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
     <div>
-      <h1 class="font-semibold text-base sm:text-lg tracking-wide" id="txt-app-title">Ben Neal Sports Science — Heat and Hydration Analysis</h1>
+      <h1 class="font-semibold text-base sm:text-lg tracking-wide" id="txt-app-title">Heat and Hydration Analysis</h1>
       <p class="text-[10px] sm:text-xs text-slate-400">CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO Sweat Analytics</p>
     </div>
     <div class="flex items-center gap-2 w-full sm:w-auto justify-end no-print flex-wrap">
       <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-2 py-1.5 text-xs sm:text-sm focus:outline-none">
-        <option value="en">English (Default)</option>
+        <option value="en">English (UK)</option>
         <option value="es">Español (Spanish)</option>
         <option value="pt">Português (Portuguese)</option>
         <option value="ko">한국어 (Korean)</option>
@@ -109,26 +113,26 @@ table.data-table tr:hover td { background: #f8fafc; }
       <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-calera').click()">
         <input type="file" id="file-calera" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'calera')">
         <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-purple-600"></i><span class="font-medium truncate">CALERA</span></div>
-        <span class="text-slate-400 text-[10px] block truncate" id="status-calera">No file</span>
+        <span class="text-slate-400 text-[10px] block truncate" id="status-calera" data-t="no_file">No file</span>
       </div>
       <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-core').click()">
         <input type="file" id="file-core" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'core')">
         <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-teal-600"></i><span class="font-medium truncate">CORE 2</span></div>
-        <span class="text-slate-400 text-[10px] block truncate" id="status-core">No file</span>
+        <span class="text-slate-400 text-[10px] block truncate" id="status-core" data-t="no_file">No file</span>
       </div>
       <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-flowbio').click()">
         <input type="file" id="file-flowbio" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'flowbio')">
         <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-blue-600"></i><span class="font-medium truncate">FLOWBIO</span></div>
-        <span class="text-slate-400 text-[10px] block truncate" id="status-flowbio">No file</span>
+        <span class="text-slate-400 text-[10px] block truncate" id="status-flowbio" data-t="no_file">No file</span>
       </div>
       <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-env').click()">
         <input type="file" id="file-env" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'env')">
-        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-green-600"></i><span class="font-medium truncate">Environment</span></div>
-        <span class="text-slate-400 text-[10px] block truncate" id="status-env">No file</span>
+        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-green-600"></i><span class="font-medium truncate" data-t="environment">Environment</span></div>
+        <span class="text-slate-400 text-[10px] block truncate" id="status-env" data-t="no_file">No file</span>
       </div>
       <div class="drag-zone px-3 sm:px-4 py-2 opacity-60 cursor-not-allowed bg-slate-50">
         <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-clock text-slate-400"></i><span class="font-medium truncate">Intervals.icu</span></div>
-        <span class="text-amber-600 text-[10px] block font-semibold truncate">Coming soon</span>
+        <span class="text-amber-600 text-[10px] block font-semibold truncate" data-t="coming_soon">Coming soon</span>
       </div>
       <button onclick="processAllData()" class="col-span-2 sm:col-span-2 md:grid-cols-5 lg:ml-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs sm:text-sm font-medium transition text-center"><i class="fa-solid fa-rotate mr-1"></i> <span id="btn-process">Process Data</span></button>
     </div>
@@ -137,11 +141,11 @@ table.data-table tr:hover td { background: #f8fafc; }
 
 <div class="max-w-[1600px] mx-auto px-4 py-3 no-print overflow-x-auto hide-scrollbar">
   <div class="flex gap-1 bg-slate-200/60 p-1 rounded-xl inline-flex min-w-full sm:min-w-0">
-    <button class="tab-btn active px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap" onclick="showTab('summary')" id="tab-btn-dashboard">Dashboard</button>
-    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('processed')" id="tab-btn-processed">Processed Data</button>
-    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('sweat')" id="tab-btn-sweat">Sweat</button>
-    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('events')" id="tab-btn-events">Events & Breaks</button>
-    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('settings')" id="tab-btn-settings">Settings</button>
+    <button class="tab-btn active px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap" onclick="showTab('summary')" id="tab-btn-dashboard" data-t="tab_dashboard">Dashboard</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('processed')" id="tab-btn-processed" data-t="tab_processed">Processed Data</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('sweat')" id="tab-btn-sweat" data-t="tab_sweat">Sweat</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('events')" id="tab-btn-events" data-t="tab_events">Events & Breaks</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('settings')" id="tab-btn-settings" data-t="tab_settings">Settings</button>
   </div>
 </div>
 
@@ -149,11 +153,13 @@ table.data-table tr:hover td { background: #f8fafc; }
 
 <div id="tab-summary" class="tab-content">
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <div class="card p-4 has-sci-tooltip">
-      <div class="sci-tooltip"><strong>Session Information & Context:</strong> Captures metadata specific to the individual athlete, workout date, sport modality, distance covered, cumulative duration in hours, minutes and seconds, and the environmental conditions recorded during testing or competition.</div>
+    <div class="card p-4">
       <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
         <span data-t="session_info">Session Information</span>
-        <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+        <div class="relative tooltip-trigger cursor-help">
+          <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+          <div class="sci-tooltip" data-t="tooltip_session"><strong>Session Information & Context:</strong> Captures metadata specific to the individual athlete, workout date, sport modality, distance covered, cumulative duration in hours, minutes and seconds, and the environmental conditions recorded during testing or competition.</div>
+        </div>
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div><label class="text-xs text-slate-400" data-t="athlete">Athlete</label><input id="inp-athlete" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="Name"></div>
@@ -164,23 +170,25 @@ table.data-table tr:hover td { background: #f8fafc; }
       <div class="mt-3 pt-3 border-t border-slate-100 space-y-2">
         <div class="flex justify-between items-center text-xs sm:text-sm"><span class="text-slate-500" data-t="duration">Duration</span><span class="font-semibold" id="sum-duration">—</span></div>
         <div class="flex flex-col gap-1">
-          <div class="flex justify-between items-center text-xs sm:text-sm"><span class="text-slate-500" data-t="environment">Environment</span><span class="text-[10px] text-slate-400">Auto or manual</span></div>
+          <div class="flex justify-between items-center text-xs sm:text-sm"><span class="text-slate-500" data-t="environment">Environment</span><span class="text-[10px] text-slate-400" data-t="auto_manual">Auto or manual</span></div>
           <input id="inp-env" class="w-full border rounded px-2 py-1 text-xs sm:text-sm no-print-bg" placeholder="e.g. 24.5 °C : 60% RH">
         </div>
       </div>
     </div>
     
-    <div class="card p-4 lg:col-span-2 has-sci-tooltip">
-      <div class="sci-tooltip"><strong>Core Temperature Kinetics:</strong> Evaluates internal thermal strain through baseline starting temperature, peak achieved core temperature, final stabilization value, overall absolute thermal rise, net change, rate of temperature increase per minute, and time required to reach peak thermal load relative to safety cutoffs.</div>
+    <div class="card p-4 lg:col-span-2">
       <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
         <span data-t="core_temp">Core Temperature</span>
-        <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+        <div class="relative tooltip-trigger cursor-help">
+          <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+          <div class="sci-tooltip" data-t="tooltip_core"><strong>Core Temperature Kinetics:</strong> Evaluates internal thermal strain through baseline starting temperature, peak achieved core temperature, final stabilization value, overall absolute thermal rise, net change, rate of temperature increase per minute, and time required to reach peak thermal load relative to safety cutoffs.</div>
+        </div>
       </div>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <div><div class="text-xs text-slate-400 mb-1" data-t="start">Start</div><div class="big-number text-slate-700" id="sum-start">—</div><div class="text-[10px] sm:text-xs text-slate-400">°C</div></div>
         <div><div class="text-xs text-slate-400 mb-1" data-t="maximum">Maximum</div><div class="big-number" id="sum-max">—</div><div class="text-[10px] sm:text-xs text-slate-400">°C</div></div>
         <div><div class="text-xs text-slate-400 mb-1" data-t="final">Final</div><div class="big-number text-slate-700" id="sum-final">—</div><div class="text-[10px] sm:text-xs text-slate-400">°C</div></div>
-        <div><div class="text-xs text-slate-400 mb-1" data-t="cutoff_reached">Cutoff Reached?</div><div class="big-number" id="sum-cutoff">—</div><div class="text-[10px] sm:text-xs text-slate-400" id="sum-cutoff-sub">39.7 °C threshold</div></div>
+        <div><div class="text-xs text-slate-400 mb-1" data-t="cutoff_reached">Cutoff Reached?</div><div class="big-number" id="sum-cutoff">—</div><div class="text-[10px] sm:text-xs text-slate-400" id="sum-cutoff-sub" data-t="threshold_397">39.7 °C threshold</div></div>
       </div>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-4 pt-4 border-t border-slate-100">
         <div><div class="text-xs text-slate-400 mb-1" data-t="total_rise">Total Rise</div><div class="font-semibold text-base sm:text-lg" id="sum-rise">—</div><div class="text-[10px] sm:text-xs text-slate-400">°C</div></div>
@@ -192,11 +200,13 @@ table.data-table tr:hover td { background: #f8fafc; }
   </div>
   
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <div class="card p-4 has-sci-tooltip">
-      <div class="sci-tooltip"><strong>Heat Exposure & Zonal Distribution:</strong> Quantifies cumulative duration, percentage distribution, and timestamp of initial entry into standardized physiological thermal strain bands (Zone 1 through Zone 4 safety thresholds) along with zone transition frequencies.</div>
+    <div class="card p-4">
       <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
         <span data-t="heat_exposure">Heat Exposure</span>
-        <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+        <div class="relative tooltip-trigger cursor-help">
+          <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+          <div class="sci-tooltip" data-t="tooltip_heat"><strong>Heat Exposure & Zonal Distribution:</strong> Quantifies cumulative duration, percentage distribution, and timestamp of initial entry into standardised physiological thermal strain bands (Zone 1 through Zone 4 safety thresholds) along with zone transition frequencies.</div>
+        </div>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-xs sm:text-sm">
@@ -205,17 +215,19 @@ table.data-table tr:hover td { background: #f8fafc; }
             <tr><td class="py-1.5 font-medium zone-1">Zone 1 (&lt;38.0)</td><td class="py-1.5" id="z1-time">—</td><td class="py-1.5" id="z1-pct">—</td><td class="py-1.5" id="z1-first">—</td></tr>
             <tr><td class="py-1.5 font-medium zone-2">Zone 2 (38.0–38.9)</td><td class="py-1.5" id="z2-time">—</td><td class="py-1.5" id="z2-pct">—</td><td class="py-1.5" id="z2-first">—</td></tr>
             <tr><td class="py-1.5 font-medium zone-3">Zone 3 (39.0–39.6)</td><td class="py-1.5" id="z3-time">—</td><td class="py-1.5" id="z3-pct">—</td><td class="py-1.5" id="z3-first">—</td></tr>
-            <tr><td class="py-1.5 font-medium zone-4">Zone 4 / Cutoff (&ge;39.7)</td><td class="py-1.5" id="z4-time">—</td><td class="py-1.5" id="z4-pct">—</td><td class="py-1.5" id="z4-first">—</td></tr>
+            <tr><td class="py-1.5 font-medium zone-4" data-t="zone4_label">Zone 4 / Cutoff (&ge;39.7)</td><td class="py-1.5" id="z4-time">—</td><td class="py-1.5" id="z4-pct">—</td><td class="py-1.5" id="z4-first">—</td></tr>
         </tbody></table>
       </div>
       <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500"><span data-t="transitions">Transitions</span>: <span class="font-semibold text-slate-700" id="sum-transitions">—</span></div>
     </div>
     
-    <div class="card p-4 has-sci-tooltip">
-      <div class="sci-tooltip"><strong>Sweat Dynamics & Hydration Status:</strong> Summarizes sweat output metrics derived from continuous sensors and precise body mass differentials (pre/post-session weighing adjusted for fluid intake and urinary output) alongside estimated electrolyte losses.</div>
+    <div class="card p-4">
       <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
         <span data-t="sweat_response">Sweat Response</span>
-        <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+        <div class="relative tooltip-trigger cursor-help">
+          <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+          <div class="sci-tooltip" data-t="tooltip_sweat"><strong>Sweat Dynamics & Hydration Status:</strong> Summarizes sweat output metrics derived from continuous sensors and precise body mass differentials (pre/post-session weighing adjusted for fluid intake and urinary output) alongside estimated electrolyte losses.</div>
+        </div>
       </div>
       <div class="space-y-2 text-xs sm:text-sm">
         <div class="flex justify-between"><span class="text-slate-500" data-t="avg_sweat_rate">Avg Sweat Rate</span><span class="font-semibold" id="sum-sweat-avg">—</span></div>
@@ -227,11 +239,13 @@ table.data-table tr:hover td { background: #f8fafc; }
       <div class="mt-3 pt-3 border-t border-slate-100 text-[10px] sm:text-xs text-slate-400" data-t="sensor_derived_note">Sensor-derived unless marked user-entered</div>
     </div>
     
-    <div class="card p-4 has-sci-tooltip">
-      <div class="sci-tooltip"><strong>Cardiovascular Strain & Recovery:</strong> Tracks average and peak heart rate responses alongside thermoregulatory cooling efficiencies and internal temperature declines during scheduled rest periods and hydration breaks.</div>
+    <div class="card p-4">
       <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
         <span data-t="hr_breaks">Heart Rate & Breaks</span>
-        <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+        <div class="relative tooltip-trigger cursor-help">
+          <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+          <div class="sci-tooltip" data-t="tooltip_hr"><strong>Cardiovascular Strain & Recovery:</strong> Tracks average and peak heart rate responses alongside thermoregulatory cooling efficiencies and internal temperature declines during scheduled rest periods and hydration breaks.</div>
+        </div>
       </div>
       <div class="space-y-2 text-xs sm:text-sm mb-3">
         <div class="flex justify-between"><span class="text-slate-500" data-t="average_hr">Average HR</span><span class="font-semibold" id="sum-hr-avg">—</span></div>
@@ -246,11 +260,13 @@ table.data-table tr:hover td { background: #f8fafc; }
     </div>
   </div>
   
-  <div class="card p-4 has-sci-tooltip">
-    <div class="sci-tooltip"><strong>Sensor Telemetry Quality:</strong> Evaluates data stream reliability, signal integrity, primary sensor uptime percentages, backup fallback activations, and maximum divergence tolerances between multi-sensor telemetry sources.</div>
+  <div class="card p-4">
     <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
       <span data-t="sensor_status">Sensor Status & Data Quality</span>
-      <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+      <div class="relative tooltip-trigger cursor-help">
+        <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+        <div class="sci-tooltip" data-t="tooltip_sensor"><strong>Sensor Telemetry Quality:</strong> Evaluates data stream reliability, signal integrity, primary sensor uptime percentages, backup fallback activations, and maximum divergence tolerances between multi-sensor telemetry sources.</div>
+      </div>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
       <div class="text-xs sm:text-sm"><div class="text-slate-400 text-[10px] sm:text-xs" data-t="primary_sensor">Primary Sensor</div><div class="font-semibold">CALERA</div></div>
@@ -286,10 +302,10 @@ table.data-table tr:hover td { background: #f8fafc; }
     </button>
     <div id="raw-dropdown-content" class="hidden p-4 border-t border-slate-200 bg-white">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="card p-4"><h3 class="font-semibold text-sm mb-2">RAW CALERA DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-calera-info">No data imported</div><div class="overflow-x-auto max-h-[350px] border rounded-lg"><table class="data-table" id="raw-calera-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
-        <div class="card p-4"><h3 class="font-semibold text-sm mb-2">RAW CORE DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-core-info">No data imported</div><div class="overflow-x-auto max-h-[350px] border rounded-lg"><table class="data-table" id="raw-core-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
-        <div class="card p-4"><h3 class="font-semibold text-sm mb-2">RAW FLOWBIO DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-flowbio-info">No data imported</div><div class="overflow-x-auto max-h-[350px] border rounded-lg"><table class="data-table" id="raw-flowbio-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
-        <div class="card p-4"><h3 class="font-semibold text-sm mb-2">RAW ENVIRONMENTAL DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-env-info">No data imported</div><div class="overflow-x-auto max-h-[350px] border rounded-lg"><table class="data-table" id="raw-env-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
+        <div class="card p-4"><h3 class="font-semibold text-sm mb-2" data-t="raw_calera">RAW CALERA DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-calera-info" data-t="no_data_imported">No data imported</div><div class="overflow-x-auto max-h-[350px] border rounded-lg"><table class="data-table" id="raw-calera-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
+        <div class="card p-4"><h3 class="font-semibold text-sm mb-2" data-t="raw_core">RAW CORE DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-core-info" data-t="no_data_imported">No data imported</div><div class="overflow-x-auto max-h-[350px] border rounded-lg"><table class="data-table" id="raw-core-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
+        <div class="card p-4"><h3 class="font-semibold text-sm mb-2" data-t="raw_flowbio">RAW FLOWBIO DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-flowbio-info" data-t="no_data_imported">No data imported</div><div class="overflow-x-auto max-h-[350px] border rounded-lg"><table class="data-table" id="raw-flowbio-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
+        <div class="card p-4"><h3 class="font-semibold text-sm mb-2" data-t="raw_env">RAW ENVIRONMENTAL DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-env-info" data-t="no_data_imported">No data imported</div><div class="overflow-x-auto max-h-[350px] border rounded-lg"><table class="data-table" id="raw-env-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
       </div>
     </div>
   </div>
@@ -346,57 +362,57 @@ table.data-table tr:hover td { background: #f8fafc; }
 <div id="tab-settings" class="tab-content hidden">
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div class="card p-4">
-      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Core Temp Zones</div>
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3" data-t="set_core_temp_zones">Core Temp Zones</div>
       <div class="grid grid-cols-2 gap-2 sm:gap-3">
-        <div><label class="text-[10px] sm:text-xs text-slate-500">Zone 1 Max (°C)</label><input type="number" step="0.1" id="set-z1max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38.0"></div>
-        <div><label class="text-[10px] sm:text-xs text-slate-500">Zone 2 Min (°C)</label><input type="number" step="0.1" id="set-z2min" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38.0"></div>
-        <div><label class="text-[10px] sm:text-xs text-slate-500">Zone 2 Max (°C)</label><input type="number" step="0.1" id="set-z2max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38.9"></div>
-        <div><label class="text-[10px] sm:text-xs text-slate-500">Zone 3 Min (°C)</label><input type="number" step="0.1" id="set-z3min" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="39.0"></div>
-        <div><label class="text-[10px] sm:text-xs text-slate-500">Zone 3 Max (°C)</label><input type="number" step="0.1" id="set-z3max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="39.6"></div>
-        <div><label class="text-[10px] sm:text-xs text-slate-500">Cutoff (°C)</label><input type="number" step="0.1" id="set-cutoff" class="w-full border rounded px-2 py-1 text-xs sm:text-sm font-semibold" value="39.7"></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500" data-t="set_z1_max">Zone 1 Max (°C)</label><input type="number" step="0.1" id="set-z1max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38.0"></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500" data-t="set_z2_min">Zone 2 Min (°C)</label><input type="number" step="0.1" id="set-z2min" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38.0"></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500" data-t="set_z2_max">Zone 2 Max (°C)</label><input type="number" step="0.1" id="set-z2max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38.9"></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500" data-t="set_z3_min">Zone 3 Min (°C)</label><input type="number" step="0.1" id="set-z3min" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="39.0"></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500" data-t="set_z3_max">Zone 3 Max (°C)</label><input type="number" step="0.1" id="set-z3max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="39.6"></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500" data-t="set_cutoff">Cutoff (°C)</label><input type="number" step="0.1" id="set-cutoff" class="w-full border rounded px-2 py-1 text-xs sm:text-sm font-semibold" value="39.7"></div>
       </div>
     </div>
     <div class="card p-4">
-      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Sensor Config</div>
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3" data-t="set_sensor_config">Sensor Config</div>
       <div class="space-y-2">
-        <div><label class="text-[10px] sm:text-xs text-slate-500">Primary Sensor</label><select id="set-primary" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-1"><option value="CALERA" selected>CALERA</option><option value="CORE 2">CORE 2</option></select></div>
-        <div class="flex items-center gap-2"><input type="checkbox" id="set-fallback" checked class="rounded"><label class="text-xs sm:text-sm text-slate-700">Fallback to backup</label></div>
-        <div><label class="text-[10px] sm:text-xs text-slate-500">Tolerance (s)</label><input type="number" id="set-tolerance" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="3"></div>
-        <div><label class="text-[10px] sm:text-xs text-slate-500">CALERA Quality Flags</label><input type="text" id="set-quality" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="17,High,Medium"></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500" data-t="set_primary_sensor">Primary Sensor</label><select id="set-primary" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-1"><option value="CALERA" selected>CALERA</option><option value="CORE 2">CORE 2</option></select></div>
+        <div class="flex items-center gap-2"><input type="checkbox" id="set-fallback" checked class="rounded"><label class="text-xs sm:text-sm text-slate-700" data-t="set_fallback_backup">Fallback to backup</label></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500" data-t="set_tolerance">Tolerance (s)</label><input type="number" id="set-tolerance" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="3"></div>
+        <div><label class="text-[10px] sm:text-xs text-slate-500" data-t="set_quality_flags">CALERA Quality Flags</label><input type="text" id="set-quality" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="17,High,Medium"></div>
       </div>
     </div>
     <div class="card p-4">
-      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">CALERA Mapping</div>
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3" data-t="set_calera_mapping">CALERA Mapping</div>
       <div class="grid grid-cols-2 gap-2">
-        <div><label class="text-[10px] text-slate-500">Time</label><input type="text" id="map-c-time" class="w-full border rounded px-2 py-1 text-xs" value="time"></div>
-        <div><label class="text-[10px] text-slate-500">Core Temp</label><input type="text" id="map-c-core" class="w-full border rounded px-2 py-1 text-xs" value="cbt [mC]"></div>
-        <div><label class="text-[10px] text-slate-500">Skin Temp</label><input type="text" id="map-c-skin" class="w-full border rounded px-2 py-1 text-xs" value="temp_a0 [mC]"></div>
-        <div><label class="text-[10px] text-slate-500">Quality</label><input type="text" id="map-c-quality" class="w-full border rounded px-2 py-1 text-xs" value="status"></div>
+        <div><label class="text-[10px] text-slate-500" data-t="th_time">Time</label><input type="text" id="map-c-time" class="w-full border rounded px-2 py-1 text-xs" value="time"></div>
+        <div><label class="text-[10px] text-slate-500" data-t="core_temp">Core Temp</label><input type="text" id="map-c-core" class="w-full border rounded px-2 py-1 text-xs" value="cbt [mC]"></div>
+        <div><label class="text-[10px] text-slate-500" data-t="skin_temp">Skin Temp</label><input type="text" id="map-c-skin" class="w-full border rounded px-2 py-1 text-xs" value="temp_a0 [mC]"></div>
+        <div><label class="text-[10px] text-slate-500" data-t="quality">Quality</label><input type="text" id="map-c-quality" class="w-full border rounded px-2 py-1 text-xs" value="status"></div>
       </div>
     </div>
     <div class="card p-4">
-      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">CORE 2 Mapping</div>
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3" data-t="set_core2_mapping">CORE 2 Mapping</div>
       <div class="grid grid-cols-2 gap-2">
-        <div><label class="text-[10px] text-slate-500">Time</label><input type="text" id="map-r-time" class="w-full border rounded px-2 py-1 text-xs" value="time"></div>
-        <div><label class="text-[10px] text-slate-500">Heart Rate</label><input type="text" id="map-r-hr" class="w-full border rounded px-2 py-1 text-xs" value="heartrate"></div>
-        <div><label class="text-[10px] text-slate-500">Core Temp</label><input type="text" id="map-r-core" class="w-full border rounded px-2 py-1 text-xs" value="core_temperature"></div>
-        <div><label class="text-[10px] text-slate-500">Skin Temp</label><input type="text" id="map-r-skin" class="w-full border rounded px-2 py-1 text-xs" value=""></div>
-        <div><label class="text-[10px] text-slate-500">Ambient Temp</label><input type="text" id="map-r-ambient" class="w-full border rounded px-2 py-1 text-xs" value="temp"></div>
+        <div><label class="text-[10px] text-slate-500" data-t="th_time">Time</label><input type="text" id="map-r-time" class="w-full border rounded px-2 py-1 text-xs" value="time"></div>
+        <div><label class="text-[10px] text-slate-500" data-t="th_hr">Heart Rate</label><input type="text" id="map-r-hr" class="w-full border rounded px-2 py-1 text-xs" value="heartrate"></div>
+        <div><label class="text-[10px] text-slate-500" data-t="core_temp">Core Temp</label><input type="text" id="map-r-core" class="w-full border rounded px-2 py-1 text-xs" value="core_temperature"></div>
+        <div><label class="text-[10px] text-slate-500" data-t="skin_temp">Skin Temp</label><input type="text" id="map-r-skin" class="w-full border rounded px-2 py-1 text-xs" value=""></div>
+        <div><label class="text-[10px] text-slate-500" data-t="ambient_temp">Ambient Temp</label><input type="text" id="map-r-ambient" class="w-full border rounded px-2 py-1 text-xs" value="temp"></div>
       </div>
     </div>
-    <div class="card p-4">
-      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Environmental Mapping</div>
-      <div class="grid grid-cols-2 gap-2">
-        <div><label class="text-[10px] text-slate-500">Time</label><input type="text" id="map-e-time" class="w-full border rounded px-2 py-1 text-xs" value="Date/Time"></div>
-        <div><label class="text-[10px] text-slate-500">Ambient Temp</label><input type="text" id="map-e-ambient" class="w-full border rounded px-2 py-1 text-xs" value="058 [°C]"></div>
-        <div><label class="text-[10px] text-slate-500">Relative Humidity</label><input type="text" id="map-e-rh" class="w-full border rounded px-2 py-1 text-xs" value="058 [%RH]"></div>
-        <div><label class="text-[10px] text-slate-500">WBGT</label><input type="text" id="map-e-wbgt" class="w-full border rounded px-2 py-1 text-xs" value="058 Wet bulb temperature [°C]"></div>
+    <div class="card p-4 md:col-span-2">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3" data-t="set_env_mapping">Environmental Mapping</div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div><label class="text-[10px] text-slate-500" data-t="th_time">Time</label><input type="text" id="map-e-time" class="w-full border rounded px-2 py-1 text-xs" value="Date/Time"></div>
+        <div><label class="text-[10px] text-slate-500" data-t="ambient_temp">Ambient Temp</label><input type="text" id="map-e-ambient" class="w-full border rounded px-2 py-1 text-xs" value="058 [°C]"></div>
+        <div><label class="text-[10px] text-slate-500" data-t="relative_humidity">Relative Humidity</label><input type="text" id="map-e-rh" class="w-full border rounded px-2 py-1 text-xs" value="058 [%RH]"></div>
+        <div><label class="text-[10px] text-slate-500" data-t="wbgt">WBGT</label><input type="text" id="map-e-wbgt" class="w-full border rounded px-2 py-1 text-xs" value="058 Wet bulb temperature [°C]"></div>
       </div>
     </div>
   </div>
   <div class="mt-4 flex flex-col sm:flex-row gap-2">
-    <button onclick="saveSettings()" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs sm:text-sm font-medium">Save Settings</button>
-    <button onclick="loadSettings()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-medium">Reset Defaults</button>
+    <button onclick="saveSettings()" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs sm:text-sm font-medium" data-t="btn_save_settings">Save Settings</button>
+    <button onclick="loadSettings()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-medium" data-t="btn_reset_defaults">Reset Defaults</button>
   </div>
 </div>
 
@@ -410,7 +426,7 @@ const AppState = {
 
 const translations = {
   en: {
-    app_title: "Ben Neal Sports Science — Heat and Hydration Analysis",
+    app_title: "Heat and Hydration Analysis",
     export_csv: "Export CSV",
     export_pdf: "Export PDF",
     process: "Process Data",
@@ -426,11 +442,13 @@ const translations = {
     distance: "Distance (km)",
     duration: "Duration",
     environment: "Environment",
+    auto_manual: "Auto or manual",
     core_temp: "Core Temperature",
     start: "Start",
     maximum: "Maximum",
     final: "Final",
     cutoff_reached: "Cutoff Reached?",
+    threshold_397: "39.7 °C threshold",
     total_rise: "Total Rise",
     net_change: "Net Change",
     rate_rise: "Rate of Rise",
@@ -439,6 +457,7 @@ const translations = {
     zone: "Zone",
     time: "Time",
     first_entry: "First Entry",
+    zone4_label: "Zone 4 / Cutoff (≥39.7)",
     transitions: "Transitions",
     sweat_response: "Sweat Response",
     avg_sweat_rate: "Avg Sweat Rate",
@@ -481,10 +500,23 @@ const translations = {
     contact_footer: "If you have any questions, please contact Ben Neal at",
     raw_data_section: "Raw Data (CALERA, CORE 2, FLOWBIO, Environment)",
     th_elapsed: "Elapsed (s)", th_time: "HH:MM:SS", th_interval: "Interval (s)", th_core: "Unified Core", th_source: "Source", th_calera: "CALERA", th_core2: "CORE 2", th_delta: "Delta", th_hr: "HR", th_skin: "Skin", th_sweat: "Sweat", th_ambient: "Ambient", th_rh: "RH", th_zone: "Zone", th_break: "Break?",
-    start_time_label: "Start Time (HH:MM:SS)", end_time_label: "End Time (HH:MM:SS)", type: "Type", desc: "Description", break_num: "Break #", tcore_start: "Tcore Start", tcore_end: "Tcore End", delta_t: "ΔT", rate: "Rate"
+    start_time_label: "Start Time (HH:MM:SS)", end_time_label: "End Time (HH:MM:SS)", type: "Type", desc: "Description", break_num: "Break #", tcore_start: "Tcore Start", tcore_end: "Tcore End", delta_t: "ΔT", rate: "Rate",
+    coming_soon: "Coming soon", no_file: "No file", no_data_imported: "No data imported",
+    raw_calera: "RAW CALERA DATA", raw_core: "RAW CORE DATA", raw_flowbio: "RAW FLOWBIO DATA", raw_env: "RAW ENVIRONMENTAL DATA",
+    skin_temp: "Skin Temp", ambient_temp: "Ambient Temp", relative_humidity: "Relative Humidity", wbgt: "WBGT", quality: "Quality",
+    set_core_temp_zones: "Core Temp Zones", set_z1_max: "Zone 1 Max (°C)", set_z2_min: "Zone 2 Min (°C)", set_z2_max: "Zone 2 Max (°C)", set_z3_min: "Zone 3 Min (°C)", set_z3_max: "Zone 3 Max (°C)", set_cutoff: "Cutoff (°C)",
+    set_sensor_config: "Sensor Config", set_primary_sensor: "Primary Sensor", set_fallback_backup: "Fallback to backup", set_tolerance: "Tolerance (s)", set_quality_flags: "CALERA Quality Flags",
+    set_calera_mapping: "CALERA Mapping", set_core2_mapping: "CORE 2 Mapping", set_env_mapping: "Environmental Mapping",
+    btn_save_settings: "Save Settings", btn_reset_defaults: "Reset Defaults",
+    tooltip_session: "<strong>Session Information & Context:</strong> Captures metadata specific to the individual athlete, workout date, sport modality, distance covered, cumulative duration in hours, minutes and seconds, and the environmental conditions recorded during testing or competition.",
+    tooltip_core: "<strong>Core Temperature Kinetics:</strong> Evaluates internal thermal strain through baseline starting temperature, peak achieved core temperature, final stabilization value, overall absolute thermal rise, net change, rate of temperature increase per minute, and time required to reach peak thermal load relative to safety cutoffs.",
+    tooltip_heat: "<strong>Heat Exposure & Zonal Distribution:</strong> Quantifies cumulative duration, percentage distribution, and timestamp of initial entry into standardised physiological thermal strain bands (Zone 1 through Zone 4 safety thresholds) along with zone transition frequencies.",
+    tooltip_sweat: "<strong>Sweat Dynamics & Hydration Status:</strong> Summarizes sweat output metrics derived from continuous sensors and precise body mass differentials (pre/post-session weighing adjusted for fluid intake and urinary output) alongside estimated electrolyte losses.",
+    tooltip_hr: "<strong>Cardiovascular Strain & Recovery:</strong> Tracks average and peak heart rate responses alongside thermoregulatory cooling efficiencies and internal temperature declines during scheduled rest periods and hydration breaks.",
+    tooltip_sensor: "<strong>Sensor Telemetry Quality:</strong> Evaluates data stream reliability, signal integrity, primary sensor uptime percentages, backup fallback activations, and maximum divergence tolerances between multi-sensor telemetry sources."
   },
   es: {
-    app_title: "Ben Neal Ciencia Deportiva — Análisis de Calor e Hidratación",
+    app_title: "Análisis de Calor e Hidratación",
     export_csv: "Exportar CSV",
     export_pdf: "Exportar PDF",
     process: "Procesar Datos",
@@ -500,11 +532,13 @@ const translations = {
     distance: "Distancia (km)",
     duration: "Duración",
     environment: "Entorno",
+    auto_manual: "Automático o manual",
     core_temp: "Temperatura Central",
     start: "Inicio",
     maximum: "Máximo",
     final: "Final",
     cutoff_reached: "¿Límite Alcanzado?",
+    threshold_397: "Umbral de 39,7 °C",
     total_rise: "Aumento Total",
     net_change: "Cambio Neto",
     rate_rise: "Tasa de Aumento",
@@ -513,6 +547,7 @@ const translations = {
     zone: "Zona",
     time: "Tiempo",
     first_entry: "Primera Entrada",
+    zone4_label: "Zona 4 / Límite (≥39,7)",
     transitions: "Transiciones",
     sweat_response: "Respuesta de Sudoración",
     avg_sweat_rate: "Tasa Promedio de Sudor",
@@ -555,10 +590,23 @@ const translations = {
     contact_footer: "Si tiene alguna pregunta, contacte a Ben Neal en",
     raw_data_section: "Datos Brutos (CALERA, CORE 2, FLOWBIO, Entorno)",
     th_elapsed: "Transcurrido (s)", th_time: "HH:MM:SS", th_interval: "Intervalo (s)", th_core: "Core Unificado", th_source: "Fuente", th_calera: "CALERA", th_core2: "CORE 2", th_delta: "Delta", th_hr: "FC", th_skin: "Piel", th_sweat: "Sudor", th_ambient: "Ambiente", th_rh: "HR%", th_zone: "Zona", th_break: "¿Pausa?",
-    start_time_label: "Hora Inicio (HH:MM:SS)", end_time_label: "Hora Fin (HH:MM:SS)", type: "Tipo", desc: "Descripción", break_num: "Pausa #", tcore_start: "Tcore Inicio", tcore_end: "Tcore Fin", delta_t: "ΔT", rate: "Tasa"
+    start_time_label: "Hora Inicio (HH:MM:SS)", end_time_label: "Hora Fin (HH:MM:SS)", type: "Tipo", desc: "Descripción", break_num: "Pausa #", tcore_start: "Tcore Inicio", tcore_end: "Tcore Fin", delta_t: "ΔT", rate: "Tasa",
+    coming_soon: "Próximamente", no_file: "Sin archivo", no_data_imported: "No hay datos importados",
+    raw_calera: "DATOS BRUTOS CALERA", raw_core: "DATOS BRUTOS CORE", raw_flowbio: "DATOS BRUTOS FLOWBIO", raw_env: "DATOS AMBIENTALES BRUTOS",
+    skin_temp: "Temp. Piel", ambient_temp: "Temp. Ambiente", relative_humidity: "Humedad Relativa", wbgt: "WBGT", quality: "Calidad",
+    set_core_temp_zones: "Zonas de Temp. Central", set_z1_max: "Zona 1 Máx (°C)", set_z2_min: "Zona 2 Mín (°C)", set_z2_max: "Zona 2 Máx (°C)", set_z3_min: "Zona 3 Mín (°C)", set_z3_max: "Zona 3 Máx (°C)", set_cutoff: "Límite (°C)",
+    set_sensor_config: "Config. de Sensor", set_primary_sensor: "Sensor Primario", set_fallback_backup: "Usar respaldo si falla", set_tolerance: "Tolerancia (s)", set_quality_flags: "Flags de Calidad CALERA",
+    set_calera_mapping: "Mapeo CALERA", set_core2_mapping: "Mapeo CORE 2", set_env_mapping: "Mapeo Ambiental",
+    btn_save_settings: "Guardar Ajustes", btn_reset_defaults: "Restablecer Valores",
+    tooltip_session: "<strong>Información y Contexto de la Sesión:</strong> Captura metadatos específicos del atleta, fecha, modalidad deportiva, distancia, duración acumulada y condiciones ambientales.",
+    tooltip_core: "<strong>Cinética de Temperatura Central:</strong> Evalúa la tensión térmica interna mediante la temperatura inicial, pico alcanzado, valor final, aumento absoluto y tasa de incremento.",
+    tooltip_heat: "<strong>Exposición al Calor y Distribución Zonal:</strong> Cuantifica la duración acumulada y porcentaje de permanencia en cada banda de tensión térmica y frecuencia de transición.",
+    tooltip_sweat: "<strong>Dinámica de Sudoración e Hidratación:</strong> Resume las métricas de salida de sudor obtenidas por sensores y diferenciales de masa corporal y pérdidas de electrolitos.",
+    tooltip_hr: "<strong>Tensión Cardiovascular y Recuperación:</strong> Rastrea la frecuencia cardíaca media y máxima junto con la eficiencia de enfriamiento durante los periodos de descanso.",
+    tooltip_sensor: "<strong>Calidad de Telemetría de Sensores:</strong> Evalúa la fiabilidad del flujo de datos, integridad de la señal, porcentajes de actividad del sensor primario y tolerancias de divergencia."
   },
   pt: {
-    app_title: "Ben Neal Ciência do Esporte — Análise de Calor e Hidratação",
+    app_title: "Análise de Calor e Hidratação",
     export_csv: "Exportar CSV",
     export_pdf: "Exportar PDF",
     process: "Processar Dados",
@@ -574,11 +622,13 @@ const translations = {
     distance: "Distância (km)",
     duration: "Duração",
     environment: "Ambiente",
+    auto_manual: "Automático ou manual",
     core_temp: "Temperatura Central",
     start: "Início",
     maximum: "Máximo",
     final: "Final",
     cutoff_reached: "Limite Atingido?",
+    threshold_397: "Limiar de 39,7 °C",
     total_rise: "Aumento Total",
     net_change: "Mudança Líquida",
     rate_rise: "Taxa de Aumento",
@@ -587,6 +637,7 @@ const translations = {
     zone: "Zona",
     time: "Tempo",
     first_entry: "Primeira Entrada",
+    zone4_label: "Zona 4 / Limite (≥39,7)",
     transitions: "Transições",
     sweat_response: "Resposta de Suor",
     avg_sweat_rate: "Taxa Média de Suor",
@@ -629,10 +680,23 @@ const translations = {
     contact_footer: "Se tiver dúvidas, entre em contato com Ben Neal em",
     raw_data_section: "Dados Brutos (CALERA, CORE 2, FLOWBIO, Ambiente)",
     th_elapsed: "Decorrido (s)", th_time: "HH:MM:SS", th_interval: "Intervalo (s)", th_core: "Core Unificado", th_source: "Fonte", th_calera: "CALERA", th_core2: "CORE 2", th_delta: "Delta", th_hr: "FC", th_skin: "Pele", th_sweat: "Suor", th_ambient: "Ambiente", th_rh: "UR%", th_zone: "Zona", th_break: "Pausa?",
-    start_time_label: "Hora Início (HH:MM:SS)", end_time_label: "Hora Fim (HH:MM:SS)", type: "Tipo", desc: "Descrição", break_num: "Pausa #", tcore_start: "Tcore Início", tcore_end: "Tcore Fim", delta_t: "ΔT", rate: "Taxa"
+    start_time_label: "Hora Início (HH:MM:SS)", end_time_label: "Hora Fim (HH:MM:SS)", type: "Tipo", desc: "Descrição", break_num: "Pausa #", tcore_start: "Tcore Início", tcore_end: "Tcore Fim", delta_t: "ΔT", rate: "Taxa",
+    coming_soon: "Em breve", no_file: "Nenhum arquivo", no_data_imported: "Nenhum dado importado",
+    raw_calera: "DADOS BRUTOS CALERA", raw_core: "DADOS BRUTOS CORE", raw_flowbio: "DADOS BRUTOS FLOWBIO", raw_env: "DADOS AMBIENTAIS BRUTOS",
+    skin_temp: "Temp. Pele", ambient_temp: "Temp. Ambiente", relative_humidity: "Umidade Relativa", wbgt: "WBGT", quality: "Qualidade",
+    set_core_temp_zones: "Zonas de Temp. Central", set_z1_max: "Zona 1 Máx (°C)", set_z2_min: "Zona 2 Mín (°C)", set_z2_max: "Zona 2 Máx (°C)", set_z3_min: "Zona 3 Mín (°C)", set_z3_max: "Zona 3 Máx (°C)", set_cutoff: "Limite (°C)",
+    set_sensor_config: "Config. de Sensor", set_primary_sensor: "Sensor Primário", set_fallback_backup: "Usar backup se falhar", set_tolerance: "Tolerância (s)", set_quality_flags: "Flags de Qualidade CALERA",
+    set_calera_mapping: "Mapeamento CALERA", set_core2_mapping: "Mapeamento CORE 2", set_env_mapping: "Mapeamento Ambiental",
+    btn_save_settings: "Salvar Configurações", btn_reset_defaults: "Restaurar Padrões",
+    tooltip_session: "<strong>Informações e Contexto da Sessão:</strong> Captura metadados do atleta, data, modalidade, distância, duração e condições ambientais.",
+    tooltip_core: "<strong>Cinética da Temperatura Central:</strong> Avalia a tensão térmica interna através da temperatura inicial, pico, valor final, aumento absoluto e taxa de aumento.",
+    tooltip_heat: "<strong>Exposição ao Calor e Distribuição Zonal:</strong> Quantifica a duração acumulada e percentual em cada faixa de tensão térmica e frequência de transição.",
+    tooltip_sweat: "<strong>Dinâmica de Suor e Hidratação:</strong> Resume as métricas de suor obtidas por sensores, diferenciais de massa corporal e perdas eletrolíticas.",
+    tooltip_hr: "<strong>Tensão Cardiovascular e Recuperação:</strong> Acompanha a frequência cardíaca média e máxima e a eficiência de resfriamento durante as pausas.",
+    tooltip_sensor: "<strong>Qualidade de Telemetria do Sensor:</strong> Avalia a confiabilidade dos dados, integridade do sinal, atividade do sensor primário e tolerâncias de divergência."
   },
   ko: {
-    app_title: "벤 닐 스포츠 과학 — 열 및 수분 분석",
+    app_title: "열 및 수분 분석",
     export_csv: "CSV 내보내기",
     export_pdf: "PDF 내보내기",
     process: "데이터 처리",
@@ -648,11 +712,13 @@ const translations = {
     distance: "거리 (km)",
     duration: "지속 시간",
     environment: "환경",
+    auto_manual: "자동 또는 수동",
     core_temp: "심부 체온",
     start: "시작",
     maximum: "최고",
     final: "종료",
     cutoff_reached: "임계치 도달 여부",
+    threshold_397: "39.7 °C 임계치",
     total_rise: "총 상승",
     net_change: "순 변화",
     rate_rise: "상승률",
@@ -661,6 +727,7 @@ const translations = {
     zone: "구간",
     time: "시간",
     first_entry: "최초 진입",
+    zone4_label: "구간 4 / 임계치 (≥39.7)",
     transitions: "구간 전환 횟수",
     sweat_response: "발한 반응",
     avg_sweat_rate: "평균 발한율",
@@ -703,10 +770,23 @@ const translations = {
     contact_footer: "문의 사항이 있으신 경우 벤 닐(Ben Neal)에게 이메일로 연락해 주세요:",
     raw_data_section: "원시 데이터 (CALERA, CORE 2, FLOWBIO, 환경)",
     th_elapsed: "경과 시간 (s)", th_time: "HH:MM:SS", th_interval: "간격 (s)", th_core: "통합 심부체온", th_source: "소스", th_calera: "CALERA", th_core2: "CORE 2", th_delta: "편차", th_hr: "심박수", th_skin: "피부온", th_sweat: "발한", th_ambient: "외부온", th_rh: "습도", th_zone: "구간", th_break: "휴식?",
-    start_time_label: "시작 시간 (HH:MM:SS)", end_time_label: "종료 시간 (HH:MM:SS)", type: "유형", desc: "설명", break_num: "휴식 #", tcore_start: "시작 심부온", tcore_end: "종료 심부온", delta_t: "ΔT", rate: "하락률"
+    start_time_label: "시작 시간 (HH:MM:SS)", end_time_label: "종료 시간 (HH:MM:SS)", type: "유형", desc: "설명", break_num: "휴식 #", tcore_start: "시작 심부온", tcore_end: "종료 심부온", delta_t: "ΔT", rate: "하락률",
+    coming_soon: "출시 예정", no_file: "파일 없음", no_data_imported: "가져온 데이터 없음",
+    raw_calera: "원시 CALERA 데이터", raw_core: "원시 CORE 데이터", raw_flowbio: "원시 FLOWBIO 데이터", raw_env: "원시 환경 데이터",
+    skin_temp: "피부온도", ambient_temp: "주위온도", relative_humidity: "상대 습도", wbgt: "WBGT", quality: "품질",
+    set_core_temp_zones: "심부체온 구간 설정", set_z1_max: "구간 1 최대 (°C)", set_z2_min: "구간 2 최소 (°C)", set_z2_max: "구간 2 최대 (°C)", set_z3_min: "구간 3 최소 (°C)", set_z3_max: "구간 3 최대 (°C)", set_cutoff: "임계치 (°C)",
+    set_sensor_config: "센서 설정", set_primary_sensor: "주요 센서", set_fallback_backup: "백업 센서로 대체", set_tolerance: "허용 오차 (s)", set_quality_flags: "CALERA 품질 플래그",
+    set_calera_mapping: "CALERA 매핑", set_core2_mapping: "CORE 2 매핑", set_env_mapping: "환경 매핑",
+    btn_save_settings: "설정 저장", btn_reset_defaults: "기본값 초기화",
+    tooltip_session: "<strong>세션 정보 및 맥락:</strong> 개별 선수, 운동 날짜, 종목, 이동 거리, 누적 지속 시간 및 테스트 환경 조건을 기록합니다.",
+    tooltip_core: "<strong>심부체온 동역학:</strong> 초기 온도, 최고 체온, 최종 안정값, 총 상승폭 및 상승률을 평가합니다.",
+    tooltip_heat: "<strong>열 노출 및 구간 분포:</strong> 구간별 누적 지속 시간, 백분율 및 최초 진입 시각을 수치화합니다.",
+    tooltip_sweat: "<strong>발한 동역학 및 수분 상태:</strong> 센서 발한 지표와 체중 차이를 통한 수분 및 전해질 손실을 요약합니다.",
+    tooltip_hr: "<strong>심혈관 부담 및 회복:</strong> 평균 및 최고 심박수와 휴식 시간 동안의 체온 하락 효율을 추적합니다.",
+    tooltip_sensor: "<strong>센서 텔레메트리 품질:</strong> 데이터 스트림 신뢰성, 주요 센서 가동률 및 편차 허용 오차를 평가합니다."
   },
   ja: {
-    app_title: "ベン・ニール スポーツ科学 — 熱・水分分析",
+    app_title: "熱・水分分析",
     export_csv: "CSVエクスポート",
     export_pdf: "PDFエクスポート",
     process: "データ処理",
@@ -722,11 +802,13 @@ const translations = {
     distance: "距離 (km)",
     duration: "継続時間",
     environment: "環境",
+    auto_manual: "自動または手動",
     core_temp: "深部体温",
     start: "開始",
     maximum: "最高",
     final: "終了",
     cutoff_reached: "制限値到達?",
+    threshold_397: "39.7 °C の閾値",
     total_rise: "総上昇量",
     net_change: "純変動",
     rate_rise: "上昇率",
@@ -735,6 +817,7 @@ const translations = {
     zone: "ゾーン",
     time: "時間",
     first_entry: "初回侵入",
+    zone4_label: "ゾーン 4 / 制限値 (≥39.7)",
     transitions: "ゾーン移行回数",
     sweat_response: "発汗反応",
     avg_sweat_rate: "平均発汗速度",
@@ -777,10 +860,23 @@ const translations = {
     contact_footer: "ご質問がございましたら、ベン・ニール（Ben Neal）までお問い合わせください：",
     raw_data_section: "生データ (CALERA, CORE 2, FLOWBIO, 環境)",
     th_elapsed: "経過時間 (s)", th_time: "HH:MM:SS", th_interval: "間隔 (s)", th_core: "統合深部体温", th_source: "ソース", th_calera: "CALERA", th_core2: "CORE 2", th_delta: "差異", th_hr: "心拍数", th_skin: "皮膚温", th_sweat: "発汗", th_ambient: "外気温", th_rh: "湿度", th_zone: "ゾーン", th_break: "休憩?",
-    start_time_label: "開始時間 (HH:MM:SS)", end_time_label: "終了時間 (HH:MM:SS)", type: "タイプ", desc: "説明", break_num: "休憩 #", tcore_start: "開始時深部温", tcore_end: "終了時深部温", delta_t: "ΔT", rate: "低下速度"
+    start_time_label: "開始時間 (HH:MM:SS)", end_time_label: "終了時間 (HH:MM:SS)", type: "タイプ", desc: "説明", break_num: "休憩 #", tcore_start: "開始時深部温", tcore_end: "終了時深部温", delta_t: "ΔT", rate: "低下速度",
+    coming_soon: "近日公開", no_file: "ファイルなし", no_data_imported: "データ未インポート",
+    raw_calera: "生 CALERA データ", raw_core: "生 CORE データ", raw_flowbio: "生 FLOWBIO データ", raw_env: "生 環境データ",
+    skin_temp: "皮膚温", ambient_temp: "外気温", relative_humidity: "相対湿度", wbgt: "WBGT", quality: "品質",
+    set_core_temp_zones: "深部体温ゾーン設定", set_z1_max: "ゾーン1 最大 (°C)", set_z2_min: "ゾーン2 最小 (°C)", set_z2_max: "ゾーン2 最大 (°C)", set_z3_min: "ゾーン3 最小 (°C)", set_z3_max: "ゾーン3 最大 (°C)", set_cutoff: "制限値 (°C)",
+    set_sensor_config: "センサー設定", set_primary_sensor: "プライマリセンサー", set_fallback_backup: "バックアップにフォールバック", set_tolerance: "許容誤差 (s)", set_quality_flags: "CALERA 品質フラグ",
+    set_calera_mapping: "CALERA マッピング", set_core2_mapping: "CORE 2 マッピング", set_env_mapping: "環境マッピング",
+    btn_save_settings: "設定を保存", btn_reset_defaults: "デフォルトに戻す",
+    tooltip_session: "<strong>セッション情報とコンテキスト:</strong> 選手情報、実施日、競技種目、移動距離、継続時間、環境条件を記録します。",
+    tooltip_core: "<strong>深部体温動態:</strong> 初期体温、最高到達体温、最終安定値、総上昇量および上昇率を評価します。",
+    tooltip_heat: "<strong>熱曝露とゾーン分布:</strong> 各生理的熱ストレージバンドの継続時間、割合、初回侵入時刻を定量化します。",
+    tooltip_sweat: "<strong>発汗ダイナミクスと水分状態:</strong> センサー発汗量および体重変化量による水分・電解質喪失量をまとめます。",
+    tooltip_hr: "<strong>心血管負担と回復:</strong> 平均および最高心拍数、休憩中の体温低下効率を追跡します。",
+    tooltip_sensor: "<strong>センサーテレメトリー品質:</strong> データ信頼性、信号整合性、プライマリセンサー稼働率、乖離許容値を評価します。"
   },
   fr: {
-    app_title: "Ben Neal Science du Sport — Analyse de Chaleur et d'Hydratation",
+    app_title: "Analyse de Chaleur et d'Hydratation",
     export_csv: "Exporter CSV",
     export_pdf: "Exporter PDF",
     process: "Traiter les Données",
@@ -796,11 +892,13 @@ const translations = {
     distance: "Distance (km)",
     duration: "Durée",
     environment: "Environnement",
+    auto_manual: "Auto ou manuel",
     core_temp: "Température Interne",
     start: "Début",
     maximum: "Maximum",
     final: "Final",
     cutoff_reached: "Seuil Atteint?",
+    threshold_397: "Seuil de 39,7 °C",
     total_rise: "Hausse Totale",
     net_change: "Variation Nette",
     rate_rise: "Taux de Hausse",
@@ -809,6 +907,7 @@ const translations = {
     zone: "Zone",
     time: "Temps",
     first_entry: "1ère Entrée",
+    zone4_label: "Zone 4 / Seuil (≥39,7)",
     transitions: "Transitions",
     sweat_response: "Réponse Sudoripare",
     avg_sweat_rate: "Débit de Sueur Moy.",
@@ -851,10 +950,23 @@ const translations = {
     contact_footer: "Pour toute question, veuillez contacter Ben Neal à l'adresse :",
     raw_data_section: "Données Brutes (CALERA, CORE 2, FLOWBIO, Environnement)",
     th_elapsed: "Écoulé (s)", th_time: "HH:MM:SS", th_interval: "Intervalle (s)", th_core: "Core Unifié", th_source: "Source", th_calera: "CALERA", th_core2: "CORE 2", th_delta: "Delta", th_hr: "FC", th_skin: "Peau", th_sweat: "Sueur", th_ambient: "Ambiant", th_rh: "HR%", th_zone: "Zone", th_break: "Pause?",
-    start_time_label: "Heure Début (HH:MM:SS)", end_time_label: "Heure Fin (HH:MM:SS)", type: "Type", desc: "Description", break_num: "Pause #", tcore_start: "Tcore Début", tcore_end: "Tcore Fin", delta_t: "ΔT", rate: "Taux"
+    start_time_label: "Heure Début (HH:MM:SS)", end_time_label: "Heure Fin (HH:MM:SS)", type: "Type", desc: "Description", break_num: "Pause #", tcore_start: "Tcore Début", tcore_end: "Tcore Fin", delta_t: "ΔT", rate: "Taux",
+    coming_soon: "Bientôt disponible", no_file: "Aucun fichier", no_data_imported: "Aucune donnée importée",
+    raw_calera: "DONNÉES BRUTES CALERA", raw_core: "DONNÉES BRUTES CORE", raw_flowbio: "DONNÉES BRUTES FLOWBIO", raw_env: "DONNÉES ENVIRONNEMENTALES BRUTES",
+    skin_temp: "Temp. Peau", ambient_temp: "Temp. Ambiante", relative_humidity: "Humidité Relative", wbgt: "WBGT", quality: "Qualité",
+    set_core_temp_zones: "Zones de Temp. Interne", set_z1_max: "Zone 1 Max (°C)", set_z2_min: "Zone 2 Min (°C)", set_z2_max: "Zone 2 Max (°C)", set_z3_min: "Zone 3 Min (°C)", set_z3_max: "Zone 3 Max (°C)", set_cutoff: "Seuil (°C)",
+    set_sensor_config: "Config. des Capteurs", set_primary_sensor: "Capteur Primaire", set_fallback_backup: "Basculer sur le secondaire", set_tolerance: "Tolérance (s)", set_quality_flags: "Drapeaux de Qualité CALERA",
+    set_calera_mapping: "Mappage CALERA", set_core2_mapping: "Mappage CORE 2", set_env_mapping: "Mappage Environnemental",
+    btn_save_settings: "Enregistrer", btn_reset_defaults: "Réinitialiser",
+    tooltip_session: "<strong>Informations et Contexte de Session :</strong> Capture les métadonnées de l'athlète, la date, la modalité sportive, la distance et les conditions.",
+    tooltip_core: "<strong>Cinétique de Température Interne :</strong> Évalue la contrainte thermique interne via la température de départ, le pic, la valeur finale et la vitesse de hausse.",
+    tooltip_heat: "<strong>Exposition à la Chaleur :</strong> Quantifie la durée cumulée, le pourcentage et l'heure de première entrée dans chaque bande de contrainte thermique.",
+    tooltip_sweat: "<strong>Dynamique de Sueur et Hydratation :</strong> Résume les débits de sueur des capteurs, les différentiels de masse corporelle et les pertes d'électrolytes.",
+    tooltip_hr: "<strong>Contrainte Cardiovasculaire et Récupération :</strong> Suit la fréquence cardiaque moyenne/maximale et l'efficacité de refroidissement pendant les pauses.",
+    tooltip_sensor: "<strong>Qualité de Télémétrie :</strong> Évalue la fiabilité des flux de données, l'intégrité du signal et les tolérances de divergence entre capteurs."
   },
   zh: {
-    app_title: "本·尼尔 运动科学 — 热负荷与水合状态分析",
+    app_title: "热负荷与水合状态分析",
     export_csv: "导出 CSV",
     export_pdf: "导出 PDF",
     process: "处理数据",
@@ -870,11 +982,13 @@ const translations = {
     distance: "距离 (km)",
     duration: "持续时间",
     environment: "环境",
+    auto_manual: "自动或手动",
     core_temp: "核心体温",
     start: "初始",
     maximum: "最高",
     final: "结束",
     cutoff_reached: "是否达到上限阈值",
+    threshold_397: "39.7 °C 阈值",
     total_rise: "总升温",
     net_change: "净变化",
     rate_rise: "升温速率",
@@ -883,6 +997,7 @@ const translations = {
     zone: "区间",
     time: "时间",
     first_entry: "首次进入",
+    zone4_label: "区间 4 / 上限 (≥39.7)",
     transitions: "区间切换次数",
     sweat_response: "排汗反应",
     avg_sweat_rate: "平均排汗率",
@@ -925,10 +1040,23 @@ const translations = {
     contact_footer: "如有任何疑问，请联系 Ben Neal，邮箱：",
     raw_data_section: "原始数据 (CALERA, CORE 2, FLOWBIO, 环境)",
     th_elapsed: "已过时间 (s)", th_time: "HH:MM:SS", th_interval: "间隔 (s)", th_core: "统一核心温", th_source: "来源", th_calera: "CALERA", th_core2: "CORE 2", th_delta: "偏差", th_hr: "心率", th_skin: "皮肤温", th_sweat: "排汗率", th_ambient: "环境温", th_rh: "相对湿度", th_zone: "区间", th_break: "休息?",
-    start_time_label: "开始时间 (HH:MM:SS)", end_time_label: "结束时间 (HH:MM:SS)", type: "类型", desc: "说明", break_num: "休息 #", tcore_start: "开始核心温", tcore_end: "结束核心温", delta_t: "ΔT", rate: "降温速率"
+    start_time_label: "开始时间 (HH:MM:SS)", end_time_label: "结束时间 (HH:MM:SS)", type: "类型", desc: "说明", break_num: "休息 #", tcore_start: "开始核心温", tcore_end: "结束核心温", delta_t: "ΔT", rate: "降温速率",
+    coming_soon: "即将推出", no_file: "无文件", no_data_imported: "未导入数据",
+    raw_calera: "原始 CALERA 数据", raw_core: "原始 CORE 数据", raw_flowbio: "原始 FLOWBIO 数据", raw_env: "原始环境数据",
+    skin_temp: "皮肤温度", ambient_temp: "环境温度", relative_humidity: "相对湿度", wbgt: "WBGT", quality: "质量",
+    set_core_temp_zones: "核心体温区间", set_z1_max: "区间 1 最大 (°C)", set_z2_min: "区间 2 最小 (°C)", set_z2_max: "区间 2 最大 (°C)", set_z3_min: "区间 3 最小 (°C)", set_z3_max: "区间 3 最大 (°C)", set_cutoff: "上限阈值 (°C)",
+    set_sensor_config: "传感器配置", set_primary_sensor: "主传感器", set_fallback_backup: "启用备用传感器", set_tolerance: "容差 (s)", set_quality_flags: "CALERA 质量标志",
+    set_calera_mapping: "CALERA 映射", set_core2_mapping: "CORE 2 映射", set_env_mapping: "环境数据映射",
+    btn_save_settings: "保存设置", btn_reset_defaults: "恢复默认",
+    tooltip_session: "<strong>训练信息与上下文：</strong> 捕获运动员元数据、日期、运动项目、距离、持续时间及测试环境条件。",
+    tooltip_core: "<strong>核心体温动力学：</strong> 通过基础起始体温、峰值核心温、最终稳定值、总体绝对升温及升温速率评估内部热应变。",
+    tooltip_heat: "<strong>热应v曝光与区间分布：</strong> 量化生理热应变带（区间 1 至区间 4）的累计持续时间、百分比及首次进入时间。",
+    tooltip_sweat: "<strong>排汗动力学与水合状态：</strong> 汇总由连续传感器及精确体重差推导出的排汗指标与电解质流失量。",
+    tooltip_hr: "<strong>心血管应变与恢复：</strong> 追踪平均及最高心率响应，以及在预定休息和补水期间的体温下降效率。",
+    tooltip_sensor: "<strong>传感器遥测质量：</strong> 评估数据流可靠性、信号完整性、主传感器在线比例及多源传感器间的最大偏差容差。"
   },
   id: {
-    app_title: "Ilmu Olahraga Ben Neal — Analisis Panas dan Hidrasi",
+    app_title: "Analisis Panas dan Hidrasi",
     export_csv: "Ekspor CSV",
     export_pdf: "Ekspor PDF",
     process: "Proses Data",
@@ -944,11 +1072,13 @@ const translations = {
     distance: "Jarak (km)",
     duration: "Durasi",
     environment: "Lingkungan",
+    auto_manual: "Otomatis atau manual",
     core_temp: "Suhu Inti",
     start: "Mulai",
     maximum: "Maksimum",
     final: "Akhir",
     cutoff_reached: "Batas Tercapai?",
+    threshold_397: "Ambang batas 39,7 °C",
     total_rise: "Total Kenaikan",
     net_change: "Perubahan Bersih",
     rate_rise: "Laju Kenaikan",
@@ -957,6 +1087,7 @@ const translations = {
     zone: "Zona",
     time: "Waktu",
     first_entry: "Masuk Pertama",
+    zone4_label: "Zona 4 / Batas (≥39,7)",
     transitions: "Transisi",
     sweat_response: "Respons Keringat",
     avg_sweat_rate: "Rata-rata Laju Keringat",
@@ -999,10 +1130,23 @@ const translations = {
     contact_footer: "Jika ada pertanyaan, silakan hubungi Ben Neal di",
     raw_data_section: "Data Mentah (CALERA, CORE 2, FLOWBIO, Lingkungan)",
     th_elapsed: "Berjalan (s)", th_time: "HH:MM:SS", th_interval: "Interval (s)", th_core: "Core Terpadu", th_source: "Sumber", th_calera: "CALERA", th_core2: "CORE 2", th_delta: "Delta", th_hr: "DJ", th_skin: "Kulit", th_sweat: "Keringat", th_ambient: "Ambien", th_rh: "RH%", th_zone: "Zona", th_break: "Istirahat?",
-    start_time_label: "Waktu Mulai (HH:MM:SS)", end_time_label: "Waktu Selesai (HH:MM:SS)", type: "Tipe", desc: "Deskripsi", break_num: "Istirahat #", tcore_start: "Tcore Mulai", tcore_end: "Tcore Selesai", delta_t: "ΔT", rate: "Laju"
+    start_time_label: "Waktu Mulai (HH:MM:SS)", end_time_label: "Waktu Selesai (HH:MM:SS)", type: "Tipe", desc: "Deskripsi", break_num: "Istirahat #", tcore_start: "Tcore Mulai", tcore_end: "Tcore Selesai", delta_t: "ΔT", rate: "Laju",
+    coming_soon: "Segera hadir", no_file: "Tidak ada file", no_data_imported: "Tidak ada data diimpor",
+    raw_calera: "DATA MENTAH CALERA", raw_core: "DATA MENTAH CORE", raw_flowbio: "DATA MENTAH FLOWBIO", raw_env: "DATA LINGKUNGAN MENTAH",
+    skin_temp: "Suhu Kulit", ambient_temp: "Suhu Ambien", relative_humidity: "Kelembapan Relatif", wbgt: "WBGT", quality: "Kualitas",
+    set_core_temp_zones: "Zona Suhu Inti", set_z1_max: "Maks Zona 1 (°C)", set_z2_min: "Min Zona 2 (°C)", set_z2_max: "Maks Zona 2 (°C)", set_z3_min: "Min Zona 3 (°C)", set_z3_max: "Maks Zona 3 (°C)", set_cutoff: "Batas (°C)",
+    set_sensor_config: "Konfigurasi Sensor", set_primary_sensor: "Sensor Utama", set_fallback_backup: "Gunakan cadangan jika gagal", set_tolerance: "Toleransi (s)", set_quality_flags: "Bendera Kualitas CALERA",
+    set_calera_mapping: "Pemetaan CALERA", set_core2_mapping: "Pemetaan CORE 2", set_env_mapping: "Pemetaan Lingkungan",
+    btn_save_settings: "Simpan Pengaturan", btn_reset_defaults: "Setel Ulang",
+    tooltip_session: "<strong>Informasi & Konteks Sesi:</strong> Menangkap metadata atlet, tanggal, modalitas olahraga, jarak, durasi, dan kondisi lingkungan.",
+    tooltip_core: "<strong>Kinetika Suhu Inti:</strong> Mengevaluasi regangan termal internal melalui suhu awal, puncak, nilai stabilisasi akhir, dan laju kenaikan.",
+    tooltip_heat: "<strong>Paparan Panas & Distribusi Zona:</strong> Mengukur durasi kumulatif dan persentase di setiap pita regangan termal serta frekuensi transisi.",
+    tooltip_sweat: "<strong>Dinamika Keringat & Hidrasi:</strong> Merangkum metrik pengeluaran keringat sensor, perbedaan massa tubuh, dan perkiraan kehilangan elektrolit.",
+    tooltip_hr: "<strong>Regangan Kardiovaskular & Pemulihan:</strong> Melacak denyut jantung rata-rata/maksimum dan efisiensi pendinginan selama istirahat.",
+    tooltip_sensor: "<strong>Kualitas Telemetri Sensor:</strong> Mengevaluasi keandalan aliran data, integritas sinyal, persentase keaktifan sensor utama, dan toleransi divergensi."
   },
   da: {
-    app_title: "Ben Neal Idrætsvidenskab — Varme- og Væskeanalyse",
+    app_title: "Varme- og Væskeanalyse",
     export_csv: "Eksporter CSV",
     export_pdf: "Eksporter PDF",
     process: "Behandl Data",
@@ -1018,11 +1162,13 @@ const translations = {
     distance: "Distance (km)",
     duration: "Varighed",
     environment: "Miljø",
+    auto_manual: "Auto eller manuel",
     core_temp: "Kernetemperatur",
     start: "Start",
     maximum: "Maksimum",
     final: "Slut",
     cutoff_reached: "Grænse Nået?",
+    threshold_397: "39,7 °C grænse",
     total_rise: "Samlet Stigning",
     net_change: "Nettovirksomhed",
     rate_rise: "Stigningstakt",
@@ -1031,6 +1177,7 @@ const translations = {
     zone: "Zone",
     time: "Tid",
     first_entry: "Første Indgang",
+    zone4_label: "Zone 4 / Grænse (≥39,7)",
     transitions: "Overgange",
     sweat_response: "Svedrespons",
     avg_sweat_rate: "Gns. Svedrate",
@@ -1073,10 +1220,23 @@ const translations = {
     contact_footer: "Hvis du har spørgsmål, bedes du kontakte Ben Neal på",
     raw_data_section: "Rådata (CALERA, CORE 2, FLOWBIO, Miljø)",
     th_elapsed: "Forløbet (s)", th_time: "HH:MM:SS", th_interval: "Interval (s)", th_core: "Samlet Kerne", th_source: "Kilde", th_calera: "CALERA", th_core2: "CORE 2", th_delta: "Delta", th_hr: "Puls", th_skin: "Hud", th_sweat: "Sved", th_ambient: "Omgivelse", th_rh: "RH%", th_zone: "Zone", th_break: "Pause?",
-    start_time_label: "Starttid (HH:MM:SS)", end_time_label: "Sluttid (HH:MM:SS)", type: "Type", desc: "Beskrivelse", break_num: "Pause #", tcore_start: "Tcore Start", tcore_end: "Tcore Slut", delta_t: "ΔT", rate: "Rate"
+    start_time_label: "Starttid (HH:MM:SS)", end_time_label: "Sluttid (HH:MM:SS)", type: "Type", desc: "Beskrivelse", break_num: "Pause #", tcore_start: "Tcore Start", tcore_end: "Tcore Slut", delta_t: "ΔT", rate: "Rate",
+    coming_soon: "Kommer snart", no_file: "Ingen fil", no_data_imported: "Ingen data importeret",
+    raw_calera: "RÅ CALERA DATA", raw_core: "RÅ CORE DATA", raw_flowbio: "RÅ FLOWBIO DATA", raw_env: "RÅ MILJØDATA",
+    skin_temp: "Hudtemperatur", ambient_temp: "Omgivelsestemperatur", relative_humidity: "Relativ Fugtighed", wbgt: "WBGT", quality: "Kvalitet",
+    set_core_temp_zones: "Kernetemperaturzoner", set_z1_max: "Zone 1 Maks (°C)", set_z2_min: "Zone 2 Min (°C)", set_z2_max: "Zone 2 Maks (°C)", set_z3_min: "Zone 3 Min (°C)", set_z3_max: "Zone 3 Maks (°C)", set_cutoff: "Grænse (°C)",
+    set_sensor_config: "Sensorkonfiguration", set_primary_sensor: "Primær Sensor", set_fallback_backup: "Brug backup ved fejl", set_tolerance: "Tolerance (s)", set_quality_flags: "CALERA Kvalitetsflag",
+    set_calera_mapping: "CALERA Datakortlægning", set_core2_mapping: "CORE 2 Datakortlægning", set_env_mapping: "Miljø Datakortlægning",
+    btn_save_settings: "Gem Indstillinger", btn_reset_defaults: "Nulstil Standarder",
+    tooltip_session: "<strong>Sessionsinformation & Kontekst:</strong> Indsamler metadata om atleten, dato, sportsgren, distance, varighed og miljøforhold.",
+    tooltip_core: "<strong>Kernetemperaturkinetik:</strong> Evaluerer den interne termiske belastning via starttemperatur, makstemperatur, slutværdi og stigningstakt.",
+    tooltip_heat: "<strong>Varmepåvirkning & Zonedistribution:</strong> Kvantificerer kumulativ varighed, procentfordeling og tidspunkt for første indgang i hver termiske belastningszone.",
+    tooltip_sweat: "<strong>Sveddynamik & Væskebalance:</strong> Sammenfatter svedmålinger fra sensorer og kropsmasseændringer samt estimerede elektrolyttab.",
+    tooltip_hr: "<strong>Kardiovaskulær Belastning & Restitution:</strong> Følger gennemsnitlig og maksimal puls samt nedkølingseffektivitet under pauser.",
+    tooltip_sensor: "<strong>Sensortelemetrikvalitet:</strong> Evaluerer datastrømme, signalintegritet, primær sensoruptime og divergenstolerancer."
   },
   de: {
-    app_title: "Ben Neal Sportwissenschaft — Hitze- und Hydrationsanalyse",
+    app_title: "Hitze- und Hydrationsanalyse",
     export_csv: "CSV exportieren",
     export_pdf: "PDF exportieren",
     process: "Daten verarbeiten",
@@ -1092,11 +1252,13 @@ const translations = {
     distance: "Distanz (km)",
     duration: "Dauer",
     environment: "Umgebung",
+    auto_manual: "Automatisch oder manuell",
     core_temp: "Kernkörpertemperatur",
     start: "Start",
     maximum: "Maximum",
     final: "Ende",
     cutoff_reached: "Grenzwert erreicht?",
+    threshold_397: "39,7 °C Grenzwert",
     total_rise: "Gesamtanstieg",
     net_change: "Nettowechsel",
     rate_rise: "Anstiegsrate",
@@ -1105,6 +1267,7 @@ const translations = {
     zone: "Zone",
     time: "Zeit",
     first_entry: "Erster Eintritt",
+    zone4_label: "Zone 4 / Grenzwert (≥39,7)",
     transitions: "Übergänge",
     sweat_response: "Schweißreaktion",
     avg_sweat_rate: "Durchschn. Schweißrate",
@@ -1147,7 +1310,20 @@ const translations = {
     contact_footer: "Bei Fragen wenden Sie sich bitte an Ben Neal unter",
     raw_data_section: "Rohdaten (CALERA, CORE 2, FLOWBIO, Umgebung)",
     th_elapsed: "Verstrichen (s)", th_time: "HH:MM:SS", th_interval: "Intervall (s)", th_core: "Komb. Kerntemp.", th_source: "Quelle", th_calera: "CALERA", th_core2: "CORE 2", th_delta: "Delta", th_hr: "HF", th_skin: "Haut", th_sweat: "Schweiß", th_ambient: "Umgebung", th_rh: "LF%", th_zone: "Zone", th_break: "Pause?",
-    start_time_label: "Startzeit (HH:MM:SS)", end_time_label: "Endzeit (HH:MM:SS)", type: "Typ", desc: "Beschreibung", break_num: "Pause #", tcore_start: "Tcore Start", tcore_end: "Tcore Ende", delta_t: "ΔT", rate: "Rate"
+    start_time_label: "Startzeit (HH:MM:SS)", end_time_label: "Endzeit (HH:MM:SS)", type: "Typ", desc: "Beschreibung", break_num: "Pause #", tcore_start: "Tcore Start", tcore_end: "Tcore Ende", delta_t: "ΔT", rate: "Rate",
+    coming_soon: "Demnächst", no_file: "Keine Datei", no_data_imported: "Keine Daten importiert",
+    raw_calera: "ROHDATEN CALERA", raw_core: "ROHDATEN CORE", raw_flowbio: "ROHDATEN FLOWBIO", raw_env: "ROHDATEN UMGEBUNG",
+    skin_temp: "Hauttemperatur", ambient_temp: "Umgebungstemperatur", relative_humidity: "Relative Luftfeuchtigkeit", wbgt: "WBGT", quality: "Qualität",
+    set_core_temp_zones: "Kerntemperaturzonen", set_z1_max: "Zone 1 Max (°C)", set_z2_min: "Zone 2 Min (°C)", set_z2_max: "Zone 2 Max (°C)", set_z3_min: "Zone 3 Min (°C)", set_z3_max: "Zone 3 Max (°C)", set_cutoff: "Grenzwert (°C)",
+    set_sensor_config: "Sensorkonfiguration", set_primary_sensor: "Primärsensor", set_fallback_backup: "Auf Backup zurückgreifen", set_tolerance: "Toleranz (s)", set_quality_flags: "CALERA Qualitäts-Flags",
+    set_calera_mapping: "CALERA Mapping", set_core2_mapping: "CORE 2 Mapping", set_env_mapping: "Umgebungs-Mapping",
+    btn_save_settings: "Einstellungen speichern", btn_reset_defaults: "Standard zurücksetzen",
+    tooltip_session: "<strong>Sitzungsinformationen & Kontext:</strong> Erfasst Metadaten des Athleten, Datum, Sportart, Distanz, Dauer und Umgebungsbedingungen.",
+    tooltip_core: "<strong>Kerntemperaturkinetik:</strong> Bewertet die interne thermische Belastung anhand von Starttemperatur, Peak, Endwert, Gesamtanstieg und Anstiegsrate.",
+    tooltip_heat: "<strong>Hitzebelastung & Zonenverteilung:</strong> Quantifiziert die kumulative Dauer, Prozentanteile und Erstrundeintritte in standardisierte Belastungszonen.",
+    tooltip_sweat: "<strong>Schweißdynamik & Hydrationsstatus:</strong> Fasst kontinuierliche Sensordaten, Körpermasse-Differenzen und Elektrolytverluste zusammen.",
+    tooltip_hr: "<strong>Kardiovaskuläre Belastung & Erholung:</strong> Verfolgt durchschnittliche und maximale Herzfrequenz sowie Kühlungseffizienz in Pausen.",
+    tooltip_sensor: "<strong>Sensor-Telemetriequalität:</strong> Bewertet Datenstromzuverlässigkeit, Signalintegrität, Primärsensor-Uptime und Abweichungstoleranzen."
   }
 };
 
@@ -1163,7 +1339,11 @@ function changeLanguage(langCode) {
   AppState.currentLang = langCode;
   document.querySelectorAll('[data-t]').forEach(el => {
     const k = el.getAttribute('data-t');
-    el.textContent = t(k);
+    if (el.tagName === 'INPUT' && el.hasAttribute('placeholder')) {
+      el.placeholder = t(k);
+    } else {
+      el.textContent = t(k);
+    }
   });
   document.getElementById('txt-app-title').textContent = t('app_title');
   document.getElementById('btn-export-csv').textContent = t('export_csv');
@@ -1400,7 +1580,7 @@ function renderRawTable(type) {
   const data = AppState.raw[type];
   const info = document.getElementById('raw-' + type + '-info');
   const table = document.getElementById('raw-' + type + '-table');
-  if (!data || data.length === 0) { if(info) info.textContent = 'No data'; return; }
+  if (!data || data.length === 0) { if(info) info.textContent = t('no_data_imported'); return; }
   if(info) info.textContent = data.length + ' rows';
   const cols = Object.keys(data[0]);
   let html = '<thead><tr>' + cols.map(c => '<th>' + c + '</th>').join('') + '</tr></thead><tbody>';
@@ -1780,7 +1960,7 @@ function exportCSV() {
   if (AppState.processed.length === 0) { alert('No processed data to export. Please process data first.'); return; }
   
   const m = AppState.metrics;
-  let csv = "BEN NEAL SPORTS SCIENCE — HEAT AND HYDRATION ANALYSIS REPORT\n\n";
+  let csv = "HEAT AND HYDRATION ANALYSIS REPORT\n\n";
   
   csv += "SESSION INFORMATION\n";
   csv += `Athlete,${document.getElementById('inp-athlete').value}\n`;
@@ -1847,7 +2027,7 @@ function exportCSV() {
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'BenNeal_Heat_And_Hydration_Analysis.csv'; a.click(); URL.revokeObjectURL(url);
+  a.href = url; a.download = 'Heat_And_Hydration_Analysis.csv'; a.click(); URL.revokeObjectURL(url);
 }
 
 function exportPDF() {
@@ -1906,7 +2086,7 @@ function exportPDF() {
       <!-- Enterprise Branding & Report Header -->
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px;">
         <div>
-          <h1 style="margin: 0; font-size: 18px; color: #0f172a; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Ben Neal Sports Science</h1>
+          <h1 style="margin: 0; font-size: 18px; color: #0f172a; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Sports Science</h1>
           <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b;">Applied Physiology & Thermal Physiology Laboratory</p>
         </div>
         <div style="text-align: right; font-size: 11px; color: #475569;">
@@ -2006,8 +2186,7 @@ function exportPDF() {
 
       <!-- Professional Enterprise Footer with Contact Info -->
       <div style="border-top: 1px solid #cbd5e1; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b;">
-        <div>Ben Neal Sports Science &middot; Professional Physiology Services</div>
-        <div>${t('contact_footer')} <a href="mailto:ben.neal@canterbury.ac.uk" style="color: #1e293b; text-decoration: underline;">ben.neal@canterbury.ac.uk</a></div>
+        <div>Sports Science &middot; Professional Physiology Services</div>
       </div>
 
     </div>
@@ -2026,7 +2205,7 @@ function exportPDF() {
   const cleanDate = date.replace(/\//g, '-');
   const opt = {
     margin:       0.4,
-    filename:     `${cleanName}_${cleanDate}_BenNeal_Heat_And_Hydration_Report.pdf`,
+    filename:     `${cleanName}_${cleanDate}_Heat_And_Hydration_Report.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2 },
     jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
