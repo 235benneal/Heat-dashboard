@@ -55,10 +55,10 @@ table.data-table tr:hover td { background: #f8fafc; }
   .no-print { display: none !important; } 
   body { background: white; color: black; }
   .card { box-shadow: none; border: 1px solid #cbd5e1; break-inside: avoid; margin-bottom: 1.5rem; }
-  .pdf-page-break { page-break-before: always; }
-  .pdf-footer { display: block !important; position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 8px; }
+  .pdf-page-break { page-break-before: always; break-before: page; }
+  #pdf-footer-content { display: block !important; position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 8px; }
 }
-.pdf-footer { display: none; }
+.pdf-page-break { page-break-before: always; break-before: page; }
 .hide-scrollbar::-webkit-scrollbar { display: none; } 
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; } 
 </style>
@@ -135,9 +135,9 @@ table.data-table tr:hover td { background: #f8fafc; }
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('processed')" id="tab-btn-processed">Processed Data</button>
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('charts')" id="tab-btn-charts">Interactive Charts</button>
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('compare')" id="tab-btn-compare">Compare Lengths</button>
-    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('archive')" id="tab-btn-archive">Saved Reports & Archive</button>
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('sweat')" id="tab-btn-sweat">Sweat</button>
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('events')" id="tab-btn-events">Events & Breaks</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('archive')" id="tab-btn-archive">Saved Reports & Archive</button>
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('settings')" id="tab-btn-settings">Settings</button>
   </div>
 </div>
@@ -149,13 +149,24 @@ table.data-table tr:hover td { background: #f8fafc; }
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="card p-4">
         <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
-          <span>Session Information</span>
+          <div class="flex items-center">
+            <span>Session Information</span>
+            <div class="relative tooltip-trigger cursor-help no-print ml-2">
+              <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+              <div class="sci-tooltip"><strong>Session Context:</strong> Metadata regarding the individual athlete, date, time, targeted sport or activity type, and the environmental conditions affecting performance.</div>
+            </div>
+          </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div><label class="text-xs text-slate-400">Athlete</label><input id="inp-athlete" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="Name"></div>
-          <div><label class="text-xs text-slate-400">Date</label><input type="date" id="inp-date" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg"></div>
-          <div><label class="text-xs text-slate-400">Activity</label><input id="inp-activity" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="e.g. Endurance Trial"></div>
-          <div><label class="text-xs text-slate-400">Distance (km)</label><input id="inp-distance" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="0"></div>
+          <div><label class="text-xs text-slate-400">Sport</label><input id="inp-activity" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="e.g. Badminton"></div>
+          <div class="col-span-2">
+            <label class="text-xs text-slate-400">Date & Time</label>
+            <div class="flex gap-2">
+              <input type="date" id="inp-date" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg">
+              <input type="time" id="inp-time" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg">
+            </div>
+          </div>
         </div>
         <div class="mt-3 pt-3 border-t border-slate-100 space-y-2">
           <div class="flex justify-between items-center text-xs sm:text-sm"><span class="text-slate-500">Duration</span><span class="font-semibold" id="sum-duration">—</span></div>
@@ -171,7 +182,13 @@ table.data-table tr:hover td { background: #f8fafc; }
 
       <div class="card p-4 lg:col-span-2">
         <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
-          <span>Core Temperature Kinetics (Tcore)</span>
+          <div class="flex items-center">
+            <span>Core Temperature Kinetics (Tcore)</span>
+            <div class="relative tooltip-trigger right-aligned cursor-help no-print ml-2">
+              <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+              <div class="sci-tooltip"><strong>Core Temperature (Tcore):</strong> Evaluates internal thermal strain. Key indicators include the maximum temperature achieved, total rise from baseline, and how rapidly heat accumulated during the session.</div>
+            </div>
+          </div>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <div><div class="text-xs text-slate-400 mb-1">Start</div><div class="big-number text-slate-700" id="sum-start">—</div><div class="text-[10px] text-slate-400">°C</div></div>
@@ -188,13 +205,16 @@ table.data-table tr:hover td { background: #f8fafc; }
       </div>
     </div>
 
-    <!-- Page break instruction for professional multi-page exports -->
-    <div class="pdf-page-break"></div>
-
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
       <div class="card p-4">
         <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
-          <span>Time Spent in Zones (Minutes & %)</span>
+          <div class="flex items-center">
+            <span>Time Spent in Zones</span>
+            <div class="relative tooltip-trigger cursor-help no-print ml-2">
+              <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+              <div class="sci-tooltip"><strong>Zone Distribution:</strong> Quantifies the total duration and percentage of the session the athlete spent in specific physiological thermal strain bands.</div>
+            </div>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-xs sm:text-sm">
@@ -212,7 +232,13 @@ table.data-table tr:hover td { background: #f8fafc; }
 
       <div class="card p-4">
         <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
-          <span>Sweat Response</span>
+          <div class="flex items-center">
+            <span>Sweat Response</span>
+            <div class="relative tooltip-trigger cursor-help no-print ml-2">
+              <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+              <div class="sci-tooltip"><strong>Sweat Dynamics:</strong> Evaluates total fluid loss and sweat rate derived from real-time continuous sensors alongside precise body mass differentials entered by the user.</div>
+            </div>
+          </div>
         </div>
         <div class="space-y-2 text-xs sm:text-sm">
           <div class="flex justify-between"><span class="text-slate-500">Avg Sweat Rate</span><span class="font-semibold" id="sum-sweat-avg">—</span></div>
@@ -226,7 +252,13 @@ table.data-table tr:hover td { background: #f8fafc; }
 
       <div class="card p-4">
         <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
-          <span>Heart Rate & Breaks</span>
+          <div class="flex items-center">
+            <span>Heart Rate (HR)</span>
+            <div class="relative tooltip-trigger right-aligned cursor-help no-print ml-2">
+              <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+              <div class="sci-tooltip"><strong>Cardiovascular Strain:</strong> Reflects the internal physiological cost of the session, highlighting average working intensity and peak cardiovascular demand alongside any recorded breaks.</div>
+            </div>
+          </div>
         </div>
         <div class="space-y-2 text-xs sm:text-sm mb-3">
           <div class="flex justify-between"><span class="text-slate-500">Average HR</span><span class="font-semibold" id="sum-hr-avg">—</span></div>
@@ -237,14 +269,6 @@ table.data-table tr:hover td { background: #f8fafc; }
           <div class="flex justify-between"><span class="text-slate-500">Total Break Time</span><span class="font-semibold" id="sum-breaks-total">—</span></div>
           <div class="flex justify-between"><span class="text-slate-500">Largest &Delta;T Decline</span><span class="font-semibold" id="sum-breaks-largest">—</span></div>
         </div>
-      </div>
-    </div>
-
-    <!-- Embedded Report Charts Section for PDF Export -->
-    <div class="card p-4 mt-4">
-      <div class="font-semibold text-sm mb-3">Interactive Core Temperature & Sweat Loss Dynamics</div>
-      <div class="relative w-full h-[350px]">
-        <canvas id="thermalChart"></canvas>
       </div>
     </div>
   </div>
@@ -271,7 +295,13 @@ table.data-table tr:hover td { background: #f8fafc; }
   <div id="tab-charts" class="tab-content hidden">
     <div class="card p-4">
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
-        <h3 class="font-semibold text-sm">Interactive Core Temperature & Sweat Loss Dynamics</h3>
+        <div class="flex items-center">
+          <h3 class="font-semibold text-sm">Interactive Core Temperature & Sweat Loss Dynamics</h3>
+          <div class="relative tooltip-trigger cursor-help no-print ml-2">
+            <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+            <div class="sci-tooltip"><strong>Interactive Telemetry:</strong> Visually maps the rise in core temperature against cumulative sweat loss over the entirety of the session.</div>
+          </div>
+        </div>
       </div>
       <div class="relative w-full h-[450px]">
         <canvas id="thermalChartStandalone"></canvas>
@@ -282,7 +312,13 @@ table.data-table tr:hover td { background: #f8fafc; }
   <!-- COMPARE LENGTHS TAB -->
   <div id="tab-compare" class="tab-content hidden">
     <div class="card p-4">
-      <h3 class="font-semibold text-sm mb-2">Compare Core Temperatures Across Specific Lengths / Intervals</h3>
+      <div class="flex items-center mb-2">
+        <h3 class="font-semibold text-sm">Compare Core Temperatures Across Specific Lengths / Intervals</h3>
+        <div class="relative tooltip-trigger cursor-help no-print ml-2">
+          <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+          <div class="sci-tooltip"><strong>Interval Analysis:</strong> Compare specific segments of the session (e.g. first half vs second half) to observe how thermal load and kinetics differ over specific time periods.</div>
+        </div>
+      </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div class="p-3 border rounded-lg bg-slate-50">
           <h4 class="font-semibold text-xs text-slate-700 mb-2">Interval A</h4>
@@ -299,7 +335,7 @@ table.data-table tr:hover td { background: #f8fafc; }
           </div>
         </div>
       </div>
-      <button onclick="runCoreComparison()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition mb-4">Run Comparison Analysis</button>
+      <button onclick="runCoreComparison()" class="no-print px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition mb-4">Run Comparison Analysis</button>
       <div id="compare-results" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 hidden">
         <div class="p-3 border rounded-lg"><div class="text-xs text-slate-400">Interval A Stats</div><div id="cmp-res-a" class="text-sm font-semibold mt-1">—</div></div>
         <div class="p-3 border rounded-lg"><div class="text-xs text-slate-400">Interval B Stats</div><div id="cmp-res-b" class="text-sm font-semibold mt-1">—</div></div>
@@ -307,26 +343,6 @@ table.data-table tr:hover td { background: #f8fafc; }
       </div>
       <div class="relative w-full h-[350px]">
         <canvas id="compareChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- ARCHIVE TAB -->
-  <div id="tab-archive" class="tab-content hidden">
-    <div class="card p-4">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h3 class="font-semibold text-sm">Saved Reports & Page Archive</h3>
-        </div>
-        <button onclick="clearArchive()" class="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs transition">Clear Archive</button>
-      </div>
-      <div class="overflow-x-auto border rounded-lg">
-        <table class="data-table">
-          <thead><tr><th>Date Saved</th><th>Athlete</th><th>Activity</th><th>Duration</th><th>Max Temp (°C)</th><th>Actions</th></tr></thead>
-          <tbody id="archive-tbody">
-            <tr><td colspan="6" class="text-center text-slate-400 py-4">No saved reports in archive.</td></tr>
-          </tbody>
-        </table>
       </div>
     </div>
   </div>
@@ -379,6 +395,26 @@ table.data-table tr:hover td { background: #f8fafc; }
     </div>
   </div>
 
+  <!-- ARCHIVE TAB -->
+  <div id="tab-archive" class="tab-content hidden">
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-semibold text-sm">Saved Reports & Page Archive</h3>
+        </div>
+        <button onclick="clearArchive()" class="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs transition">Clear Archive</button>
+      </div>
+      <div class="overflow-x-auto border rounded-lg">
+        <table class="data-table">
+          <thead><tr><th>Date Saved</th><th>Athlete</th><th>Sport</th><th>Duration</th><th>Max Temp (°C)</th><th>Actions</th></tr></thead>
+          <tbody id="archive-tbody">
+            <tr><td colspan="6" class="text-center text-slate-400 py-4">No saved reports in archive.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- SETTINGS TAB -->
   <div id="tab-settings" class="tab-content hidden">
     <div class="card p-4">
@@ -391,10 +427,11 @@ table.data-table tr:hover td { background: #f8fafc; }
     <button onclick="saveSettings()" class="mt-4 px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-medium">Save Settings</button>
   </div>
 
-  <!-- Professional PDF Footer -->
-  <div class="pdf-footer">
-    Canterbury Christ Church University &middot; Sports Science Department &middot; Contact: ben.neal@canterbury.ac.uk
+  <!-- PDF Footer (Hidden in web, visible in PDF print) -->
+  <div id="pdf-footer-content" class="hidden">
+    Ben Neal &middot; ben.neal@canterbury.ac.uk
   </div>
+
 </div>
 
 <script>
@@ -403,7 +440,6 @@ const AppState = {
   processed: [], events: [], metrics: {}, currentLang: 'en'
 };
 
-let thermalChartInstance = null;
 let thermalChartStandaloneInstance = null;
 let compareChartInstance = null;
 
@@ -727,19 +763,64 @@ function renderChart() {
     });
   };
 
-  thermalChartInstance = drawChart('thermalChart', thermalChartInstance);
   thermalChartStandaloneInstance = drawChart('thermalChartStandalone', thermalChartStandaloneInstance);
 }
 
 function runCoreComparison() {
   const p = AppState.processed;
   if (!p || p.length === 0) { alert('Please process data first.'); return; }
-  const aStart = parseFloat(document.getElementById('cmp-a-start').value) || 0;
-  const aEnd = parseFloat(document.getElementById('cmp-a-end').value) || 30;
-  const subsetA = p.filter(r => r.elapsedMin >= aStart && r.elapsedMin <= aEnd && r.unifiedCore != null);
-  const maxA = subsetA.length > 0 ? Math.max(...subsetA.map(r => r.unifiedCore)) : 0;
-  document.getElementById('cmp-res-a').innerHTML = `Max: ${maxA.toFixed(2)}°C`;
+  
+  const aStartMin = parseFloat(document.getElementById('cmp-a-start').value) || 0;
+  const aEndMin = parseFloat(document.getElementById('cmp-a-end').value) || 0;
+  const bStartMin = parseFloat(document.getElementById('cmp-b-start').value) || 0;
+  const bEndMin = parseFloat(document.getElementById('cmp-b-end').value) || 0;
+
+  const subsetA = p.filter(r => r.elapsedMin >= aStartMin && r.elapsedMin <= aEndMin && r.unifiedCore != null);
+  const subsetB = p.filter(r => r.elapsedMin >= bStartMin && r.elapsedMin <= bEndMin && r.unifiedCore != null);
+
+  const getStats = (sub) => {
+    if (sub.length === 0) return { max: 0, mean: 0, rise: 0 };
+    const temps = sub.map(r => r.unifiedCore);
+    const max = Math.max(...temps);
+    const min = Math.min(...temps);
+    const mean = temps.reduce((a, b) => a + b, 0) / temps.length;
+    return { max, min, mean, rise: temps[temps.length - 1] - temps[0] };
+  };
+
+  const statsA = getStats(subsetA);
+  const statsB = getStats(subsetB);
+
+  document.getElementById('cmp-res-a').innerHTML = `Max: ${statsA.max.toFixed(2)}°C | Mean: ${statsA.mean.toFixed(2)}°C | Rise: ${statsA.rise.toFixed(2)}°C`;
+  document.getElementById('cmp-res-b').innerHTML = `Max: ${statsB.max.toFixed(2)}°C | Mean: ${statsB.mean.toFixed(2)}°C | Rise: ${statsB.rise.toFixed(2)}°C`;
+  document.getElementById('cmp-res-diff').innerHTML = `Peak Temp Δ: ${(statsB.max - statsA.max).toFixed(2)}°C`;
   document.getElementById('compare-results').classList.remove('hidden');
+
+  const maxLen = Math.max(subsetA.length, subsetB.length);
+  const labels = Array.from({length: maxLen}, (_, i) => `Pt ${i+1}`);
+  const dataA = subsetA.map(r => r.unifiedCore);
+  const dataB = subsetB.map(r => r.unifiedCore);
+
+  const ctx = document.getElementById('compareChart');
+  if (compareChartInstance) compareChartInstance.destroy();
+
+  compareChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: `Interval A (${aStartMin}-${aEndMin}m)`, data: dataA, borderColor: '#0284c7', borderWidth: 2, pointRadius: 0 },
+        { label: `Interval B (${bStartMin}-${bEndMin}m)`, data: dataB, borderColor: '#d97706', borderWidth: 2, pointRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { grid: { display: false } },
+        y: { title: { display: true, text: 'Core Temperature (°C)' } }
+      }
+    }
+  });
 }
 
 function saveCurrentReportToArchive() {
@@ -807,18 +888,59 @@ function exportCSV() {
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
+// Generates the PDF by sequentially displaying the exact required sections.
 function exportPDF() {
   if (AppState.processed.length === 0) { alert('No processed data to export.'); return; }
+  
+  const allTabs = document.querySelectorAll('.tab-content');
+  allTabs.forEach(t => t.classList.add('hidden', 'no-print'));
+  
+  const summaryTab = document.getElementById('tab-summary');
+  const chartsTab = document.getElementById('tab-charts');
+  const compareTab = document.getElementById('tab-compare');
+  
+  // Show required tabs for PDF layout
+  summaryTab.classList.remove('hidden', 'no-print');
+  chartsTab.classList.remove('hidden', 'no-print');
+  chartsTab.classList.add('pdf-page-break');
+  
+  const compareHasData = !document.getElementById('compare-results').classList.contains('hidden');
+  if (compareHasData) {
+    compareTab.classList.remove('hidden', 'no-print');
+  }
+
+  const footer = document.getElementById('pdf-footer-content');
+  footer.classList.remove('hidden');
+
+  renderChart(); 
+
   const element = document.getElementById('pdf-container');
+  
   if (typeof html2pdf !== 'undefined') {
     html2pdf().set({
-      margin: 0.3, filename: 'Canterbury_Sports_Science_Report.pdf',
+      margin: 0.4,
+      filename: 'Heat_And_Hydration_Report.pdf',
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    }).from(element).save().catch(() => window.print());
+    }).from(element).save().then(() => {
+      restoreTabs();
+    }).catch(() => {
+      window.print();
+      restoreTabs();
+    });
   } else {
     window.print();
+    restoreTabs();
+  }
+
+  function restoreTabs() {
+    footer.classList.add('hidden');
+    chartsTab.classList.remove('pdf-page-break');
+    allTabs.forEach(t => t.classList.remove('no-print'));
+    const activeBtn = document.querySelector('.tab-btn.active');
+    if (activeBtn) activeBtn.click();
+    else showTab('summary');
   }
 }
 
