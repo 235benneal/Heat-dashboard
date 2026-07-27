@@ -8,6 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -173,6 +174,7 @@ table.data-table tr:hover td { background: #f8fafc; }
   <div class="flex gap-1 bg-slate-200/60 p-1 rounded-xl inline-flex min-w-full sm:min-w-0">
     <button class="tab-btn active px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap" onclick="showTab('summary')" id="tab-btn-dashboard" data-t="tab_dashboard">Dashboard</button>
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('processed')" id="tab-btn-processed" data-t="tab_processed">Processed Data</button>
+    <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('charts')" id="tab-btn-charts" data-t="tab_charts">Interactive Charts</button>
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('sweat')" id="tab-btn-sweat" data-t="tab_sweat">Sweat</button>
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('events')" id="tab-btn-events" data-t="tab_events">Events & Breaks</button>
     <button class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap" onclick="showTab('settings')" id="tab-btn-settings" data-t="tab_settings">Settings</button>
@@ -324,6 +326,18 @@ table.data-table tr:hover td { background: #f8fafc; }
   </div>
 </div>
 
+<div id="tab-charts" class="tab-content hidden">
+  <div class="card p-4">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
+      <h3 class="font-semibold text-sm" data-t="interactive_charts_title">Interactive Thermal & Environmental Dynamics</h3>
+      <div class="text-xs text-slate-500" data-t="charts_subtitle">Hover over the chart to inspect core temperature, ambient temperature, skin temperature, and cumulative sweat loss.</div>
+    </div>
+    <div class="relative w-full h-[450px]">
+      <canvas id="thermalChart"></canvas>
+    </div>
+  </div>
+</div>
+
 <div id="tab-sweat" class="tab-content hidden">
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <div class="card p-4">
@@ -437,6 +451,8 @@ const AppState = {
   processed: [], events: [], metrics: {}, currentLang: 'en'
 };
 
+let thermalChartInstance = null;
+
 const translations = {
   en: {
     app_title: "Heat and Hydration Analysis",
@@ -445,6 +461,7 @@ const translations = {
     process: "Process Data",
     tab_dashboard: "Dashboard",
     tab_processed: "Processed Data",
+    tab_charts: "Interactive Charts",
     tab_sweat: "Sweat",
     tab_events: "Events & Breaks",
     tab_settings: "Settings",
@@ -521,6 +538,8 @@ const translations = {
     set_sensor_config: "Sensor Config", set_primary_sensor: "Primary Sensor", set_fallback_backup: "Fallback to backup", set_tolerance: "Tolerance (s)", set_quality_flags: "CALERA Quality Flags",
     set_calera_mapping: "CALERA Mapping", set_core2_mapping: "CORE 2 Mapping", set_env_mapping: "Environmental Mapping",
     btn_save_settings: "Save Settings", btn_reset_defaults: "Reset Defaults",
+    interactive_charts_title: "Interactive Thermal & Environmental Dynamics",
+    charts_subtitle: "Hover over the chart to inspect core temperature, ambient temperature, skin temperature, and cumulative sweat loss.",
     tooltip_session: "<strong>Session Information & Context:</strong> Captures metadata specific to the individual athlete, workout date, sport modality, distance covered, cumulative duration in hours, minutes and seconds, and the environmental conditions recorded during testing or competition.",
     tooltip_core: "<strong>Core Temperature Kinetics:</strong> Evaluates internal thermal strain through baseline starting temperature, peak achieved core temperature, final stabilization value, overall absolute thermal rise, net change, rate of temperature increase per minute, and time required to reach peak thermal load relative to safety cutoffs.",
     tooltip_heat: "<strong>Heat Exposure & Zonal Distribution:</strong> Quantifies cumulative duration, percentage distribution, and timestamp of initial entry into standardised physiological thermal strain bands (Zone 1 through Zone 4 safety thresholds) along with zone transition frequencies.",
@@ -535,6 +554,7 @@ const translations = {
     process: "Procesar Datos",
     tab_dashboard: "Panel",
     tab_processed: "Datos Procesados",
+    tab_charts: "Gráficos Interactivos",
     tab_sweat: "Sudor",
     tab_events: "Eventos y Pausas",
     tab_settings: "Ajustes",
@@ -611,6 +631,8 @@ const translations = {
     set_sensor_config: "Config. de Sensor", set_primary_sensor: "Sensor Primario", set_fallback_backup: "Usar respaldo si falla", set_tolerance: "Tolerancia (s)", set_quality_flags: "Flags de Calidad CALERA",
     set_calera_mapping: "Mapeo CALERA", set_core2_mapping: "Mapeo CORE 2", set_env_mapping: "Mapeo Ambiental",
     btn_save_settings: "Guardar Ajustes", btn_reset_defaults: "Restablecer Valores",
+    interactive_charts_title: "Dinámica Térmica y Ambiental Interactiva",
+    charts_subtitle: "Pase el cursor sobre el gráfico para inspeccionar la temperatura central, temperatura ambiente, temperatura de la piel y pérdida de sudor acumulada.",
     tooltip_session: "<strong>Información y Contexto de la Sesión:</strong> Captura metadatos específicos del atleta, fecha, modalidad deportiva, distancia, duración acumulada y condiciones ambientales.",
     tooltip_core: "<strong>Cinética de Temperatura Central:</strong> Evalúa la tensión térmica interna mediante la temperatura inicial, pico alcanzado, valor final, aumento absoluto y tasa de incremento.",
     tooltip_heat: "<strong>Exposición al Calor y Distribución Zonal:</strong> Cuantifica la duración acumulada y porcentaje de permanencia en cada banda de tensión térmica y frecuencia de transición.",
@@ -625,6 +647,7 @@ const translations = {
     process: "Processar Dados",
     tab_dashboard: "Painel",
     tab_processed: "Dados Processados",
+    tab_charts: "Gráficos Interativos",
     tab_sweat: "Suor",
     tab_events: "Eventos e Intervalos",
     tab_settings: "Configurações",
@@ -668,7 +691,7 @@ const translations = {
     largest_decline: "Maior Queda ΔT",
     avg_decline: "Queda Média",
     sensor_status: "Status do Sensor",
-    primary_sensor: "Sensor Primário",
+    primary_sensor: "Sensor Primario",
     pct_primary: "% Primário",
     pct_backup: "% Backup",
     max_divergence: "Divergência Máxima",
@@ -701,6 +724,8 @@ const translations = {
     set_sensor_config: "Config. de Sensor", set_primary_sensor: "Sensor Primário", set_fallback_backup: "Usar backup se falhar", set_tolerance: "Tolerância (s)", set_quality_flags: "Flags de Qualidade CALERA",
     set_calera_mapping: "Mapeamento CALERA", set_core2_mapping: "Mapeamento CORE 2", set_env_mapping: "Mapeamento Ambiental",
     btn_save_settings: "Salvar Configurações", btn_reset_defaults: "Restaurar Padrões",
+    interactive_charts_title: "Dinâmica Térmica e Ambiental Interativa",
+    charts_subtitle: "Passe o cursor sobre o gráfico para inspecionar a temperatura central, temperatura ambiente, temperatura da pele e perda de suor acumulada.",
     tooltip_session: "<strong>Informações e Contexto da Sessão:</strong> Captura metadados do atleta, data, modalidade, distância, duração e condições ambientais.",
     tooltip_core: "<strong>Cinética da Temperatura Central:</strong> Avalia a tensão térmica interna através da temperatura inicial, pico, valor final, aumento absoluto e taxa de aumento.",
     tooltip_heat: "<strong>Exposição ao Calor e Distribuição Zonal:</strong> Quantifica a duração acumulada e percentual em cada faixa de tensão térmica e frequência de transição.",
@@ -715,6 +740,7 @@ const translations = {
     process: "데이터 처리",
     tab_dashboard: "대시보드",
     tab_processed: "처리된 데이터",
+    tab_charts: "인터랙티브 차트",
     tab_sweat: "땀",
     tab_events: "이벤트 및 휴식",
     tab_settings: "설정",
@@ -791,6 +817,8 @@ const translations = {
     set_sensor_config: "센서 설정", set_primary_sensor: "주요 센서", set_fallback_backup: "백업 센서로 대체", set_tolerance: "허용 오차 (s)", set_quality_flags: "CALERA 품질 플래그",
     set_calera_mapping: "CALERA 매핑", set_core2_mapping: "CORE 2 매핑", set_env_mapping: "환경 매핑",
     btn_save_settings: "설정 저장", btn_reset_defaults: "기본값 초기화",
+    interactive_charts_title: "인터랙티브 열 및 환경 동역학",
+    charts_subtitle: "차트에 마우스를 올려 심부 체온, 주위 온도, 피부 온도, 누적 땀 손실량을 확인하세요.",
     tooltip_session: "<strong>세션 정보 및 맥락:</strong> 개별 선수, 운동 날짜, 종목, 이동 거리, 누적 지속 시간 및 테스트 환경 조건을 기록합니다.",
     tooltip_core: "<strong>심부체온 동역학:</strong> 초기 온도, 최고 체온, 최종 안정값, 총 상승폭 및 상승률을 평가합니다.",
     tooltip_heat: "<strong>열 노출 및 구간 분포:</strong> 구간별 누적 지속 시간, 백분율 및 최초 진입 시각을 수치화합니다.",
@@ -805,6 +833,7 @@ const translations = {
     process: "データ処理",
     tab_dashboard: "ダッシュボード",
     tab_processed: "処理済みデータ",
+    tab_charts: "インタラクティブチャート",
     tab_sweat: "発汗",
     tab_events: "イベント & 休憩",
     tab_settings: "設定",
@@ -881,6 +910,8 @@ const translations = {
     set_sensor_config: "センサー設定", set_primary_sensor: "プライマリセンサー", set_fallback_backup: "バックアップにフォールバック", set_tolerance: "許容誤差 (s)", set_quality_flags: "CALERA 品質フラグ",
     set_calera_mapping: "CALERA マッピング", set_core2_mapping: "CORE 2 マッピング", set_env_mapping: "環境マッピング",
     btn_save_settings: "設定を保存", btn_reset_defaults: "デフォルトに戻す",
+    interactive_charts_title: "インタラクティブな熱・環境ダイナミクス",
+    charts_subtitle: "チャートにカーソルを合わせると、深部体温、外気温、皮膚温、および累積発汗量を確認できます。",
     tooltip_session: "<strong>セッション情報とコンテキスト:</strong> 選手情報、実施日、競技種目、移動距離、継続時間、環境条件を記録します。",
     tooltip_core: "<strong>深部体温動態:</strong> 初期体温、最高到達体温、最終安定値、総上昇量および上昇率を評価します。",
     tooltip_heat: "<strong>熱曝露とゾーン分布:</strong> 各生理的熱ストレージバンドの継続時間、割合、初回侵入時刻を定量化します。",
@@ -895,6 +926,7 @@ const translations = {
     process: "Traiter les Données",
     tab_dashboard: "Tableau de bord",
     tab_processed: "Données Traitées",
+    tab_charts: "Graphiques Interactifs",
     tab_sweat: "Sueur",
     tab_events: "Événements & Pauses",
     tab_settings: "Paramètres",
@@ -971,6 +1003,8 @@ const translations = {
     set_sensor_config: "Config. des Capteurs", set_primary_sensor: "Capteur Primaire", set_fallback_backup: "Basculer sur le secondaire", set_tolerance: "Tolérance (s)", set_quality_flags: "Drapeaux de Qualité CALERA",
     set_calera_mapping: "Mappage CALERA", set_core2_mapping: "Mappage CORE 2", set_env_mapping: "Mappage Environnemental",
     btn_save_settings: "Enregistrer", btn_reset_defaults: "Réinitialiser",
+    interactive_charts_title: "Dynamique Thermique et Environnementale Interactive",
+    charts_subtitle: "Survolez le graphique pour inspecter la température interne, la température ambiante, la température de la peau et la perte de sueur cumulée.",
     tooltip_session: "<strong>Informations et Contexte de Session :</strong> Capture les métadonnées de l'athlète, la date, la modalité sportive, la distance et les conditions.",
     tooltip_core: "<strong>Cinétique de Température Interne :</strong> Évalue la contrainte thermique interne via la température de départ, le pic, la valeur finale et la vitesse de hausse.",
     tooltip_heat: "<strong>Exposition à la Chaleur :</strong> Quantifie la durée cumulée, le pourcentage et l'heure de première entrée dans chaque bande de contrainte thermique.",
@@ -985,6 +1019,7 @@ const translations = {
     process: "处理数据",
     tab_dashboard: "仪表板",
     tab_processed: "已处理数据",
+    tab_charts: "交互式图表",
     tab_sweat: "排汗",
     tab_events: "事件与休息",
     tab_settings: "设置",
@@ -1061,6 +1096,8 @@ const translations = {
     set_sensor_config: "传感器配置", set_primary_sensor: "主传感器", set_fallback_backup: "启用备用传感器", set_tolerance: "容差 (s)", set_quality_flags: "CALERA 质量标志",
     set_calera_mapping: "CALERA 映射", set_core2_mapping: "CORE 2 映射", set_env_mapping: "环境数据映射",
     btn_save_settings: "保存设置", btn_reset_defaults: "恢复默认",
+    interactive_charts_title: "交互式核心体温与环境动态图",
+    charts_subtitle: "将鼠标悬停在图表上以查看核心体温、环境温度、皮肤温度及累计排汗流失量。",
     tooltip_session: "<strong>训练信息与上下文：</strong> 捕获运动员元数据、日期、运动项目、距离、持续时间及测试环境条件。",
     tooltip_core: "<strong>核心体温动力学：</strong> 通过基础起始体温、峰值核心温、最终稳定值、总体绝对升温及升温速率评估内部热应变。",
     tooltip_heat: "<strong>热应v曝光与区间分布：</strong> 量化生理热应变带（区间 1 至区间 4）的累计持续时间、百分比及首次进入时间。",
@@ -1075,6 +1112,7 @@ const translations = {
     process: "Proses Data",
     tab_dashboard: "Dasbor",
     tab_processed: "Data Terproses",
+    tab_charts: "Grafik Interaktif",
     tab_sweat: "Keringat",
     tab_events: "Acara & Istirahat",
     tab_settings: "Pengaturan",
@@ -1151,6 +1189,8 @@ const translations = {
     set_sensor_config: "Konfigurasi Sensor", set_primary_sensor: "Sensor Utama", set_fallback_backup: "Gunakan cadangan jika gagal", set_tolerance: "Toleransi (s)", set_quality_flags: "Bendera Kualitas CALERA",
     set_calera_mapping: "Pemetaan CALERA", set_core2_mapping: "Pemetaan CORE 2", set_env_mapping: "Pemetaan Lingkungan",
     btn_save_settings: "Simpan Pengaturan", btn_reset_defaults: "Setel Ulang",
+    interactive_charts_title: "Dinamika Termal & Lingkungan Interaktif",
+    charts_subtitle: "Arahkan kursor ke grafik untuk memeriksa suhu inti, suhu ambien, suhu kulit, dan kehilangan keringat kumulatif.",
     tooltip_session: "<strong>Informasi & Konteks Sesi:</strong> Menangkap metadata atlet, tanggal, modalitas olahraga, jarak, durasi, dan kondisi lingkungan.",
     tooltip_core: "<strong>Kinetika Suhu Inti:</strong> Mengevaluasi regangan termal internal melalui suhu awal, puncak, nilai stabilisasi akhir, dan laju kenaikan.",
     tooltip_heat: "<strong>Paparan Panas & Distribusi Zona:</strong> Mengukur durasi kumulatif dan persentase di setiap pita regangan termal serta frekuensi transisi.",
@@ -1165,6 +1205,7 @@ const translations = {
     process: "Behandl Data",
     tab_dashboard: "Dashboard",
     tab_processed: "Behandlet Data",
+    tab_charts: "Interaktive Grafer",
     tab_sweat: "Sved",
     tab_events: "Hændelser & Pauser",
     tab_settings: "Indstillinger",
@@ -1241,6 +1282,8 @@ const translations = {
     set_sensor_config: "Sensorkonfiguration", set_primary_sensor: "Primær Sensor", set_fallback_backup: "Brug backup ved fejl", set_tolerance: "Tolerance (s)", set_quality_flags: "CALERA Kvalitetsflag",
     set_calera_mapping: "CALERA Datakortlægning", set_core2_mapping: "CORE 2 Datakortlægning", set_env_mapping: "Miljø Datakortlægning",
     btn_save_settings: "Gem Indstillinger", btn_reset_defaults: "Nulstil Standarder",
+    interactive_charts_title: "Interaktive Termiske & Miljømæssige Dynamikker",
+    charts_subtitle: "Hold musen over grafen for at inspicere kernetemperatur, omgivelsestemperatur, hudtemperatur og kumulativt svedtab.",
     tooltip_session: "<strong>Sessionsinformation & Kontekst:</strong> Indsamler metadata om atleten, dato, sportsgren, distance, varighed og miljøforhold.",
     tooltip_core: "<strong>Kernetemperaturkinetik:</strong> Evaluerer den interne termiske belastning via starttemperatur, makstemperatur, slutværdi og stigningstakt.",
     tooltip_heat: "<strong>Varmepåvirkning & Zonedistribution:</strong> Kvantificerer kumulativ varighed, procentfordeling og tidspunkt for første indgang i hver termiske belastningszone.",
@@ -1255,6 +1298,7 @@ const translations = {
     process: "Daten verarbeiten",
     tab_dashboard: "Dashboard",
     tab_processed: "Verarbeitete Daten",
+    tab_charts: "Interaktive Diagramme",
     tab_sweat: "Schweiß",
     tab_events: "Ereignisse & Pausen",
     tab_settings: "Einstellungen",
@@ -1331,6 +1375,8 @@ const translations = {
     set_sensor_config: "Sensorkonfiguration", set_primary_sensor: "Primärsensor", set_fallback_backup: "Auf Backup zurückgreifen", set_tolerance: "Toleranz (s)", set_quality_flags: "CALERA Qualitäts-Flags",
     set_calera_mapping: "CALERA Mapping", set_core2_mapping: "CORE 2 Mapping", set_env_mapping: "Umgebungs-Mapping",
     btn_save_settings: "Einstellungen speichern", btn_reset_defaults: "Standard zurücksetzen",
+    interactive_charts_title: "Interaktive Thermische & Umgebungs-Dynamik",
+    charts_subtitle: "Fahren Sie mit der Maus über das Diagramm, um Kerntemperatur, Umgebungstemperatur, Hauttemperatur und kumulierten Schweißverlust zu prüfen.",
     tooltip_session: "<strong>Sitzungsinformationen & Kontext:</strong> Erfasst Metadaten des Athleten, Datum, Sportart, Distanz, Dauer und Umgebungsbedingungen.",
     tooltip_core: "<strong>Kerntemperaturkinetik:</strong> Bewertet die interne thermische Belastung anhand von Starttemperatur, Peak, Endwert, Gesamtanstieg und Anstiegsrate.",
     tooltip_heat: "<strong>Hitzebelastung & Zonenverteilung:</strong> Quantifiziert die kumulative Dauer, Prozentanteile und Erstrundeintritte in standardisierte Belastungszonen.",
@@ -1364,6 +1410,7 @@ function changeLanguage(langCode) {
   document.getElementById('btn-process').textContent = t('process');
   document.getElementById('tab-btn-dashboard').textContent = t('tab_dashboard');
   document.getElementById('tab-btn-processed').textContent = t('tab_processed');
+  document.getElementById('tab-btn-charts').textContent = t('tab_charts');
   document.getElementById('tab-btn-sweat').textContent = t('tab_sweat');
   document.getElementById('tab-btn-events').textContent = t('tab_events');
   document.getElementById('tab-btn-settings').textContent = t('tab_settings');
@@ -1372,6 +1419,7 @@ function changeLanguage(langCode) {
     renderAthleteSummary();
     renderProcessedTable(1);
     renderBreakAnalysis();
+    renderChart();
   }
 }
 
@@ -1436,6 +1484,9 @@ function showTab(name) {
   document.querySelectorAll('.tab-btn').forEach(el => {
     if (el.getAttribute('onclick').includes("'" + name + "'")) { el.classList.add('active'); el.classList.remove('text-slate-600'); }
   });
+  if (name === 'charts') {
+    renderChart();
+  }
 }
 
 function toggleRawDataDropdown() {
@@ -1655,6 +1706,7 @@ function processAllData() {
   const processed = [];
   let prevTime = 0;
   let sampleAmb = null, sampleRh = null;
+  let cumulativeSweatGrams = 0;
 
   for (let i = 0; i < master.length; i++) {
     const t = master[i];
@@ -1693,7 +1745,14 @@ function processAllData() {
     row.skinTemp = calSkin != null ? calSkin : corSkin;
 
     let fl = flowMap.get(t);
-    row.sweatRate = fl ? parseFloat(fl.raw['sweat_rate']) : null;
+    let sweatRateVal = fl ? parseFloat(fl.raw['sweat_rate']) : null;
+    row.sweatRate = sweatRateVal;
+
+    if (sweatRateVal != null && !isNaN(sweatRateVal)) {
+      // sweatRate is typically in mg/min or similar units; accumulate accordingly or estimate per interval
+      cumulativeSweatGrams += (sweatRateVal * (row.intervalSec / 60)) / 1000;
+    }
+    row.cumulativeSweat = cumulativeSweatGrams;
 
     let en = envMap.get(t);
     let ambient = null;
@@ -1740,6 +1799,7 @@ function processAllData() {
   renderProcessedTable(1);
   renderBreakAnalysis();
   calculateSweatMetrics();
+  renderChart();
 
   if (sampleAmb != null) {
     const envStr = `${sampleAmb.toFixed(1)} °C` + (sampleRh != null ? ` : ${sampleRh.toFixed(0)}% RH` : '');
@@ -1889,6 +1949,122 @@ function renderProcessedTable(page) {
   if (pc) pc.textContent = `${AppState.processed.length} rows`;
 }
 
+function renderChart() {
+  const ctx = document.getElementById('thermalChart');
+  if (!ctx) return;
+  const p = AppState.processed;
+  if (!p || p.length === 0) return;
+
+  const labels = p.map(r => r.hhmmss);
+  const coreData = p.map(r => r.unifiedCore);
+  const ambientData = p.map(r => r.ambient);
+  const skinData = p.map(r => r.skinTemp);
+  const sweatData = p.map(r => r.cumulativeSweat);
+
+  if (thermalChartInstance) {
+    thermalChartInstance.destroy();
+  }
+
+  thermalChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Core Temp (°C)',
+          data: coreData,
+          borderColor: '#dc2626',
+          backgroundColor: '#dc2626',
+          borderWidth: 2,
+          pointRadius: 0,
+          yAxisID: 'y',
+          tension: 0.1
+        },
+        {
+          label: 'Ambient Temp (°C)',
+          data: ambientData,
+          borderColor: '#0284c7',
+          backgroundColor: '#0284c7',
+          borderWidth: 2,
+          pointRadius: 0,
+          yAxisID: 'y',
+          tension: 0.1
+        },
+        {
+          label: 'Skin Temp (°C)',
+          data: skinData,
+          borderColor: '#d97706',
+          backgroundColor: '#d97706',
+          borderWidth: 1.5,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          yAxisID: 'y',
+          tension: 0.1
+        },
+        {
+          label: 'Cumulative Sweat Loss (L)',
+          data: sweatData,
+          borderColor: '#0d9488',
+          backgroundColor: '#0d9488',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          yAxisID: 'y1',
+          tension: 0.1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) {
+                label += ': ';
+              }
+              if (context.parsed.y !== null) {
+                label += context.parsed.y.toFixed(2);
+                if (context.datasetIndex === 3) {
+                  label += ' L';
+                } else {
+                  label += ' °C';
+                }
+              }
+              return label;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { maxTicksLimit: 12, font: { size: 10 } }
+        },
+        y: {
+          type: 'linear',
+          display: true,
+          position: 'left',
+          title: { display: true, text: 'Temperature (°C)', font: { size: 11, weight: '600' } },
+          grid: { color: '#f1f5f9' }
+        },
+        y1: {
+          type: 'linear',
+          display: true,
+          position: 'right',
+          title: { display: true, text: 'Cumulative Sweat Loss (L)', font: { size: 11, weight: '600' } },
+          grid: { drawOnChartArea: false },
+        }
+      }
+    }
+  });
+}
+
 function renderBreakAnalysis() {
   const tbody = document.getElementById('breaks-tbody');
   if (!tbody) return;
@@ -2005,7 +2181,7 @@ function exportCSV() {
   csv += `Max Sweat Rate,${document.getElementById('sw-max').textContent}\n`;
   csv += `Total Sensor Loss,${document.getElementById('sw-total').textContent}\n`;
   csv += `Est Loss (Mass),${document.getElementById('sw-mass').textContent}\n`;
-  csv += `Sodium Loss,${document.getElementById('sw-sodium').textContent}\n\n`;
+  csv += `Sodium Loss,${document.getElementById('sum-sodium').textContent}\n\n`;
   
   csv += "HEART RATE\n";
   csv += `Average HR,${document.getElementById('sum-hr-avg').textContent}\n`;
@@ -2029,11 +2205,11 @@ function exportCSV() {
   csv += "\n\n";
   
   csv += "TIMELINE DATA\n";
-  const headers = ['elapsedSec', 'elapsedMin', 'hhmmss', 'intervalSec', 'unifiedCore', 'coreSource', 'caleraCore', 'core2Core', 'sensorDelta', 'hr', 'skinTemp', 'sweatRate', 'ambient', 'rh', 'zone', 'isBreak'];
+  const headers = ['elapsedSec', 'elapsedMin', 'hhmmss', 'intervalSec', 'unifiedCore', 'coreSource', 'caleraCore', 'core2Core', 'sensorDelta', 'hr', 'skinTemp', 'sweatRate', 'cumulativeSweat', 'ambient', 'rh', 'zone', 'isBreak'];
   csv += headers.join(',') + '\n';
   for (let i = 0; i < AppState.processed.length; i++) {
     const r = AppState.processed[i];
-    csv += [r.elapsedSec, r.elapsedMin, r.hhmmss, r.intervalSec, r.unifiedCore, r.coreSource, r.caleraCore, r.core2Core, r.sensorDelta, r.hr, r.skinTemp, r.sweatRate, r.ambient, r.rh, r.zone, r.isBreak].join(',') + '\n';
+    csv += [r.elapsedSec, r.elapsedMin, r.hhmmss, r.intervalSec, r.unifiedCore, r.coreSource, r.caleraCore, r.core2Core, r.sensorDelta, r.hr, r.skinTemp, r.sweatRate, r.cumulativeSweat, r.ambient, r.rh, r.zone, r.isBreak].join(',') + '\n';
   }
   
   const blob = new Blob([csv], { type: 'text/csv' });
@@ -2161,9 +2337,9 @@ function exportPDF() {
       <h3 style="border-bottom: 2px solid #0f172a; padding-bottom: 4px; color: #0f172a; font-size: 14px;">${t('hr_breaks')} & ${t('sensor_status')}</h3>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
         <tr><th style="text-align: left; border: 1px solid #cbd5e1; padding: 7px; background: #f1f5f9; width: 40%; color: #334155;">${t('average_hr')}</th><td style="border: 1px solid #cbd5e1; padding: 7px;">${m.hrAvg != null ? fmtNum(m.hrAvg, 1) + ' bpm' : '—'}</td></tr>
-        <tr><th style="text-align: left; border: 1px solid #cbd5e1; padding: 7px; background: #f1f5f9; color: #334155;">${t('maximum_hr')}</th><td style="border: 1px solid #cbd5e1; padding: 7px;">${m.hrMax != null ? fmtNum(m.hrMax, 1) + ' bpm' : '—'}</td></tr>
-        <tr><th style="text-align: left; border: 1px solid #cbd5e1; padding: 7px; background: #f1f5f9; color: #334155;">${t('thermal_status')}</th><td style="border: 1px solid #cbd5e1; padding: 7px; font-weight: bold; color: ${m.max >= settings.zones.cutoff ? '#dc2626' : '#166534'};">${thermalStatus}</td></tr>
-        <tr><th style="text-align: left; border: 1px solid #cbd5e1; padding: 7px; background: #f1f5f9; color: #334155;">${t('primary_sensor')}</th><td style="border: 1px solid #cbd5e1; padding: 7px;">CALERA (${fmtNum(m.pctPrimary, 1)}%)</td></tr>
+        <tr><th style="text-align: left; border: 1px solid #cbd5e1; padding: 7px; background: #f1f5f9; width: 40%; color: #334155;">${t('maximum_hr')}</th><td style="border: 1px solid #cbd5e1; padding: 7px;">${m.hrMax != null ? fmtNum(m.hrMax, 1) + ' bpm' : '—'}</td></tr>
+        <tr><th style="text-align: left; border: 1px solid #cbd5e1; padding: 7px; background: #f1f5f9; width: 40%; color: #334155;">${t('thermal_status')}</th><td style="border: 1px solid #cbd5e1; padding: 7px; font-weight: bold; color: ${m.max >= settings.zones.cutoff ? '#dc2626' : '#166534'};">${thermalStatus}</td></tr>
+        <tr><th style="text-align: left; border: 1px solid #cbd5e1; padding: 7px; background: #f1f5f9; width: 40%; color: #334155;">${t('primary_sensor')}</th><td style="border: 1px solid #cbd5e1; padding: 7px;">CALERA (${fmtNum(m.pctPrimary, 1)}%)</td></tr>
       </table>
 
       <!-- Force Page Break so Events & Breaks aren't awkwardly cut in half -->
