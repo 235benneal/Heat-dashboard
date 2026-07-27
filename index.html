@@ -329,8 +329,8 @@ table.data-table tr:hover td { background: #f8fafc; }
 <div id="tab-charts" class="tab-content hidden">
   <div class="card p-4">
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
-      <h3 class="font-semibold text-sm" data-t="interactive_charts_title">Interactive Thermal & Environmental Dynamics</h3>
-      <div class="text-xs text-slate-500" data-t="charts_subtitle">Hover over the chart to inspect core temperature, ambient temperature, skin temperature, and cumulative sweat loss.</div>
+      <h3 class="font-semibold text-sm" data-t="interactive_charts_title">Interactive Core Temperature & Sweat Loss Dynamics</h3>
+      <div class="text-xs text-slate-500" data-t="charts_subtitle">Hover over the chart to inspect skin temperature and additional session insights.</div>
     </div>
     <div class="relative w-full h-[450px]">
       <canvas id="thermalChart"></canvas>
@@ -538,8 +538,8 @@ const translations = {
     set_sensor_config: "Sensor Config", set_primary_sensor: "Primary Sensor", set_fallback_backup: "Fallback to backup", set_tolerance: "Tolerance (s)", set_quality_flags: "CALERA Quality Flags",
     set_calera_mapping: "CALERA Mapping", set_core2_mapping: "CORE 2 Mapping", set_env_mapping: "Environmental Mapping",
     btn_save_settings: "Save Settings", btn_reset_defaults: "Reset Defaults",
-    interactive_charts_title: "Interactive Thermal & Environmental Dynamics",
-    charts_subtitle: "Hover over the chart to inspect core temperature, ambient temperature, skin temperature, and cumulative sweat loss.",
+    interactive_charts_title: "Interactive Core Temperature & Sweat Loss Dynamics",
+    charts_subtitle: "Hover over the chart to inspect skin temperature and additional session insights.",
     tooltip_session: "<strong>Session Information & Context:</strong> Captures metadata specific to the individual athlete, workout date, sport modality, distance covered, cumulative duration in hours, minutes and seconds, and the environmental conditions recorded during testing or competition.",
     tooltip_core: "<strong>Core Temperature Kinetics:</strong> Evaluates internal thermal strain through baseline starting temperature, peak achieved core temperature, final stabilization value, overall absolute thermal rise, net change, rate of temperature increase per minute, and time required to reach peak thermal load relative to safety cutoffs.",
     tooltip_heat: "<strong>Heat Exposure & Zonal Distribution:</strong> Quantifies cumulative duration, percentage distribution, and timestamp of initial entry into standardised physiological thermal strain bands (Zone 1 through Zone 4 safety thresholds) along with zone transition frequencies.",
@@ -631,8 +631,8 @@ const translations = {
     set_sensor_config: "Config. de Sensor", set_primary_sensor: "Sensor Primario", set_fallback_backup: "Usar respaldo si falla", set_tolerance: "Tolerancia (s)", set_quality_flags: "Flags de Calidad CALERA",
     set_calera_mapping: "Mapeo CALERA", set_core2_mapping: "Mapeo CORE 2", set_env_mapping: "Mapeo Ambiental",
     btn_save_settings: "Guardar Ajustes", btn_reset_defaults: "Restablecer Valores",
-    interactive_charts_title: "Dinámica Térmica y Ambiental Interactiva",
-    charts_subtitle: "Pase el cursor sobre el gráfico para inspeccionar la temperatura central, temperatura ambiente, temperatura de la piel y pérdida de sudor acumulada.",
+    interactive_charts_title: "Dinámica Interactiva de Temperatura Central y Pérdida de Sudor",
+    charts_subtitle: "Pase el cursor sobre el gráfico para inspeccionar la temperatura de la piel.",
     tooltip_session: "<strong>Información y Contexto de la Sesión:</strong> Captura metadatos específicos del atleta, fecha, modalidad deportiva, distancia, duración acumulada y condiciones ambientales.",
     tooltip_core: "<strong>Cinética de Temperatura Central:</strong> Evalúa la tensión térmica interna mediante la temperatura inicial, pico alcanzado, valor final, aumento absoluto y tasa de incremento.",
     tooltip_heat: "<strong>Exposición al Calor y Distribución Zonal:</strong> Cuantifica la duración acumulada y porcentaje de permanencia en cada banda de tensión térmica y frecuencia de transición.",
@@ -691,7 +691,7 @@ const translations = {
     largest_decline: "Maior Queda ΔT",
     avg_decline: "Queda Média",
     sensor_status: "Status do Sensor",
-    primary_sensor: "Sensor Primario",
+    primary_sensor: "Sensor Primário",
     pct_primary: "% Primário",
     pct_backup: "% Backup",
     max_divergence: "Divergência Máxima",
@@ -724,8 +724,8 @@ const translations = {
     set_sensor_config: "Config. de Sensor", set_primary_sensor: "Sensor Primário", set_fallback_backup: "Usar backup se falhar", set_tolerance: "Tolerância (s)", set_quality_flags: "Flags de Qualidade CALERA",
     set_calera_mapping: "Mapeamento CALERA", set_core2_mapping: "Mapeamento CORE 2", set_env_mapping: "Mapeamento Ambiental",
     btn_save_settings: "Salvar Configurações", btn_reset_defaults: "Restaurar Padrões",
-    interactive_charts_title: "Dinâmica Térmica e Ambiental Interativa",
-    charts_subtitle: "Passe o cursor sobre o gráfico para inspecionar a temperatura central, temperatura ambiente, temperatura da pele e perda de suor acumulada.",
+    interactive_charts_title: "Dinâmica Interativa de Temperatura Central e Perda de Suor",
+    charts_subtitle: "Passe o cursor sobre o gráfico para inspecionar a temperatura da pele.",
     tooltip_session: "<strong>Informações e Contexto da Sessão:</strong> Captura metadados do atleta, data, modalidade, distância, duração e condições ambientais.",
     tooltip_core: "<strong>Cinética da Temperatura Central:</strong> Avalia a tensão térmica interna através da temperatura inicial, pico, valor final, aumento absoluto e taxa de aumento.",
     tooltip_heat: "<strong>Exposição ao Calor e Distribuição Zonal:</strong> Quantifica a duração acumulada e percentual em cada faixa de tensão térmica e frequência de transição.",
@@ -817,8 +817,8 @@ const translations = {
     set_sensor_config: "센서 설정", set_primary_sensor: "주요 센서", set_fallback_backup: "백업 센서로 대체", set_tolerance: "허용 오차 (s)", set_quality_flags: "CALERA 품질 플래그",
     set_calera_mapping: "CALERA 매핑", set_core2_mapping: "CORE 2 매핑", set_env_mapping: "환경 매핑",
     btn_save_settings: "설정 저장", btn_reset_defaults: "기본값 초기화",
-    interactive_charts_title: "인터랙티브 열 및 환경 동역학",
-    charts_subtitle: "차트에 마우스를 올려 심부 체온, 주위 온도, 피부 온도, 누적 땀 손실량을 확인하세요.",
+    interactive_charts_title: "인터랙티브 심부 체온 및 땀 손실 동역학",
+    charts_subtitle: "차트에 마우스를 올려 피부 온도를 확인하세요.",
     tooltip_session: "<strong>세션 정보 및 맥락:</strong> 개별 선수, 운동 날짜, 종목, 이동 거리, 누적 지속 시간 및 테스트 환경 조건을 기록합니다.",
     tooltip_core: "<strong>심부체온 동역학:</strong> 초기 온도, 최고 체온, 최종 안정값, 총 상승폭 및 상승률을 평가합니다.",
     tooltip_heat: "<strong>열 노출 및 구간 분포:</strong> 구간별 누적 지속 시간, 백분율 및 최초 진입 시각을 수치화합니다.",
@@ -910,8 +910,8 @@ const translations = {
     set_sensor_config: "センサー設定", set_primary_sensor: "プライマリセンサー", set_fallback_backup: "バックアップにフォールバック", set_tolerance: "許容誤差 (s)", set_quality_flags: "CALERA 品質フラグ",
     set_calera_mapping: "CALERA マッピング", set_core2_mapping: "CORE 2 マッピング", set_env_mapping: "環境マッピング",
     btn_save_settings: "設定を保存", btn_reset_defaults: "デフォルトに戻す",
-    interactive_charts_title: "インタラクティブな熱・環境ダイナミクス",
-    charts_subtitle: "チャートにカーソルを合わせると、深部体温、外気温、皮膚温、および累積発汗量を確認できます。",
+    interactive_charts_title: "インタラクティブな深部体温と発汗量のダイナミクス",
+    charts_subtitle: "チャートにカーソルを合わせると、皮膚温を確認できます。",
     tooltip_session: "<strong>セッション情報とコンテキスト:</strong> 選手情報、実施日、競技種目、移動距離、継続時間、環境条件を記録します。",
     tooltip_core: "<strong>深部体温動態:</strong> 初期体温、最高到達体温、最終安定値、総上昇量および上昇率を評価します。",
     tooltip_heat: "<strong>熱曝露とゾーン分布:</strong> 各生理的熱ストレージバンドの継続時間、割合、初回侵入時刻を定量化します。",
@@ -1003,8 +1003,8 @@ const translations = {
     set_sensor_config: "Config. des Capteurs", set_primary_sensor: "Capteur Primaire", set_fallback_backup: "Basculer sur le secondaire", set_tolerance: "Tolérance (s)", set_quality_flags: "Drapeaux de Qualité CALERA",
     set_calera_mapping: "Mappage CALERA", set_core2_mapping: "Mappage CORE 2", set_env_mapping: "Mappage Environnemental",
     btn_save_settings: "Enregistrer", btn_reset_defaults: "Réinitialiser",
-    interactive_charts_title: "Dynamique Thermique et Environnementale Interactive",
-    charts_subtitle: "Survolez le graphique pour inspecter la température interne, la température ambiante, la température de la peau et la perte de sueur cumulée.",
+    interactive_charts_title: "Dynamique Interactive de Température Interne et de Perte de Sueur",
+    charts_subtitle: "Survolez le graphique pour inspecter la température de la peau.",
     tooltip_session: "<strong>Informations et Contexte de Session :</strong> Capture les métadonnées de l'athlète, la date, la modalité sportive, la distance et les conditions.",
     tooltip_core: "<strong>Cinétique de Température Interne :</strong> Évalue la contrainte thermique interne via la température de départ, le pic, la valeur finale et la vitesse de hausse.",
     tooltip_heat: "<strong>Exposition à la Chaleur :</strong> Quantifie la durée cumulée, le pourcentage et l'heure de première entrée dans chaque bande de contrainte thermique.",
@@ -1096,8 +1096,8 @@ const translations = {
     set_sensor_config: "传感器配置", set_primary_sensor: "主传感器", set_fallback_backup: "启用备用传感器", set_tolerance: "容差 (s)", set_quality_flags: "CALERA 质量标志",
     set_calera_mapping: "CALERA 映射", set_core2_mapping: "CORE 2 映射", set_env_mapping: "环境数据映射",
     btn_save_settings: "保存设置", btn_reset_defaults: "恢复默认",
-    interactive_charts_title: "交互式核心体温与环境动态图",
-    charts_subtitle: "将鼠标悬停在图表上以查看核心体温、环境温度、皮肤温度及累计排汗流失量。",
+    interactive_charts_title: "交互式核心体温与排汗量动态图",
+    charts_subtitle: "将鼠标悬停在图表上以查看皮肤温度。",
     tooltip_session: "<strong>训练信息与上下文：</strong> 捕获运动员元数据、日期、运动项目、距离、持续时间及测试环境条件。",
     tooltip_core: "<strong>核心体温动力学：</strong> 通过基础起始体温、峰值核心温、最终稳定值、总体绝对升温及升温速率评估内部热应变。",
     tooltip_heat: "<strong>热应v曝光与区间分布：</strong> 量化生理热应变带（区间 1 至区间 4）的累计持续时间、百分比及首次进入时间。",
@@ -1189,8 +1189,8 @@ const translations = {
     set_sensor_config: "Konfigurasi Sensor", set_primary_sensor: "Sensor Utama", set_fallback_backup: "Gunakan cadangan jika gagal", set_tolerance: "Toleransi (s)", set_quality_flags: "Bendera Kualitas CALERA",
     set_calera_mapping: "Pemetaan CALERA", set_core2_mapping: "Pemetaan CORE 2", set_env_mapping: "Pemetaan Lingkungan",
     btn_save_settings: "Simpan Pengaturan", btn_reset_defaults: "Setel Ulang",
-    interactive_charts_title: "Dinamika Termal & Lingkungan Interaktif",
-    charts_subtitle: "Arahkan kursor ke grafik untuk memeriksa suhu inti, suhu ambien, suhu kulit, dan kehilangan keringat kumulatif.",
+    interactive_charts_title: "Dinamika Suhu Inti & Kehilangan Keringat Interaktif",
+    charts_subtitle: "Arahkan kursor ke grafik untuk memeriksa suhu kulit.",
     tooltip_session: "<strong>Informasi & Konteks Sesi:</strong> Menangkap metadata atlet, tanggal, modalitas olahraga, jarak, durasi, dan kondisi lingkungan.",
     tooltip_core: "<strong>Kinetika Suhu Inti:</strong> Mengevaluasi regangan termal internal melalui suhu awal, puncak, nilai stabilisasi akhir, dan laju kenaikan.",
     tooltip_heat: "<strong>Paparan Panas & Distribusi Zona:</strong> Mengukur durasi kumulatif dan persentase di setiap pita regangan termal serta frekuensi transisi.",
@@ -1282,8 +1282,8 @@ const translations = {
     set_sensor_config: "Sensorkonfiguration", set_primary_sensor: "Primær Sensor", set_fallback_backup: "Brug backup ved fejl", set_tolerance: "Tolerance (s)", set_quality_flags: "CALERA Kvalitetsflag",
     set_calera_mapping: "CALERA Datakortlægning", set_core2_mapping: "CORE 2 Datakortlægning", set_env_mapping: "Miljø Datakortlægning",
     btn_save_settings: "Gem Indstillinger", btn_reset_defaults: "Nulstil Standarder",
-    interactive_charts_title: "Interaktive Termiske & Miljømæssige Dynamikker",
-    charts_subtitle: "Hold musen over grafen for at inspicere kernetemperatur, omgivelsestemperatur, hudtemperatur og kumulativt svedtab.",
+    interactive_charts_title: "Interaktive Kernetemperatur & Svedtab Dynamikker",
+    charts_subtitle: "Hold musen over grafen for at inspicere hudtemperatur.",
     tooltip_session: "<strong>Sessionsinformation & Kontekst:</strong> Indsamler metadata om atleten, dato, sportsgren, distance, varighed og miljøforhold.",
     tooltip_core: "<strong>Kernetemperaturkinetik:</strong> Evaluerer den interne termiske belastning via starttemperatur, makstemperatur, slutværdi og stigningstakt.",
     tooltip_heat: "<strong>Varmepåvirkning & Zonedistribution:</strong> Kvantificerer kumulativ varighed, procentfordeling og tidspunkt for første indgang i hver termiske belastningszone.",
@@ -1371,12 +1371,12 @@ const translations = {
     coming_soon: "Demnächst", no_file: "Keine Datei", no_data_imported: "Keine Daten importiert",
     raw_calera: "ROHDATEN CALERA", raw_core: "ROHDATEN CORE", raw_flowbio: "ROHDATEN FLOWBIO", raw_env: "ROHDATEN UMGEBUNG",
     skin_temp: "Hauttemperatur", ambient_temp: "Umgebungstemperatur", relative_humidity: "Relative Luftfeuchtigkeit", wbgt: "WBGT", quality: "Qualität",
-    set_core_temp_zones: "Kerntemperaturzonen", set_z1_max: "Zone 1 Max (°C)", set_z2_min: "Zone 2 Min (°C)", set_z2_max: "Zone 2 Max (°C)", set_z3_min: "Zone 3 Min (°C)", set_z3_max: "Zone 3 Max (°C)", set_cutoff: "Grenzwert (°C)",
+    set_core_temp_zones: "Kerntemperaturzonen", set_z1_max: "Zone 1 Max (°C)", set_z2_min: "Zone 2 Min (°C)", set_z2_max: "Zone 2 Max (°C)", set_z3_min: "Zone 3 Min (°C)", set_z3_max: "Zone 3 Maks (°C)", set_cutoff: "Grenzwert (°C)",
     set_sensor_config: "Sensorkonfiguration", set_primary_sensor: "Primärsensor", set_fallback_backup: "Auf Backup zurückgreifen", set_tolerance: "Toleranz (s)", set_quality_flags: "CALERA Qualitäts-Flags",
     set_calera_mapping: "CALERA Mapping", set_core2_mapping: "CORE 2 Mapping", set_env_mapping: "Umgebungs-Mapping",
     btn_save_settings: "Einstellungen speichern", btn_reset_defaults: "Standard zurücksetzen",
-    interactive_charts_title: "Interaktive Thermische & Umgebungs-Dynamik",
-    charts_subtitle: "Fahren Sie mit der Maus über das Diagramm, um Kerntemperatur, Umgebungstemperatur, Hauttemperatur und kumulierten Schweißverlust zu prüfen.",
+    interactive_charts_title: "Interaktive Kerntemperatur & Schweißverlust Dynamik",
+    charts_subtitle: "Fahren Sie mit der Maus über das Diagramm, um die Hauttemperatur zu prüfen.",
     tooltip_session: "<strong>Sitzungsinformationen & Kontext:</strong> Erfasst Metadaten des Athleten, Datum, Sportart, Distanz, Dauer und Umgebungsbedingungen.",
     tooltip_core: "<strong>Kerntemperaturkinetik:</strong> Bewertet die interne thermische Belastung anhand von Starttemperatur, Peak, Endwert, Gesamtanstieg und Anstiegsrate.",
     tooltip_heat: "<strong>Hitzebelastung & Zonenverteilung:</strong> Quantifiziert die kumulative Dauer, Prozentanteile und Erstrundeintritte in standardisierte Belastungszonen.",
@@ -1749,7 +1749,6 @@ function processAllData() {
     row.sweatRate = sweatRateVal;
 
     if (sweatRateVal != null && !isNaN(sweatRateVal)) {
-      // sweatRate is typically in mg/min or similar units; accumulate accordingly or estimate per interval
       cumulativeSweatGrams += (sweatRateVal * (row.intervalSec / 60)) / 1000;
     }
     row.cumulativeSweat = cumulativeSweatGrams;
@@ -1957,9 +1956,8 @@ function renderChart() {
 
   const labels = p.map(r => r.hhmmss);
   const coreData = p.map(r => r.unifiedCore);
-  const ambientData = p.map(r => r.ambient);
-  const skinData = p.map(r => r.skinTemp);
   const sweatData = p.map(r => r.cumulativeSweat);
+  const skinData = p.map(r => r.skinTemp);
 
   if (thermalChartInstance) {
     thermalChartInstance.destroy();
@@ -1981,32 +1979,11 @@ function renderChart() {
           tension: 0.1
         },
         {
-          label: 'Ambient Temp (°C)',
-          data: ambientData,
-          borderColor: '#0284c7',
-          backgroundColor: '#0284c7',
-          borderWidth: 2,
-          pointRadius: 0,
-          yAxisID: 'y',
-          tension: 0.1
-        },
-        {
-          label: 'Skin Temp (°C)',
-          data: skinData,
-          borderColor: '#d97706',
-          backgroundColor: '#d97706',
-          borderWidth: 1.5,
-          borderDash: [4, 4],
-          pointRadius: 0,
-          yAxisID: 'y',
-          tension: 0.1
-        },
-        {
           label: 'Cumulative Sweat Loss (L)',
           data: sweatData,
           borderColor: '#0d9488',
           backgroundColor: '#0d9488',
-          borderWidth: 1.5,
+          borderWidth: 2,
           pointRadius: 0,
           yAxisID: 'y1',
           tension: 0.1
@@ -2030,13 +2007,21 @@ function renderChart() {
               }
               if (context.parsed.y !== null) {
                 label += context.parsed.y.toFixed(2);
-                if (context.datasetIndex === 3) {
+                if (context.datasetIndex === 1) {
                   label += ' L';
                 } else {
                   label += ' °C';
                 }
               }
               return label;
+            },
+            afterBody: function(tooltipItems) {
+              const index = tooltipItems[0].dataIndex;
+              const row = p[index];
+              if (!row) return '';
+              const skinStr = row.skinTemp != null ? row.skinTemp.toFixed(1) + ' °C' : '—';
+              const zoneStr = row.zone || '—';
+              return [`Skin Temp: ${skinStr}`, `Zone: ${zoneStr}`];
             }
           }
         }
@@ -2050,7 +2035,7 @@ function renderChart() {
           type: 'linear',
           display: true,
           position: 'left',
-          title: { display: true, text: 'Temperature (°C)', font: { size: 11, weight: '600' } },
+          title: { display: true, text: 'Core Temperature (°C)', font: { size: 11, weight: '600' } },
           grid: { color: '#f1f5f9' }
         },
         y1: {
