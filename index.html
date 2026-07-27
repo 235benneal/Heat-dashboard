@@ -469,42 +469,42 @@ table.data-table tr:hover td { background: #f8fafc; }
 
   <!-- PDF Footer -->
   <div id="pdf-footer-content" class="hidden">
-    Ben Neal &middot; ben.neal@canterbury.ac.uk
+    ben.neal@canterbury.ac.uk
   </div>
 
 </div>
 
-<!-- TOP-CLASS PROFESSIONAL PDF EXPORT REPORT TEMPLATE (CLEAN FIT & POLISHED RIGHT SIDE) -->
+<!-- TOP-CLASS PROFESSIONAL PDF EXPORT REPORT TEMPLATE -->
 <div id="pdf-report-template" class="hidden bg-white p-5 max-w-[800px] mx-auto text-slate-800" style="font-family: 'Inter', sans-serif; box-sizing: border-box;">
   
   <!-- Header / Branding -->
   <div class="flex items-center justify-between border-b-2 border-slate-900 pb-3 mb-3">
     <div>
-      <h1 class="text-lg font-bold text-slate-900 uppercase tracking-tight">Thermal & Hydration Lab Report</h1>
+      <h1 class="text-lg font-bold text-slate-900 uppercase tracking-tight">Heat, Sweat and Hydration Report</h1>
       <p class="text-[11px] text-slate-500">CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO Integration</p>
     </div>
     <div class="text-right">
-      <div class="text-xs font-bold text-blue-600">Upside Strength &middot; Sports Science</div>
+      <div class="text-xs font-bold text-blue-600">ben.neal@canterbury.ac.uk</div>
       <div class="text-[10px] text-slate-400" id="pdf-rep-date">2026-07-27</div>
     </div>
   </div>
 
-  <!-- Section 1: Top Metrics Grid (Cleaned Right Side / Physiological Response) -->
+  <!-- Section 1: Top Metrics Grid (Physiological Response & Reordered Cutoff) -->
   <div class="grid grid-cols-2 gap-3 mb-3 border border-slate-200 rounded-lg p-2.5 bg-slate-50">
     <div>
       <h3 class="text-[11px] font-bold text-slate-700 uppercase mb-1.5 border-b border-slate-200 pb-1">Core Temperature Kinetics</h3>
-      <div class="grid grid-cols-3 gap-1 text-center">
-        <div><span class="block text-[9px] text-slate-500 uppercase">Start</span><span class="text-sm font-bold text-slate-800" id="pdf-val-start">—</span><span class="text-[8px] text-slate-400">°C</span></div>
-        <div><span class="block text-[9px] text-slate-500 uppercase">Maximum</span><span class="text-sm font-bold text-red-600" id="pdf-val-max">—</span><span class="text-[8px] text-slate-400">°C</span></div>
-        <div><span class="block text-[9px] text-slate-500 uppercase">Total Rise</span><span class="text-sm font-bold text-slate-800" id="pdf-val-rise">—</span><span class="text-[8px] text-slate-400">°C</span></div>
+      <div class="grid grid-cols-4 gap-1 text-center">
+        <div><span class="block text-[9px] text-slate-500 uppercase">Start</span><span class="text-sm font-bold text-slate-800" id="pdf-val-start">—</span><span class="block text-[8px] text-slate-400">°C</span></div>
+        <div><span class="block text-[9px] text-slate-500 uppercase">Maximum</span><span class="text-sm font-bold text-red-600" id="pdf-val-max">—</span><span class="block text-[8px] text-slate-400">°C</span></div>
+        <div><span class="block text-[9px] text-slate-500 uppercase">Total Rise</span><span class="text-sm font-bold text-slate-800" id="pdf-val-rise">—</span><span class="block text-[8px] text-slate-400">°C</span></div>
+        <div><span class="block text-[9px] text-slate-500 uppercase">Cutoff?</span><span class="text-sm font-bold text-slate-800" id="pdf-val-cutoff">—</span><span class="block text-[8px] text-slate-400">&ge;39.7°C</span></div>
       </div>
     </div>
     <div>
       <h3 class="text-[11px] font-bold text-slate-700 uppercase mb-1.5 border-b border-slate-200 pb-1">Physiological Response</h3>
-      <div class="grid grid-cols-3 gap-1 text-center">
-        <div><span class="block text-[9px] text-slate-500 uppercase">Avg HR</span><span class="text-sm font-bold text-blue-600" id="pdf-val-avghr">—</span><span class="text-[8px] text-slate-400">bpm</span></div>
-        <div><span class="block text-[9px] text-slate-500 uppercase">Max HR</span><span class="text-sm font-bold text-blue-800" id="pdf-val-maxhr">—</span><span class="text-[8px] text-slate-400">bpm</span></div>
-        <div><span class="block text-[9px] text-slate-500 uppercase">Cutoff?</span><span class="text-sm font-bold text-slate-800" id="pdf-val-cutoff">—</span></div>
+      <div class="grid grid-cols-2 gap-1 text-center">
+        <div><span class="block text-[9px] text-slate-500 uppercase">Avg HR</span><span class="text-sm font-bold text-blue-600" id="pdf-val-avghr">—</span><span class="block text-[8px] text-slate-400">bpm</span></div>
+        <div><span class="block text-[9px] text-slate-500 uppercase">Max HR</span><span class="text-sm font-bold text-blue-800" id="pdf-val-maxhr">—</span><span class="block text-[8px] text-slate-400">bpm</span></div>
       </div>
     </div>
   </div>
@@ -1722,7 +1722,7 @@ function showTab(name) {
   document.getElementById('tab-' + name).classList.remove('hidden');
   document.querySelectorAll('.tab-btn').forEach(el => { el.classList.remove('active'); el.classList.add('text-slate-600'); });
   document.querySelectorAll('.tab-btn').forEach(el => {
-    if (el.getAttribute('onclick') && el.getAttribute('onclick').includes("'" + name + "'")) { el.classList.add('active'); el.classList.remove('text-slate-600'); }
+    if (el.getAttribute('onclick') && el.getAttribute('onclick'].includes("'" + name + "'")) { el.classList.add('active'); el.classList.remove('text-slate-600'); }
   });
   if (name === 'charts') renderChart();
   if (name === 'archive') renderArchiveTable();
@@ -2235,6 +2235,7 @@ function exportPDF() {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
+      layout: { padding: { right: 10 } },
       scales: {
         x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
         y: { position: 'left', title: { display: true, text: 'Core (°C)' } },
@@ -2247,7 +2248,7 @@ function exportPDF() {
     if (typeof html2pdf !== 'undefined') {
       html2pdf().set({
         margin: 0.25,
-        filename: 'Thermal_Lab_Report.pdf',
+        filename: 'Heat_Sweat_Hydration_Report.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
