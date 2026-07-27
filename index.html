@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ben Neal Sports Science — Heat & Sweat Analysis</title>
+<title>Ben Neal Sports Science — Heat & Hydration Analysis</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -12,7 +12,8 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; }
-.tab-btn.active { background: #1e293b; color: white; border-color: #1e293b; }
+.tab-btn.active { background: #0284c7; color: white; border-color: #0284c7; }
+.tab-btn:hover:not(.active) { background: #e2e8f0; color: #0f172a; }
 .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 1rem; position: relative; }
 .big-number { font-size: 1.75rem; font-weight: 700; line-height: 1; }
 @media (min-width: 768px) { .big-number { font-size: 2.25rem; } }
@@ -32,7 +33,7 @@ table.data-table td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
 table.data-table tr:hover td { background: #f8fafc; }
 .cutoff-red { color: #dc2626; }
 
-/* Custom Tooltip Styling */
+/* Custom Detailed Tooltip Styling */
 .sci-tooltip {
   visibility: hidden;
   position: absolute;
@@ -41,14 +42,15 @@ table.data-table tr:hover td { background: #f8fafc; }
   transform: translateX(-50%);
   background: #0f172a;
   color: #f8fafc;
-  text-align: center;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 0.7rem;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.75rem;
   font-weight: 400;
-  white-space: nowrap;
+  width: 280px;
+  line-height: 1.4;
   z-index: 50;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -58,8 +60,8 @@ table.data-table tr:hover td { background: #f8fafc; }
   position: absolute;
   top: 100%;
   left: 50%;
-  margin-left: -4px;
-  border-width: 4px;
+  margin-left: -5px;
+  border-width: 5px;
   border-style: solid;
   border-color: #0f172a transparent transparent transparent;
 }
@@ -75,25 +77,12 @@ table.data-table tr:hover td { background: #f8fafc; }
 </head>
 <body class="text-slate-800">
 
-<!-- Professional Sports Science Enterprise Header -->
+<!-- Professional Sports Science Enterprise Header without Logo or Thermal Lab badge -->
 <header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800">
   <div class="max-w-[1600px] mx-auto px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-    <div class="flex items-center gap-3">
-      <!-- Clean professional heat, hydration and name monogram badge -->
-      <div class="w-9 h-9 bg-slate-800 border border-slate-700 rounded-lg flex flex-col items-center justify-center shrink-0 shadow-inner">
-        <div class="flex items-center gap-0.5">
-          <i class="fa-solid fa-droplet text-blue-400 text-[10px]"></i>
-          <i class="fa-solid fa-temperature-high text-orange-400 text-[10px]"></i>
-        </div>
-        <span class="font-bold text-[9px] text-slate-200 tracking-tighter mt-0.5">BN</span>
-      </div>
-      <div>
-        <div class="flex items-center gap-2">
-          <h1 class="font-semibold text-sm sm:text-base tracking-wide" id="txt-app-title">Ben Neal Sports Science</h1>
-          <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-medium border border-slate-700">Thermal Lab</span>
-        </div>
-        <p class="text-[10px] sm:text-xs text-slate-400">CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO Sweat Analytics</p>
-      </div>
+    <div>
+      <h1 class="font-semibold text-base sm:text-lg tracking-wide" id="txt-app-title">Ben Neal Sports Science — Heat and Hydration Analysis</h1>
+      <p class="text-[10px] sm:text-xs text-slate-400">CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO Sweat Analytics</p>
     </div>
     <div class="flex items-center gap-2 w-full sm:w-auto justify-end no-print flex-wrap">
       <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-2 py-1.5 text-xs sm:text-sm focus:outline-none">
@@ -116,7 +105,7 @@ table.data-table tr:hover td { background: #f8fafc; }
 
 <div class="bg-white border-b border-slate-200 no-print">
   <div class="max-w-[1600px] mx-auto px-4 py-3">
-    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:flex lg:flex-wrap gap-2 sm:gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 lg:flex lg:flex-wrap gap-2 sm:gap-3">
       <div class="drag-zone px-3 sm:px-4 py-2 cursor-pointer" onclick="document.getElementById('file-calera').click()">
         <input type="file" id="file-calera" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'calera')">
         <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-purple-600"></i><span class="font-medium truncate">CALERA</span></div>
@@ -137,7 +126,11 @@ table.data-table tr:hover td { background: #f8fafc; }
         <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-green-600"></i><span class="font-medium truncate">Environment</span></div>
         <span class="text-slate-400 text-[10px] block truncate" id="status-env">No file</span>
       </div>
-      <button onclick="processAllData()" class="col-span-2 sm:col-span-2 md:col-span-4 lg:ml-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs sm:text-sm font-medium transition text-center"><i class="fa-solid fa-rotate mr-1"></i> <span id="btn-process">Process Data</span></button>
+      <div class="drag-zone px-3 sm:px-4 py-2 opacity-60 cursor-not-allowed bg-slate-50">
+        <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-clock text-slate-400"></i><span class="font-medium truncate">Intervals.icu</span></div>
+        <span class="text-amber-600 text-[10px] block font-semibold truncate">Coming soon</span>
+      </div>
+      <button onclick="processAllData()" class="col-span-2 sm:col-span-2 md:grid-cols-5 lg:ml-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs sm:text-sm font-medium transition text-center"><i class="fa-solid fa-rotate mr-1"></i> <span id="btn-process">Process Data</span></button>
     </div>
   </div>
 </div>
@@ -157,7 +150,7 @@ table.data-table tr:hover td { background: #f8fafc; }
 <div id="tab-summary" class="tab-content">
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <div class="card p-4 has-sci-tooltip">
-      <div class="sci-tooltip">Metadata regarding athlete profile, environmental context, and session workload</div>
+      <div class="sci-tooltip"><strong>Session Information & Context:</strong> Captures metadata specific to the individual athlete, workout date, sport modality, distance covered, cumulative duration in hours, minutes and seconds, and the environmental conditions recorded during testing or competition.</div>
       <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
         <span data-t="session_info">Session Information</span>
         <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
@@ -178,7 +171,7 @@ table.data-table tr:hover td { background: #f8fafc; }
     </div>
     
     <div class="card p-4 lg:col-span-2 has-sci-tooltip">
-      <div class="sci-tooltip">Core temperature profile parameters indicating thermal strain and physiological adaptation metrics</div>
+      <div class="sci-tooltip"><strong>Core Temperature Kinetics:</strong> Evaluates internal thermal strain through baseline starting temperature, peak achieved core temperature, final stabilization value, overall absolute thermal rise, net change, rate of temperature increase per minute, and time required to reach peak thermal load relative to safety cutoffs.</div>
       <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
         <span data-t="core_temp">Core Temperature</span>
         <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
@@ -200,7 +193,7 @@ table.data-table tr:hover td { background: #f8fafc; }
   
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <div class="card p-4 has-sci-tooltip">
-      <div class="sci-tooltip">Distribution of exercise duration spent within standardized thermal strain zones</div>
+      <div class="sci-tooltip"><strong>Heat Exposure & Zonal Distribution:</strong> Quantifies cumulative duration, percentage distribution, and timestamp of initial entry into standardized physiological thermal strain bands (Zone 1 through Zone 4 safety thresholds) along with zone transition frequencies.</div>
       <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
         <span data-t="heat_exposure">Heat Exposure</span>
         <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
@@ -219,7 +212,7 @@ table.data-table tr:hover td { background: #f8fafc; }
     </div>
     
     <div class="card p-4 has-sci-tooltip">
-      <div class="sci-tooltip">Hydration dynamics, sweat output rates, and estimated electrolyte losses</div>
+      <div class="sci-tooltip"><strong>Sweat Dynamics & Hydration Status:</strong> Summarizes sweat output metrics derived from continuous sensors and precise body mass differentials (pre/post-session weighing adjusted for fluid intake and urinary output) alongside estimated electrolyte losses.</div>
       <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
         <span data-t="sweat_response">Sweat Response</span>
         <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
@@ -235,7 +228,7 @@ table.data-table tr:hover td { background: #f8fafc; }
     </div>
     
     <div class="card p-4 has-sci-tooltip">
-      <div class="sci-tooltip">Cardiovascular strain metrics and recovery efficiency during structured breaks</div>
+      <div class="sci-tooltip"><strong>Cardiovascular Strain & Recovery:</strong> Tracks average and peak heart rate responses alongside thermoregulatory cooling efficiencies and internal temperature declines during scheduled rest periods and hydration breaks.</div>
       <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
         <span data-t="hr_breaks">Heart Rate & Breaks</span>
         <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
@@ -254,7 +247,7 @@ table.data-table tr:hover td { background: #f8fafc; }
   </div>
   
   <div class="card p-4 has-sci-tooltip">
-    <div class="sci-tooltip">Telemetry signal validation, primary sensor reliability, and multi-sensor tracking metrics</div>
+    <div class="sci-tooltip"><strong>Sensor Telemetry Quality:</strong> Evaluates data stream reliability, signal integrity, primary sensor uptime percentages, backup fallback activations, and maximum divergence tolerances between multi-sensor telemetry sources.</div>
     <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
       <span data-t="sensor_status">Sensor Status & Data Quality</span>
       <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
@@ -417,7 +410,7 @@ const AppState = {
 
 const translations = {
   en: {
-    app_title: "Ben Neal Sports Science",
+    app_title: "Ben Neal Sports Science — Heat and Hydration Analysis",
     export_csv: "Export CSV",
     export_pdf: "Export PDF",
     process: "Process Data",
@@ -478,7 +471,7 @@ const translations = {
     events_breaks: "Events & Breaks",
     add_event: "+ Add Event",
     break_analysis: "Break Analysis",
-    report_title: "Heat and Sweat Analysis Page",
+    report_title: "Heat and Hydration Analysis",
     time_generated: "Time Generated",
     athlete_name: "Athlete Name",
     sport_activity: "Sport / Activity",
@@ -491,7 +484,7 @@ const translations = {
     start_time_label: "Start Time (HH:MM:SS)", end_time_label: "End Time (HH:MM:SS)", type: "Type", desc: "Description", break_num: "Break #", tcore_start: "Tcore Start", tcore_end: "Tcore End", delta_t: "ΔT", rate: "Rate"
   },
   es: {
-    app_title: "Ben Neal Ciencia Deportiva",
+    app_title: "Ben Neal Ciencia Deportiva — Análisis de Calor e Hidratación",
     export_csv: "Exportar CSV",
     export_pdf: "Exportar PDF",
     process: "Procesar Datos",
@@ -552,7 +545,7 @@ const translations = {
     events_breaks: "Eventos y Pausas",
     add_event: "+ Añadir Evento",
     break_analysis: "Análisis de Pausas",
-    report_title: "Página de Análisis de Calor y Sudor",
+    report_title: "Análisis de Calor e Hidratación",
     time_generated: "Hora Generada",
     athlete_name: "Nombre del Atleta",
     sport_activity: "Deporte / Actividad",
@@ -565,7 +558,7 @@ const translations = {
     start_time_label: "Hora Inicio (HH:MM:SS)", end_time_label: "Hora Fin (HH:MM:SS)", type: "Tipo", desc: "Descripción", break_num: "Pausa #", tcore_start: "Tcore Inicio", tcore_end: "Tcore Fin", delta_t: "ΔT", rate: "Tasa"
   },
   pt: {
-    app_title: "Ben Neal Ciência do Esporte",
+    app_title: "Ben Neal Ciência do Esporte — Análise de Calor e Hidratação",
     export_csv: "Exportar CSV",
     export_pdf: "Exportar PDF",
     process: "Processar Dados",
@@ -626,7 +619,7 @@ const translations = {
     events_breaks: "Eventos e Pausas",
     add_event: "+ Adicionar Evento",
     break_analysis: "Análise de Pausas",
-    report_title: "Página de Análise de Calor e Suor",
+    report_title: "Análise de Calor e Hidratação",
     time_generated: "Hora Gerada",
     athlete_name: "Nome do Atleta",
     sport_activity: "Esporte / Atividade",
@@ -639,7 +632,7 @@ const translations = {
     start_time_label: "Hora Início (HH:MM:SS)", end_time_label: "Hora Fim (HH:MM:SS)", type: "Tipo", desc: "Descrição", break_num: "Pausa #", tcore_start: "Tcore Início", tcore_end: "Tcore Fim", delta_t: "ΔT", rate: "Taxa"
   },
   ko: {
-    app_title: "벤 닐 스포츠 과학",
+    app_title: "벤 닐 스포츠 과학 — 열 및 수분 분석",
     export_csv: "CSV 내보내기",
     export_pdf: "PDF 내보내기",
     process: "데이터 처리",
@@ -700,7 +693,7 @@ const translations = {
     events_breaks: "이벤트 및 휴식",
     add_event: "+ 이벤트 추가",
     break_analysis: "휴식 분석",
-    report_title: "열 및 땀 분석 페이지",
+    report_title: "열 및 수분 분석",
     time_generated: "생성 시간",
     athlete_name: "선수 이름",
     sport_activity: "스포츠 / 활동",
@@ -713,7 +706,7 @@ const translations = {
     start_time_label: "시작 시간 (HH:MM:SS)", end_time_label: "종료 시간 (HH:MM:SS)", type: "유형", desc: "설명", break_num: "휴식 #", tcore_start: "시작 심부온", tcore_end: "종료 심부온", delta_t: "ΔT", rate: "하락률"
   },
   ja: {
-    app_title: "ベン・ニール スポーツ科学",
+    app_title: "ベン・ニール スポーツ科学 — 熱・水分分析",
     export_csv: "CSVエクスポート",
     export_pdf: "PDFエクスポート",
     process: "データ処理",
@@ -774,7 +767,7 @@ const translations = {
     events_breaks: "イベント & 休憩",
     add_event: "+ イベント追加",
     break_analysis: "休憩分析",
-    report_title: "熱・発汗分析ページ",
+    report_title: "熱・水分分析",
     time_generated: "生成時刻",
     athlete_name: "選手名",
     sport_activity: "スポーツ / アクティビティ",
@@ -787,7 +780,7 @@ const translations = {
     start_time_label: "開始時間 (HH:MM:SS)", end_time_label: "終了時間 (HH:MM:SS)", type: "タイプ", desc: "説明", break_num: "休憩 #", tcore_start: "開始時深部温", tcore_end: "終了時深部温", delta_t: "ΔT", rate: "低下速度"
   },
   fr: {
-    app_title: "Ben Neal Science du Sport",
+    app_title: "Ben Neal Science du Sport — Analyse de Chaleur et d'Hydratation",
     export_csv: "Exporter CSV",
     export_pdf: "Exporter PDF",
     process: "Traiter les Données",
@@ -848,7 +841,7 @@ const translations = {
     events_breaks: "Événements & Pauses",
     add_event: "+ Ajouter Événement",
     break_analysis: "Analyse des Pauses",
-    report_title: "Page d'Analyse de Chaleur et Sueur",
+    report_title: "Analyse de Chaleur et d'Hydratation",
     time_generated: "Heure de Génération",
     athlete_name: "Nom de l'Athlète",
     sport_activity: "Sport / Activité",
@@ -861,7 +854,7 @@ const translations = {
     start_time_label: "Heure Début (HH:MM:SS)", end_time_label: "Heure Fin (HH:MM:SS)", type: "Type", desc: "Description", break_num: "Pause #", tcore_start: "Tcore Début", tcore_end: "Tcore Fin", delta_t: "ΔT", rate: "Taux"
   },
   zh: {
-    app_title: "本·尼尔 运动科学",
+    app_title: "本·尼尔 运动科学 — 热负荷与水合状态分析",
     export_csv: "导出 CSV",
     export_pdf: "导出 PDF",
     process: "处理数据",
@@ -922,7 +915,7 @@ const translations = {
     events_breaks: "事件与休息",
     add_event: "+ 添加事件",
     break_analysis: "休息分析",
-    report_title: "热负荷与排汗分析页面",
+    report_title: "热负荷与水合状态分析",
     time_generated: "生成时间",
     athlete_name: "运动员姓名",
     sport_activity: "运动项目",
@@ -935,7 +928,7 @@ const translations = {
     start_time_label: "开始时间 (HH:MM:SS)", end_time_label: "结束时间 (HH:MM:SS)", type: "类型", desc: "说明", break_num: "休息 #", tcore_start: "开始核心温", tcore_end: "结束核心温", delta_t: "ΔT", rate: "降温速率"
   },
   id: {
-    app_title: "Ilmu Olahraga Ben Neal",
+    app_title: "Ilmu Olahraga Ben Neal — Analisis Panas dan Hidrasi",
     export_csv: "Ekspor CSV",
     export_pdf: "Ekspor PDF",
     process: "Proses Data",
@@ -996,7 +989,7 @@ const translations = {
     events_breaks: "Acara & Istirahat",
     add_event: "+ Tambah Acara",
     break_analysis: "Analisis Istirahat",
-    report_title: "Halaman Analisis Panas dan Keringat",
+    report_title: "Analisis Panas dan Hidrasi",
     time_generated: "Waktu Dibuat",
     athlete_name: "Nama Atlet",
     sport_activity: "Olahraga / Aktivitas",
@@ -1009,7 +1002,7 @@ const translations = {
     start_time_label: "Waktu Mulai (HH:MM:SS)", end_time_label: "Waktu Selesai (HH:MM:SS)", type: "Tipe", desc: "Deskripsi", break_num: "Istirahat #", tcore_start: "Tcore Mulai", tcore_end: "Tcore Selesai", delta_t: "ΔT", rate: "Laju"
   },
   da: {
-    app_title: "Ben Neal Idrætsvidenskab",
+    app_title: "Ben Neal Idrætsvidenskab — Varme- og Væskeanalyse",
     export_csv: "Eksporter CSV",
     export_pdf: "Eksporter PDF",
     process: "Behandl Data",
@@ -1070,7 +1063,7 @@ const translations = {
     events_breaks: "Hændelser & Pauser",
     add_event: "+ Tilføj Hændelse",
     break_analysis: "Pauseanalyse",
-    report_title: "Varme- og Svedanalysesaide",
+    report_title: "Varme- og Væskeanalyse",
     time_generated: "Genereringstidspunkt",
     athlete_name: "Atletnavn",
     sport_activity: "Sport / Aktivitet",
@@ -1083,7 +1076,7 @@ const translations = {
     start_time_label: "Starttid (HH:MM:SS)", end_time_label: "Sluttid (HH:MM:SS)", type: "Type", desc: "Beskrivelse", break_num: "Pause #", tcore_start: "Tcore Start", tcore_end: "Tcore Slut", delta_t: "ΔT", rate: "Rate"
   },
   de: {
-    app_title: "Ben Neal Sportwissenschaft",
+    app_title: "Ben Neal Sportwissenschaft — Hitze- und Hydrationsanalyse",
     export_csv: "CSV exportieren",
     export_pdf: "PDF exportieren",
     process: "Daten verarbeiten",
@@ -1144,7 +1137,7 @@ const translations = {
     events_breaks: "Ereignisse & Pausen",
     add_event: "+ Ereignis hinzufügen",
     break_analysis: "Pausenanalyse",
-    report_title: "Hitze- und Schweißanalyse-Seite",
+    report_title: "Hitze- und Hydrationsanalyse",
     time_generated: "Erstellungszeit",
     athlete_name: "Name des Athleten",
     sport_activity: "Sportart / Aktivität",
@@ -1153,7 +1146,7 @@ const translations = {
     cutoff_reached_status: "Grenzwert Erreicht",
     contact_footer: "Bei Fragen wenden Sie sich bitte an Ben Neal unter",
     raw_data_section: "Rohdaten (CALERA, CORE 2, FLOWBIO, Umgebung)",
-    th_elapsed: "Verstrichen (s)", th_time: "HH:MM:SS", th_interval: "Intervall (s)", th_core: "Komb. Kerntemp.", th_source: "Quelle", th_calera: "CALERA", th_calera: "CALERA", th_core2: "CORE 2", th_delta: "Delta", th_hr: "HF", th_skin: "Haut", th_sweat: "Schweiß", th_ambient: "Umgebung", th_rh: "LF%", th_zone: "Zone", th_break: "Pause?",
+    th_elapsed: "Verstrichen (s)", th_time: "HH:MM:SS", th_interval: "Intervall (s)", th_core: "Komb. Kerntemp.", th_source: "Quelle", th_calera: "CALERA", th_core2: "CORE 2", th_delta: "Delta", th_hr: "HF", th_skin: "Haut", th_sweat: "Schweiß", th_ambient: "Umgebung", th_rh: "LF%", th_zone: "Zone", th_break: "Pause?",
     start_time_label: "Startzeit (HH:MM:SS)", end_time_label: "Endzeit (HH:MM:SS)", type: "Typ", desc: "Beschreibung", break_num: "Pause #", tcore_start: "Tcore Start", tcore_end: "Tcore Ende", delta_t: "ΔT", rate: "Rate"
   }
 };
@@ -1787,7 +1780,7 @@ function exportCSV() {
   if (AppState.processed.length === 0) { alert('No processed data to export. Please process data first.'); return; }
   
   const m = AppState.metrics;
-  let csv = "BEN NEAL SPORTS SCIENCE — HEAT AND SWEAT ANALYSIS REPORT\n\n";
+  let csv = "BEN NEAL SPORTS SCIENCE — HEAT AND HYDRATION ANALYSIS REPORT\n\n";
   
   csv += "SESSION INFORMATION\n";
   csv += `Athlete,${document.getElementById('inp-athlete').value}\n`;
@@ -1854,7 +1847,7 @@ function exportCSV() {
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'BenNeal_Heat_And_Sweat_Analysis.csv'; a.click(); URL.revokeObjectURL(url);
+  a.href = url; a.download = 'BenNeal_Heat_And_Hydration_Analysis.csv'; a.click(); URL.revokeObjectURL(url);
 }
 
 function exportPDF() {
@@ -1917,7 +1910,7 @@ function exportPDF() {
           <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b;">Applied Physiology & Thermal Physiology Laboratory</p>
         </div>
         <div style="text-align: right; font-size: 11px; color: #475569;">
-          <div><strong>Report:</strong> Heat & Sweat Analysis</div>
+          <div><strong>Report:</strong> Heat & Hydration Analysis</div>
           <div><strong>Date:</strong> ${date}</div>
         </div>
       </div>
@@ -2033,7 +2026,7 @@ function exportPDF() {
   const cleanDate = date.replace(/\//g, '-');
   const opt = {
     margin:       0.4,
-    filename:     `${cleanName}_${cleanDate}_BenNeal_Heat_And_Sweat_Report.pdf`,
+    filename:     `${cleanName}_${cleanDate}_BenNeal_Heat_And_Hydration_Report.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2 },
     jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
