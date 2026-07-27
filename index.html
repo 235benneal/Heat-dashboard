@@ -692,8 +692,10 @@ const translations = {
     set_tolerance: "Tolerance (s)",
     set_calera_quality: "CALERA Quality Flags",
     chart_core_label: "Core Temp (°C)",
+    chart_hr_label: "Heart Rate (bpm)",
     chart_sweat_label: "Cumulative Sweat Loss (L)",
     chart_y_core: "Core Temperature (°C)",
+    chart_y_hr: "Heart Rate (bpm)",
     chart_y_sweat: "Sweat Loss (L)",
     tip_session: "Metadata regarding the individual athlete, date, time, targeted sport or activity type, and the environmental conditions affecting performance.",
     tip_core: "Evaluates internal thermal strain. Key indicators include the maximum temperature achieved, total rise from baseline, and how rapidly heat accumulated during the session.",
@@ -824,8 +826,10 @@ const translations = {
     set_tolerance: "Tolerancia (s)",
     set_calera_quality: "Banderas Calidad CALERA",
     chart_core_label: "Temp Central (°C)",
+    chart_hr_label: "Frecuencia Cardíaca (bpm)",
     chart_sweat_label: "Pérdida de Sudor Acumulada (L)",
     chart_y_core: "Temperatura Central (°C)",
+    chart_y_hr: "Frecuencia Cardíaca (bpm)",
     chart_y_sweat: "Pérdida de Sudor (L)",
     tip_session: "Metadatos sobre el atleta, fecha, hora, deporte y condiciones ambientales que afectan el rendimiento.",
     tip_core: "Evalúa la tensión térmica interna. Incluye temperatura máxima, aumento total y rapidez de acumulación de calor.",
@@ -956,8 +960,10 @@ const translations = {
     set_tolerance: "Tolérance (s)",
     set_calera_quality: "Indicateurs Qualité CALERA",
     chart_core_label: "Temp. Centrale (°C)",
+    chart_hr_label: "Fréquence Cardiaque (bpm)",
     chart_sweat_label: "Perte de Sueur Cumulée (L)",
     chart_y_core: "Température Corporelle (°C)",
+    chart_y_hr: "Fréquence Cardiaque (bpm)",
     chart_y_sweat: "Perte de Sueur (L)",
     tip_session: "Métadonnées concernant l'athlète, la date, l'heure et les conditions environnementales.",
     tip_core: "Évalue la contrainte thermique interne (température maximale, hausse totale).",
@@ -1088,8 +1094,10 @@ const translations = {
     set_tolerance: "Tolerância (s)",
     set_calera_quality: "Sinalizadores de Qualidade CALERA",
     chart_core_label: "Temp Central (°C)",
+    chart_hr_label: "Frequência Cardíaca (bpm)",
     chart_sweat_label: "Perda Acumulada de Suor (L)",
     chart_y_core: "Temperatura Central (°C)",
+    chart_y_hr: "Frequência Cardíaca (bpm)",
     chart_y_sweat: "Perda de Suor (L)",
     tip_session: "Metadatos sobre o atleta, data, hora, esporte e condições ambientais.",
     tip_core: "Avalia a tensão térmica interna.",
@@ -1220,8 +1228,10 @@ const translations = {
     set_tolerance: "허용 오차 (초)",
     set_calera_quality: "CALERA 품질 플래그",
     chart_core_label: "심부 체온 (°C)",
+    chart_hr_label: "심박수 (bpm)",
     chart_sweat_label: "누적 땀 손실량 (L)",
     chart_y_core: "심부 체온 (°C)",
+    chart_y_hr: "심박수 (bpm)",
     chart_y_sweat: "땀 손실량 (L)",
     tip_session: "선수, 날짜, 시간, 종목 및 환경 조건에 대한 메타데이터입니다.",
     tip_core: "내부 열 스트레스를 평가합니다.",
@@ -1352,8 +1362,10 @@ const translations = {
     set_tolerance: "許容誤差 (秒)",
     set_calera_quality: "CALERA 品質フラグ",
     chart_core_label: "深部体温 (°C)",
+    chart_hr_label: "心拍数 (bpm)",
     chart_sweat_label: "累積発汗損失量 (L)",
     chart_y_core: "深部体温 (°C)",
+    chart_y_hr: "心拍数 (bpm)",
     chart_y_sweat: "発汗損失量 (L)",
     tip_session: "アスリートや環境条件に関するメタデータ。",
     tip_core: "内部の熱的負担を評価します。",
@@ -1484,8 +1496,10 @@ const translations = {
     set_tolerance: "容差 (秒)",
     set_calera_quality: "CALERA 质量标记",
     chart_core_label: "核心体温 (°C)",
+    chart_hr_label: "心率 (bpm)",
     chart_sweat_label: "累计出汗损失 (L)",
     chart_y_core: "核心体温 (°C)",
+    chart_y_hr: "心率 (bpm)",
     chart_y_sweat: "出汗损失 (L)",
     tip_session: "关于运动员、日期、时间和环境条件的元数据。",
     tip_core: "评估内部热应变。",
@@ -1609,15 +1623,17 @@ const translations = {
     set_z2_min: "Zone 2 Min (°C)",
     set_z2_max: "Zone 2 Max (°C)",
     set_z3_min: "Zone 3 Min (°C)",
-    set_z3_max: "Zone 3 Max (°C)",
+    set_z3_max: "Zone 3 Min (°C)",
     set_cutoff: "Grenzwert (°C)",
     set_primary_sensor: "Primärer Sensor",
     set_fallback: "Autom. Ausweichsensor",
     set_tolerance: "Toleranz (s)",
     set_calera_quality: "CALERA Qualitäts-Flags",
     chart_core_label: "Kerntemperatur (°C)",
+    chart_hr_label: "Herzfrequenz (bpm)",
     chart_sweat_label: "Kumulativer Schweißverlust (L)",
     chart_y_core: "Kerntemperatur (°C)",
+    chart_y_hr: "Herzfrequenz (bpm)",
     chart_y_sweat: "Schweißverlust (L)",
     tip_session: "Metadaten zu Athlet, Datum, Uhrzeit und Umgebungsbedingungen.",
     tip_core: "Bewertet die innere thermische Belastung.",
@@ -2032,6 +2048,7 @@ function renderChart() {
     const dict = translations[AppState.currentLang] || translations['en'];
     const labels = p.map(r => r.hhmmss);
     const coreData = p.map(r => r.unifiedCore);
+    const hrData = p.map(r => r.hr);
     const sweatData = p.map(r => r.cumulativeSweat);
 
     if (instanceHolder) instanceHolder.destroy();
@@ -2042,7 +2059,8 @@ function renderChart() {
         labels: labels,
         datasets: [
           { label: dict.chart_core_label || 'Core Temp (°C)', data: coreData, borderColor: '#dc2626', borderWidth: 2, pointRadius: 0, yAxisID: 'y' },
-          { label: dict.chart_sweat_label || 'Cumulative Sweat Loss (L)', data: sweatData, borderColor: '#0d9488', borderWidth: 2, pointRadius: 0, yAxisID: 'y1' }
+          { label: dict.chart_hr_label || 'Heart Rate (bpm)', data: hrData, borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 0, yAxisID: 'y1' },
+          { label: dict.chart_sweat_label || 'Cumulative Sweat Loss (L)', data: sweatData, borderColor: '#0d9488', borderWidth: 2, pointRadius: 0, yAxisID: 'y2' }
         ]
       },
       options: {
@@ -2050,7 +2068,8 @@ function renderChart() {
         scales: {
           x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
           y: { type: 'linear', position: 'left', title: { display: true, text: dict.chart_y_core || 'Core Temperature (°C)' } },
-          y1: { type: 'linear', position: 'right', title: { display: true, text: dict.chart_y_sweat || 'Sweat Loss (L)' }, grid: { drawOnChartArea: false } }
+          y1: { type: 'linear', position: 'right', min: 40, max: 220, title: { display: true, text: dict.chart_y_hr || 'Heart Rate (bpm)' }, grid: { drawOnChartArea: false } },
+          y2: { display: false }
         }
       }
     });
@@ -2247,7 +2266,7 @@ function exportPDF() {
       scales: {
         x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
         y: { position: 'left', title: { display: true, text: 'Core (°C)' } },
-        y1: { position: 'right', title: { display: true, text: 'HR (bpm)' }, grid: { drawOnChartArea: false }, ticks: { callback: function(value) { return value + ' '; } } }
+        y1: { position: 'right', min: 40, max: 220, title: { display: true, text: 'HR (bpm)' }, grid: { drawOnChartArea: false }, ticks: { callback: function(value) { return value + ' '; } } }
       }
     }
   });
