@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heat Analysis Dashboard — CALERA & CORE 2</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; }
+.tab-btn.active { background: #1e293b; color: white; border-color: #1e293b; }
+.card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.big-number { font-size: 2.25rem; font-weight: 700; line-height: 1; }
+.zone-1 { color: #0d9488; }
+.zone-2 { color: #d97706; }
+.zone-3 { color: #ea580c; }
+.zone-4 { color: #dc2626; }
+.badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+.badge-green { background: #dcfce7; color: #166534; }
+.badge-yellow { background: #fef9c3; color: #854d0e; }
+.badge-red { background: #fee2e2; color: #991b1b; }
+.drag-zone { border: 2px dashed #cbd5e1; border-radius: 12px; transition: all 0.2s; }
+.drag-zone:hover, .drag-zone.dragover { border-color: #3b82f6; background: #eff6ff; }
+table.data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; }
+table.data-table th { background: #f8fafc; padding: 8px 12px; text-align: left; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; }
+table.data-table td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
+table.data-table tr:hover td { background: #f8fafc; }
+.chart-container { position: relative; height: 380px; width: 100%; }
+.cutoff-red { color: #dc2626; }
+@media print { .no-print { display: none !important; } .card { box-shadow: none; border: 1px solid #e2e8f0; break-inside: avoid; } }
+</style>
+</head>
+<body class="text-slate-800">
+
+<header class="bg-slate-900 text-white sticky top-0 z-50">
+  <div class="max-w-[1600px] mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center"><i class="fa-solid fa-temperature-high text-white text-sm"></i></div>
+      <div>
+        <h1 class="font-bold text-lg leading-tight">Heat Analysis Dashboard</h1>
+        <p class="text-xs text-slate-400">CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO Sweat</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 no-print">
+      <button onclick="exportProcessedCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition"><i class="fa-solid fa-download mr-1"></i> Export CSV</button>
+      <button onclick="window.print()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition"><i class="fa-solid fa-print mr-1"></i> Print Summary</button>
+    </div>
+  </div>
+</header>
+
+<div class="bg-white border-b border-slate-200 no-print">
+  <div class="max-w-[1600px] mx-auto px-4 py-3">
+    <div class="flex flex-wrap gap-3">
+      <div class="drag-zone px-4 py-2 cursor-pointer" onclick="document.getElementById('file-calera').click()">
+        <input type="file" id="file-calera" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'calera')">
+        <div class="flex items-center gap-2 text-sm"><i class="fa-solid fa-upload text-purple-600"></i><span class="font-medium">CALERA</span><span class="text-slate-400 text-xs" id="status-calera">No file</span></div>
+      </div>
+      <div class="drag-zone px-4 py-2 cursor-pointer" onclick="document.getElementById('file-core').click()">
+        <input type="file" id="file-core" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'core')">
+        <div class="flex items-center gap-2 text-sm"><i class="fa-solid fa-upload text-teal-600"></i><span class="font-medium">CORE 2</span><span class="text-slate-400 text-xs" id="status-core">No file</span></div>
+      </div>
+      <div class="drag-zone px-4 py-2 cursor-pointer" onclick="document.getElementById('file-flowbio').click()">
+        <input type="file" id="file-flowbio" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'flowbio')">
+        <div class="flex items-center gap-2 text-sm"><i class="fa-solid fa-upload text-blue-600"></i><span class="font-medium">FLOWBIO</span><span class="text-slate-400 text-xs" id="status-flowbio">No file</span></div>
+      </div>
+      <div class="drag-zone px-4 py-2 cursor-pointer" onclick="document.getElementById('file-env').click()">
+        <input type="file" id="file-env" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'env')">
+        <div class="flex items-center gap-2 text-sm"><i class="fa-solid fa-upload text-green-600"></i><span class="font-medium">Environment</span><span class="text-slate-400 text-xs" id="status-env">No file</span></div>
+      </div>
+      <button onclick="processAllData()" class="ml-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-sm font-medium transition"><i class="fa-solid fa-rotate mr-1"></i> Process Data</button>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-[1600px] mx-auto px-4 py-4 no-print">
+  <div class="flex gap-1 bg-slate-200/60 p-1 rounded-xl inline-flex">
+    <button class="tab-btn active px-4 py-2 rounded-lg text-sm font-medium transition" onclick="showTab('summary')">Athlete Summary</button>
+    <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" onclick="showTab('dashboard')">Main Dashboard</button>
+    <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" onclick="showTab('processed')">Processed Data</button>
+    <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" onclick="showTab('raw')">Raw Data</button>
+    <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" onclick="showTab('sweat')">Sweat Analysis</button>
+    <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" onclick="showTab('events')">Events & Breaks</button>
+    <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" onclick="showTab('settings')">Settings</button>
+  </div>
+</div>
+
+<div class="max-w-[1600px] mx-auto px-4 pb-12">
+
+<div id="tab-summary" class="tab-content">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Session Information</div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs text-slate-400">Athlete</label><input id="inp-athlete" class="w-full border rounded px-2 py-1 text-sm mt-0.5" placeholder="Name"></div>
+        <div><label class="text-xs text-slate-400">Date</label><input type="date" id="inp-date" class="w-full border rounded px-2 py-1 text-sm mt-0.5"></div>
+        <div><label class="text-xs text-slate-400">Activity</label><input id="inp-activity" class="w-full border rounded px-2 py-1 text-sm mt-0.5" placeholder="e.g. Training"></div>
+        <div><label class="text-xs text-slate-400">Distance (km)</label><input id="inp-distance" class="w-full border rounded px-2 py-1 text-sm mt-0.5" placeholder="0"></div>
+      </div>
+      <div class="mt-3 pt-3 border-t border-slate-100">
+        <div class="flex justify-between text-sm"><span class="text-slate-500">Duration</span><span class="font-semibold" id="sum-duration">—</span></div>
+        <div class="flex justify-between text-sm mt-1"><span class="text-slate-500">Environment</span><span class="font-semibold" id="sum-env">—</span></div>
+      </div>
+    </div>
+    <div class="card p-4 lg:col-span-2">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Core Temperature</div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div><div class="text-xs text-slate-400 mb-1">Start</div><div class="big-number text-slate-700" id="sum-start">—</div><div class="text-xs text-slate-400">°C</div></div>
+        <div><div class="text-xs text-slate-400 mb-1">Maximum</div><div class="big-number" id="sum-max">—</div><div class="text-xs text-slate-400">°C</div></div>
+        <div><div class="text-xs text-slate-400 mb-1">Final</div><div class="big-number text-slate-700" id="sum-final">—</div><div class="text-xs text-slate-400">°C</div></div>
+        <div><div class="text-xs text-slate-400 mb-1">Cutoff Reached?</div><div class="big-number" id="sum-cutoff">—</div><div class="text-xs text-slate-400" id="sum-cutoff-sub">39.7 °C threshold</div></div>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-slate-100">
+        <div><div class="text-xs text-slate-400 mb-1">Total Rise</div><div class="font-semibold text-lg" id="sum-rise">—</div><div class="text-xs text-slate-400">°C</div></div>
+        <div><div class="text-xs text-slate-400 mb-1">Net Change</div><div class="font-semibold text-lg" id="sum-net">—</div><div class="text-xs text-slate-400">°C</div></div>
+        <div><div class="text-xs text-slate-400 mb-1">Rate of Rise</div><div class="font-semibold text-lg" id="sum-rate">—</div><div class="text-xs text-slate-400">°C/min</div></div>
+        <div><div class="text-xs text-slate-400 mb-1">Time to Max</div><div class="font-semibold text-lg" id="sum-timetomax">—</div><div class="text-xs text-slate-400">min</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Heat Exposure</div>
+      <table class="w-full text-sm">
+        <thead><tr class="text-left text-xs text-slate-400 border-b border-slate-100"><th class="pb-2">Zone</th><th class="pb-2">Time</th><th class="pb-2">%</th><th class="pb-2">First Entry</th></tr></thead>
+        <tbody id="zone-table">
+          <tr><td class="py-2 font-medium zone-1">Zone 1 (&lt;38.0)</td><td class="py-2" id="z1-time">—</td><td class="py-2" id="z1-pct">—</td><td class="py-2" id="z1-first">—</td></tr>
+          <tr><td class="py-2 font-medium zone-2">Zone 2 (38.0–38.9)</td><td class="py-2" id="z2-time">—</td><td class="py-2" id="z2-pct">—</td><td class="py-2" id="z2-first">—</td></tr>
+          <tr><td class="py-2 font-medium zone-3">Zone 3 (39.0–39.6)</td><td class="py-2" id="z3-time">—</td><td class="py-2" id="z3-pct">—</td><td class="py-2" id="z3-first">—</td></tr>
+          <tr><td class="py-2 font-medium zone-4">Zone 4 / Cutoff (&ge;39.7)</td><td class="py-2" id="z4-time">—</td><td class="py-2" id="z4-pct">—</td><td class="py-2" id="z4-first">—</td></tr>
+      </tbody></table>
+      <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500">Transitions: <span class="font-semibold text-slate-700" id="sum-transitions">—</span></div>
+    </div>
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Sweat Response</div>
+      <div class="space-y-2 text-sm">
+        <div class="flex justify-between"><span class="text-slate-500">Avg Sweat Rate</span><span class="font-semibold" id="sum-sweat-avg">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Max Sweat Rate</span><span class="font-semibold" id="sum-sweat-max">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Total Sensor Loss</span><span class="font-semibold" id="sum-sweat-total">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Est. Loss (Mass)</span><span class="font-semibold" id="sum-sweat-mass">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Sodium Loss</span><span class="font-semibold" id="sum-sodium">—</span></div>
+      </div>
+      <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-400">Sensor-derived unless marked user-entered</div>
+    </div>
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Heart Rate & Breaks</div>
+      <div class="space-y-2 text-sm mb-3">
+        <div class="flex justify-between"><span class="text-slate-500">Average HR</span><span class="font-semibold" id="sum-hr-avg">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Maximum HR</span><span class="font-semibold" id="sum-hr-max">—</span></div>
+      </div>
+      <div class="border-t border-slate-100 pt-3 space-y-2 text-sm">
+        <div class="flex justify-between"><span class="text-slate-500">Breaks</span><span class="font-semibold" id="sum-breaks-count">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Total Break Time</span><span class="font-semibold" id="sum-breaks-total">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Largest &Delta;T Decline</span><span class="font-semibold" id="sum-breaks-largest">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Avg Decline</span><span class="font-semibold" id="sum-breaks-avg">—</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card p-4">
+    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Sensor Status & Data Quality</div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="text-sm"><div class="text-slate-400 text-xs">Primary Sensor</div><div class="font-semibold">CALERA</div></div>
+      <div class="text-sm"><div class="text-slate-400 text-xs">% from Primary</div><div class="font-semibold" id="sum-pct-primary">—</div></div>
+      <div class="text-sm"><div class="text-slate-400 text-xs">% from Backup</div><div class="font-semibold" id="sum-pct-backup">—</div></div>
+      <div class="text-sm"><div class="text-slate-400 text-xs">Max Divergence</div><div class="font-semibold" id="sum-divergence">—</div></div>
+    </div>
+    <div class="mt-3 flex flex-wrap gap-2" id="quality-badges"><span class="badge badge-green">Ready</span></div>
+  </div>
+</div>
+
+<div id="tab-dashboard" class="tab-content hidden">
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-2"><h3 class="font-semibold text-sm">Core Temperature + Heart Rate</h3><div class="flex gap-2 text-xs"><label class="flex items-center gap-1"><input type="checkbox" id="show-calera" checked onchange="updateCharts()"> CALERA</label><label class="flex items-center gap-1"><input type="checkbox" id="show-core2" onchange="updateCharts()"> CORE 2</label></div></div>
+      <div class="chart-container"><canvas id="chart-core-hr"></canvas></div>
+    </div>
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-2"><h3 class="font-semibold text-sm">Core Temperature + Environment</h3><div class="flex gap-2 text-xs"><label class="flex items-center gap-1"><input type="checkbox" id="show-ambient" checked onchange="updateCharts()"> Ambient</label><label class="flex items-center gap-1"><input type="checkbox" id="show-rh" onchange="updateCharts()"> RH</label></div></div>
+      <div class="chart-container"><canvas id="chart-core-env"></canvas></div>
+    </div>
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-2"><h3 class="font-semibold text-sm">Core Temperature + Sweat Rate</h3><div class="flex gap-2 text-xs"><label class="flex items-center gap-1"><input type="checkbox" id="show-cumul" onchange="updateCharts()"> Cumulative</label></div></div>
+      <div class="chart-container"><canvas id="chart-core-sweat"></canvas></div>
+    </div>
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-2"><h3 class="font-semibold text-sm">Sweat Rate vs. Time</h3></div>
+      <div class="chart-container"><canvas id="chart-sweat-time"></canvas></div>
+    </div>
+  </div>
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-2"><h3 class="font-semibold text-sm">Skin Temperature vs. Core Temperature</h3></div>
+      <div class="chart-container"><canvas id="chart-skin-core"></canvas></div>
+    </div>
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-2"><h3 class="font-semibold text-sm">Sweat Rate vs. Core Temperature</h3></div>
+      <div class="chart-container"><canvas id="chart-sweat-core"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-processed" class="tab-content hidden">
+  <div class="card p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-semibold text-sm">Processed Master Timeline</h3>
+      <div class="flex gap-2"><input id="proc-search" class="border rounded px-2 py-1 text-xs" placeholder="Search..." oninput="renderProcessedTable(1)"><span class="text-xs text-slate-400 self-center" id="proc-count">0 rows</span></div>
+    </div>
+    <div class="overflow-auto max-h-[600px] border rounded-lg">
+      <table class="data-table">
+        <thead><tr>
+          <th>Elapsed (s)</th><th>HH:MM:SS</th><th>Interval (s)</th><th>Unified Core</th><th>Source</th><th>CALERA</th><th>CORE 2</th><th>Delta</th><th>HR</th><th>Skin</th><th>Sweat</th><th>Ambient</th><th>RH</th><th>Zone</th><th>Break?</th>
+        </tr></thead>
+        <tbody id="processed-tbody"></tbody>
+      </table>
+    </div>
+    <div class="flex justify-between items-center mt-3">
+      <div class="flex gap-1" id="proc-pagination"></div>
+      <span class="text-xs text-slate-400">Showing 100 rows per page</span>
+    </div>
+  </div>
+</div>
+
+<div id="tab-raw" class="tab-content hidden">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="card p-4"><h3 class="font-semibold text-sm mb-2">RAW CALERA DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-calera-info">No data imported</div><div class="overflow-auto max-h-[400px] border rounded-lg"><table class="data-table" id="raw-calera-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
+    <div class="card p-4"><h3 class="font-semibold text-sm mb-2">RAW CORE DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-core-info">No data imported</div><div class="overflow-auto max-h-[400px] border rounded-lg"><table class="data-table" id="raw-core-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
+    <div class="card p-4"><h3 class="font-semibold text-sm mb-2">RAW FLOWBIO DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-flowbio-info">No data imported</div><div class="overflow-auto max-h-[400px] border rounded-lg"><table class="data-table" id="raw-flowbio-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
+    <div class="card p-4"><h3 class="font-semibold text-sm mb-2">RAW ENVIRONMENTAL DATA</h3><div class="text-xs text-slate-500 mb-2" id="raw-env-info">No data imported</div><div class="overflow-auto max-h-[400px] border rounded-lg"><table class="data-table" id="raw-env-table"><thead><tr><th class="p-2">—</th></tr></thead><tbody></tbody></table></div></div>
+  </div>
+</div>
+
+<div id="tab-sweat" class="tab-content hidden">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Body Mass Inputs</div>
+      <div class="space-y-3">
+        <div><label class="text-xs text-slate-500">Pre-session body mass (kg)</label><input type="number" step="0.1" id="sw-pre" class="w-full border rounded px-2 py-1 text-sm mt-1" onchange="calculateSweatMetrics()"></div>
+        <div><label class="text-xs text-slate-500">Post-session body mass (kg)</label><input type="number" step="0.1" id="sw-post" class="w-full border rounded px-2 py-1 text-sm mt-1" onchange="calculateSweatMetrics()"></div>
+        <div><label class="text-xs text-slate-500">Fluid consumed (L)</label><input type="number" step="0.1" id="sw-fluid" class="w-full border rounded px-2 py-1 text-sm mt-1" onchange="calculateSweatMetrics()"></div>
+        <div><label class="text-xs text-slate-500">Urine output (L)</label><input type="number" step="0.1" id="sw-urine" class="w-full border rounded px-2 py-1 text-sm mt-1" onchange="calculateSweatMetrics()"></div>
+      </div>
+    </div>
+    <div class="card p-4 lg:col-span-2">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Calculated Metrics</div>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div><div class="text-xs text-slate-400">Avg Sweat Rate</div><div class="font-semibold text-lg" id="sw-avg">—</div><div class="text-[10px] text-slate-400">Sensor-derived</div></div>
+        <div><div class="text-xs text-slate-400">Max Sweat Rate</div><div class="font-semibold text-lg" id="sw-max">—</div><div class="text-[10px] text-slate-400">Sensor-derived</div></div>
+        <div><div class="text-xs text-slate-400">Min Sweat Rate</div><div class="font-semibold text-lg" id="sw-min">—</div><div class="text-[10px] text-slate-400">Sensor-derived</div></div>
+        <div><div class="text-xs text-slate-400">Total Sensor Loss</div><div class="font-semibold text-lg" id="sw-total">—</div><div class="text-[10px] text-slate-400">Sensor-derived</div></div>
+        <div><div class="text-xs text-slate-400">Est. Loss (Mass)</div><div class="font-semibold text-lg" id="sw-mass">—</div><div class="text-[10px] text-slate-400">Calculated</div></div>
+        <div><div class="text-xs text-slate-400">Sodium Loss</div><div class="font-semibold text-lg" id="sw-sodium">—</div><div class="text-[10px] text-slate-400">Calculated</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-events" class="tab-content hidden">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-3"><h3 class="font-semibold text-sm">Events & Breaks</h3><button onclick="addEventRow()" class="px-3 py-1 bg-slate-900 text-white rounded text-xs">+ Add Event</button></div>
+      <div class="overflow-auto max-h-[400px] border rounded-lg">
+        <table class="data-table">
+          <thead><tr><th>Start (sec)</th><th>End (sec)</th><th>Type</th><th>Description</th><th></th></tr></thead>
+          <tbody id="events-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card p-4">
+      <h3 class="font-semibold text-sm mb-3">Break-Specific Analysis</h3>
+      <div class="overflow-auto max-h-[400px] border rounded-lg">
+        <table class="data-table">
+          <thead><tr><th>Break #</th><th>Duration</th><th>Tcore Start</th><th>Tcore End</th><th>&Delta;T</th><th>Rate</th><th>Max Before</th><th>After</th></tr></thead>
+          <tbody id="breaks-tbody"></tbody>
+        </table>
+      </div>
+      <div class="mt-4 grid grid-cols-2 gap-4">
+        <div class="bg-slate-50 rounded-lg p-3">
+          <div class="text-xs font-semibold text-slate-500 uppercase mb-2">Active Periods</div>
+          <div class="text-sm space-y-1"><div class="flex justify-between"><span class="text-slate-500">Core Rise</span><span class="font-semibold" id="act-rise">—</span></div><div class="flex justify-between"><span class="text-slate-500">Rate</span><span class="font-semibold" id="act-rate">—</span></div><div class="flex justify-between"><span class="text-slate-500">Max Temp</span><span class="font-semibold" id="act-max">—</span></div><div class="flex justify-between"><span class="text-slate-500">Avg HR</span><span class="font-semibold" id="act-hr">—</span></div></div>
+        </div>
+        <div class="bg-slate-50 rounded-lg p-3">
+          <div class="text-xs font-semibold text-slate-500 uppercase mb-2">Break Periods</div>
+          <div class="text-sm space-y-1"><div class="flex justify-between"><span class="text-slate-500">Core Decline</span><span class="font-semibold" id="br-decline">—</span></div><div class="flex justify-between"><span class="text-slate-500">Rate</span><span class="font-semibold" id="br-rate">—</span></div><div class="flex justify-between"><span class="text-slate-500">Avg HR</span><span class="font-semibold" id="br-hr">—</span></div><div class="flex justify-between"><span class="text-slate-500">Total Duration</span><span class="font-semibold" id="br-dur">—</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-settings" class="tab-content hidden">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Core-Temperature Zones & Thresholds</div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs text-slate-500">Zone 1 Upper (°C)</label><input type="number" step="0.1" id="set-z1max" class="w-full border rounded px-2 py-1 text-sm mt-1" value="38.0"></div>
+        <div><label class="text-xs text-slate-500">Zone 2 Lower (°C)</label><input type="number" step="0.1" id="set-z2min" class="w-full border rounded px-2 py-1 text-sm mt-1" value="38.0"></div>
+        <div><label class="text-xs text-slate-500">Zone 2 Upper (°C)</label><input type="number" step="0.1" id="set-z2max" class="w-full border rounded px-2 py-1 text-sm mt-1" value="38.9"></div>
+        <div><label class="text-xs text-slate-500">Zone 3 Lower (°C)</label><input type="number" step="0.1" id="set-z3min" class="w-full border rounded px-2 py-1 text-sm mt-1" value="39.0"></div>
+        <div><label class="text-xs text-slate-500">Zone 3 Upper (°C)</label><input type="number" step="0.1" id="set-z3max" class="w-full border rounded px-2 py-1 text-sm mt-1" value="39.6"></div>
+        <div><label class="text-xs text-slate-500">Activity Cessation (°C)</label><input type="number" step="0.1" id="set-cutoff" class="w-full border rounded px-2 py-1 text-sm mt-1 font-semibold" value="39.7"></div>
+      </div>
+    </div>
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Sensor Priority & Fallback</div>
+      <div class="space-y-3">
+        <div><label class="text-xs text-slate-500">Primary Sensor</label><select id="set-primary" class="w-full border rounded px-2 py-1 text-sm mt-1"><option value="CALERA" selected>CALERA</option><option value="CORE 2">CORE 2</option></select></div>
+        <div class="flex items-center gap-2"><input type="checkbox" id="set-fallback" checked class="rounded"><label class="text-sm text-slate-700">Enable automatic fallback to backup</label></div>
+        <div><label class="text-xs text-slate-500">Fallback Tolerance (sec)</label><input type="number" id="set-tolerance" class="w-full border rounded px-2 py-1 text-sm mt-1" value="3"></div>
+        <div><label class="text-xs text-slate-500">Divergence Alert (°C)</label><input type="number" step="0.1" id="set-divergence" class="w-full border rounded px-2 py-1 text-sm mt-1" value="0.3"></div>
+        <div><label class="text-xs text-slate-500">Consecutive Minutes Before Alert</label><input type="number" id="set-consecutive" class="w-full border rounded px-2 py-1 text-sm mt-1" value="5"></div>
+        <div><label class="text-xs text-slate-500">CALERA Valid Quality Flags (comma-separated)</label><input type="text" id="set-quality" class="w-full border rounded px-2 py-1 text-sm mt-1" value="High,Medium"></div>
+      </div>
+    </div>
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">CALERA Column Mapping</div>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="text-xs text-slate-500">Time</label><input type="text" id="map-c-time" class="w-full border rounded px-2 py-1 text-sm mt-1" value="time"></div>
+        <div><label class="text-xs text-slate-500">Core Temp</label><input type="text" id="map-c-core" class="w-full border rounded px-2 py-1 text-sm mt-1" value="core_temperature"></div>
+        <div><label class="text-xs text-slate-500">Skin Temp</label><input type="text" id="map-c-skin" class="w-full border rounded px-2 py-1 text-sm mt-1" value="skin_temperature"></div>
+        <div><label class="text-xs text-slate-500">Heat Flux</label><input type="text" id="map-c-flux" class="w-full border rounded px-2 py-1 text-sm mt-1" value="heat_flux"></div>
+        <div><label class="text-xs text-slate-500">Quality Flag</label><input type="text" id="map-c-quality" class="w-full border rounded px-2 py-1 text-sm mt-1" value="quality"></div>
+      </div>
+    </div>
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">CORE 2 Column Mapping</div>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="text-xs text-slate-500">Time</label><input type="text" id="map-r-time" class="w-full border rounded px-2 py-1 text-sm mt-1" value="time"></div>
+        <div><label class="text-xs text-slate-500">Heart Rate</label><input type="text" id="map-r-hr" class="w-full border rounded px-2 py-1 text-sm mt-1" value="heartrate"></div>
+        <div><label class="text-xs text-slate-500">Core Temp</label><input type="text" id="map-r-core" class="w-full border rounded px-2 py-1 text-sm mt-1" value="core_temperature"></div>
+        <div><label class="text-xs text-slate-500">Skin / Temp</label><input type="text" id="map-r-skin" class="w-full border rounded px-2 py-1 text-sm mt-1" value="temp"></div>
+        <div><label class="text-xs text-slate-500">SmO2</label><input type="text" id="map-r-smo2" class="w-full border rounded px-2 py-1 text-sm mt-1" value="smo2"></div>
+        <div><label class="text-xs text-slate-500">tHb</label><input type="text" id="map-r-thb" class="w-full border rounded px-2 py-1 text-sm mt-1" value="thb"></div>
+      </div>
+    </div>
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">FLOWBIO Column Mapping</div>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="text-xs text-slate-500">Time</label><input type="text" id="map-f-time" class="w-full border rounded px-2 py-1 text-sm mt-1" value="timestamp"></div>
+        <div><label class="text-xs text-slate-500">Sweat Rate</label><input type="text" id="map-f-sweat" class="w-full border rounded px-2 py-1 text-sm mt-1" value="sweat_rate"></div>
+        <div><label class="text-xs text-slate-500">Cumulative Loss</label><input type="text" id="map-f-cumul" class="w-full border rounded px-2 py-1 text-sm mt-1" value="cumulative_loss"></div>
+        <div><label class="text-xs text-slate-500">Sodium Conc</label><input type="text" id="map-f-na" class="w-full border rounded px-2 py-1 text-sm mt-1" value="sodium_conc"></div>
+        <div><label class="text-xs text-slate-500">Sodium Loss Rate</label><input type="text" id="map-f-narate" class="w-full border rounded px-2 py-1 text-sm mt-1" value="sodium_loss_rate"></div>
+      </div>
+    </div>
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Environmental Column Mapping</div>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="text-xs text-slate-500">Time</label><input type="text" id="map-e-time" class="w-full border rounded px-2 py-1 text-sm mt-1" value="time"></div>
+        <div><label class="text-xs text-slate-500">Ambient Temp</label><input type="text" id="map-e-ambient" class="w-full border rounded px-2 py-1 text-sm mt-1" value="ambient_temp"></div>
+        <div><label class="text-xs text-slate-500">Relative Humidity</label><input type="text" id="map-e-rh" class="w-full border rounded px-2 py-1 text-sm mt-1" value="relative_humidity"></div>
+        <div><label class="text-xs text-slate-500">WBGT</label><input type="text" id="map-e-wbgt" class="w-full border rounded px-2 py-1 text-sm mt-1" value="wbgt"></div>
+      </div>
+    </div>
+  </div>
+  <div class="mt-4 flex gap-2">
+    <button onclick="saveSettings()" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium">Save Settings</button>
+    <button onclick="loadSettings()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium">Reset to Defaults</button>
+    <span class="text-xs text-slate-400 self-center ml-2">Settings auto-saved to browser localStorage</span>
+  </div>
+</div>
+
+</div>
+
+<script>
+const AppState = {
+  raw: { calera: [], core: [], flowbio: [], env: [] },
+  processed: [], events: [], metrics: {}, charts: {}
+};
+const DEFAULT_SETTINGS = {
+  zones: { z1Max: 38.0, z2Min: 38.0, z2Max: 38.9, z3Min: 39.0, z3Max: 39.6, cutoff: 39.7 },
+  sensors: { primary: 'CALERA', fallback: true, tolerance: 3, divergenceAlert: 0.3, consecutiveMin: 5, validQuality: 'High,Medium' },
+  mapCalera: { time: 'time', core: 'core_temperature', skin: 'skin_temperature', flux: 'heat_flux', quality: 'quality' },
+  mapCore: { time: 'time', hr: 'heartrate', core: 'core_temperature', skin: 'temp', smo2: 'smo2', thb: 'thb' },
+  mapFlowbio: { time: 'timestamp', sweat: 'sweat_rate', cumul: 'cumulative_loss', na: 'sodium_conc', naRate: 'sodium_loss_rate' },
+  mapEnv: { time: 'time', ambient: 'ambient_temp', rh: 'relative_humidity', wbgt: 'wbgt' }
+};
+let settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+
+function fmtTime(sec) {
+  if (sec == null || isNaN(sec)) return '—';
+  const h = Math.floor(sec / 3600).toString().padStart(2, '0');
+  const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
+  const s = Math.floor(sec % 60).toString().padStart(2, '0');
+  return h + ':' + m + ':' + s;
+}
+function fmtNum(v, d) {
+  d = d || 2;
+  if (v == null || isNaN(v)) return '—';
+  return v.toFixed(d);
+}
+function parseTime(val) {
+  if (val == null) return null;
+  if (typeof val === 'number') return val;
+  if (typeof val === 'string') {
+    if (/^\d{2}:\d{2}:\d{2}$/.test(val)) {
+      const p = val.split(':');
+      return parseInt(p[0])*3600 + parseInt(p[1])*60 + parseFloat(p[2]);
+    }
+    const n = parseFloat(val);
+    if (!isNaN(n)) return n;
+    const d = new Date(val);
+    if (!isNaN(d.getTime())) return d.getTime() / 1000;
+  }
+  return null;
+}
+function isValidQuality(q, validList) {
+  if (!q) return false;
+  const list = validList.split(',').map(s => s.trim().toLowerCase());
+  return list.indexOf(String(q).trim().toLowerCase()) >= 0;
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+  document.getElementById('tab-' + name).classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(el => { el.classList.remove('active'); el.classList.add('text-slate-600'); });
+  document.querySelectorAll('.tab-btn').forEach(el => {
+    if (el.getAttribute('onclick').includes("'" + name + "'")) { el.classList.add('active'); el.classList.remove('text-slate-600'); }
+  });
+  if (name === 'dashboard' && AppState.processed.length > 0) updateCharts();
+}
+
+function loadSettings() {
+  const saved = localStorage.getItem('heatSettings');
+  if (saved) { try { settings = JSON.parse(saved); } catch(e){} }
+  document.getElementById('set-z1max').value = settings.zones.z1Max;
+  document.getElementById('set-z2min').value = settings.zones.z2Min;
+  document.getElementById('set-z2max').value = settings.zones.z2Max;
+  document.getElementById('set-z3min').value = settings.zones.z3Min;
+  document.getElementById('set-z3max').value = settings.zones.z3Max;
+  document.getElementById('set-cutoff').value = settings.zones.cutoff;
+  document.getElementById('set-primary').value = settings.sensors.primary;
+  document.getElementById('set-fallback').checked = settings.sensors.fallback;
+  document.getElementById('set-tolerance').value = settings.sensors.tolerance;
+  document.getElementById('set-divergence').value = settings.sensors.divergenceAlert;
+  document.getElementById('set-consecutive').value = settings.sensors.consecutiveMin;
+  document.getElementById('set-quality').value = settings.sensors.validQuality;
+  const setVal = (id, v) => { const el = document.getElementById(id); if(el) el.value = v; };
+  setVal('map-c-time', settings.mapCalera.time);
+  setVal('map-c-core', settings.mapCalera.core);
+  setVal('map-c-skin', settings.mapCalera.skin);
+  setVal('map-c-flux', settings.mapCalera.flux);
+  setVal('map-c-quality', settings.mapCalera.quality);
+  setVal('map-r-time', settings.mapCore.time);
+  setVal('map-r-hr', settings.mapCore.hr);
+  setVal('map-r-core', settings.mapCore.core);
+  setVal('map-r-skin', settings.mapCore.skin);
+  setVal('map-r-smo2', settings.mapCore.smo2);
+  setVal('map-r-thb', settings.mapCore.thb);
+  setVal('map-f-time', settings.mapFlowbio.time);
+  setVal('map-f-sweat', settings.mapFlowbio.sweat);
+  setVal('map-f-cumul', settings.mapFlowbio.cumul);
+  setVal('map-f-na', settings.mapFlowbio.na);
+  setVal('map-f-narate', settings.mapFlowbio.naRate);
+  setVal('map-e-time', settings.mapEnv.time);
+  setVal('map-e-ambient', settings.mapEnv.ambient);
+  setVal('map-e-rh', settings.mapEnv.rh);
+  setVal('map-e-wbgt', settings.mapEnv.wbgt);
+}
+
+function saveSettings() {
+  settings.zones.z1Max = parseFloat(document.getElementById('set-z1max').value) || 38;
+  settings.zones.z2Min = parseFloat(document.getElementById('set-z2min').value) || 38;
+  settings.zones.z2Max = parseFloat(document.getElementById('set-z2max').value) || 38.9;
+  settings.zones.z3Min = parseFloat(document.getElementById('set-z3min').value) || 39;
+  settings.zones.z3Max = parseFloat(document.getElementById('set-z3max').value) || 39.6;
+  settings.zones.cutoff = parseFloat(document.getElementById('set-cutoff').value) || 39.7;
+  settings.sensors.primary = document.getElementById('set-primary').value;
+  settings.sensors.fallback = document.getElementById('set-fallback').checked;
+  settings.sensors.tolerance = parseFloat(document.getElementById('set-tolerance').value) || 3;
+  settings.sensors.divergenceAlert = parseFloat(document.getElementById('set-divergence').value) || 0.3;
+  settings.sensors.consecutiveMin = parseFloat(document.getElementById('set-consecutive').value) || 5;
+  settings.sensors.validQuality = document.getElementById('set-quality').value;
+  settings.mapCalera = {
+    time: document.getElementById('map-c-time').value,
+    core: document.getElementById('map-c-core').value,
+    skin: document.getElementById('map-c-skin').value,
+    flux: document.getElementById('map-c-flux').value,
+    quality: document.getElementById('map-c-quality').value
+  };
+  settings.mapCore = {
+    time: document.getElementById('map-r-time').value,
+    hr: document.getElementById('map-r-hr').value,
+    core: document.getElementById('map-r-core').value,
+    skin: document.getElementById('map-r-skin').value,
+    smo2: document.getElementById('map-r-smo2').value,
+    thb: document.getElementById('map-r-thb').value
+  };
+  settings.mapFlowbio = {
+    time: document.getElementById('map-f-time').value,
+    sweat: document.getElementById('map-f-sweat').value,
+    cumul: document.getElementById('map-f-cumul').value,
+    na: document.getElementById('map-f-na').value,
+    naRate: document.getElementById('map-f-narate').value
+  };
+  settings.mapEnv = {
+    time: document.getElementById('map-e-time').value,
+    ambient: document.getElementById('map-e-ambient').value,
+    rh: document.getElementById('map-e-rh').value,
+    wbgt: document.getElementById('map-e-wbgt').value
+  };
+  localStorage.setItem('heatSettings', JSON.stringify(settings));
+  alert('Settings saved. Click Process Data to apply.');
+}
+
+function handleFile(input, type) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('status-' + type).textContent = 'Parsing...';
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'csv') {
+    Papa.parse(file, {
+      header: true, dynamicTyping: true, skipEmptyLines: true,
+      complete: (res) => { AppState.raw[type] = res.data; onImportDone(type, res.data.length); }
+    });
+  } else {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(sheet, { defval: null });
+      AppState.raw[type] = json;
+      onImportDone(type, json.length);
+    };
+    reader.readAsArrayBuffer(file);
+  }
+}
+function onImportDone(type, count) {
+  document.getElementById('status-' + type).textContent = count + ' rows';
+  renderRawTable(type);
+}
+function renderRawTable(type) {
+  const data = AppState.raw[type];
+  const info = document.getElementById('raw-' + type + '-info');
+  const table = document.getElementById('raw-' + type + '-table');
+  if (!data || data.length === 0) { if(info) info.textContent = 'No data'; return; }
+  if(info) info.textContent = data.length + ' rows, ' + Object.keys(data[0]).length + ' columns';
+  const cols = Object.keys(data[0]);
+  let html = '<thead><tr>' + cols.map(c => '<th>' + c + '</th>').join('') + '</tr></thead><tbody>';
+  for (let i = 0; i < Math.min(50, data.length); i++) {
+    html += '<tr>' + cols.map(c => '<td>' + (data[i][c] != null ? data[i][c] : '') + '</td>').join('') + '</tr>';
+  }
+  if (data.length > 50) html += '<tr><td colspan="' + cols.length + '" class="text-center text-slate-400 italic">... ' + (data.length - 50) + ' more rows ...</td></tr>';
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+function normalizeDataset(data, timeCol) {
+  if (!data || data.length === 0) return [];
+  const keys = Object.keys(data[0]);
+  let tKey = timeCol;
+  if (keys.indexOf(tKey) < 0) {
+    for (let i = 0; i < keys.length; i++) {
+      if (keys[i].toLowerCase().replace(/[_\s]/g, '') === timeCol.toLowerCase().replace(/[_\s]/g, '')) { tKey = keys[i]; break; }
+    }
+  }
+  let minTime = Infinity;
+  const rows = [];
+  for (let i = 0; i < data.length; i++) {
+    const t = parseTime(data[i][tKey]);
+    if (t != null && !isNaN(t)) {
+      rows.push({ raw: data[i], time: t });
+      if (t < minTime) minTime = t;
+    }
+  }
+  if (minTime === Infinity) minTime = 0;
+  for (let i = 0; i < rows.length; i++) rows[i].elapsed = rows[i].time - minTime;
+  rows.sort((a, b) => a.elapsed - b.elapsed);
+  return rows;
+}
+
+function processAllData() {
+  if (AppState.raw.calera.length === 0 && AppState.raw.core.length === 0) {
+    alert('Import at least CALERA or CORE 2 data first.'); return;
+  }
+  const normCalera = normalizeDataset(AppState.raw.calera, settings.mapCalera.time);
+  const normCore = normalizeDataset(AppState.raw.core, settings.mapCore.time);
+  const normFlow = normalizeDataset(AppState.raw.flowbio, settings.mapFlowbio.time);
+  const normEnv = normalizeDataset(AppState.raw.env, settings.mapEnv.time);
+
+  const allTimes = new Set();
+  normCalera.forEach(r => { if (r.elapsed != null) allTimes.add(Math.round(r.elapsed)); });
+  normCore.forEach(r => { if (r.elapsed != null) allTimes.add(Math.round(r.elapsed)); });
+  const master = Array.from(allTimes).sort((a, b) => a - b);
+
+  const calMap = new Map(); normCalera.forEach(r => calMap.set(Math.round(r.elapsed), r));
+  const coreMap = new Map(); normCore.forEach(r => coreMap.set(Math.round(r.elapsed), r));
+  const flowMap = new Map(); normFlow.forEach(r => flowMap.set(Math.round(r.elapsed), r));
+  const envMap = new Map(); normEnv.forEach(r => envMap.set(Math.round(r.elapsed), r));
+
+  const tol = settings.sensors.tolerance;
+  const validQ = settings.sensors.validQuality;
+  const primary = settings.sensors.primary;
+  const fallback = settings.sensors.fallback;
+
+  const processed = [];
+  let prevTime = 0;
+  for (let i = 0; i < master.length; i++) {
+    const t = master[i];
+    const row = { elapsedSec: t, elapsedMin: t / 60, hhmmss: fmtTime(t) };
+    row.intervalSec = (i === 0) ? (t > 0 ? t : 0) : t - prevTime;
+    prevTime = t;
+
+    let cal = calMap.get(t);
+    let cor = coreMap.get(t);
+    if (!cal) { for (let d = 1; d <= tol; d++) { if (calMap.get(t - d)) { cal = calMap.get(t - d); break; } if (calMap.get(t + d)) { cal = calMap.get(t + d); break; } } }
+    if (!cor) { for (let d = 1; d <= tol; d++) { if (coreMap.get(t - d)) { cor = coreMap.get(t - d); break; } if (coreMap.get(t + d)) { cor = coreMap.get(t + d); break; } } }
+
+    const calCore = cal ? parseFloat(cal.raw[settings.mapCalera.core]) : null;
+    const calQuality = cal ? cal.raw[settings.mapCalera.quality] : null;
+    const corCore = cor ? parseFloat(cor.raw[settings.mapCore.core]) : null;
+
+    let unified = null, source = 'None';
+    if (primary === 'CALERA') {
+      if (calCore != null && isValidQuality(calQuality, validQ)) { unified = calCore; source = 'CALERA'; }
+      else if (fallback && corCore != null) { unified = corCore; source = 'CORE 2'; }
+    } else {
+      if (corCore != null) { unified = corCore; source = 'CORE 2'; }
+      else if (fallback && calCore != null && isValidQuality(calQuality, validQ)) { unified = calCore; source = 'CALERA'; }
+    }
+    row.unifiedCore = unified;
+    row.coreSource = source;
+    row.caleraCore = calCore;
+    row.core2Core = corCore;
+    row.sensorDelta = (calCore != null && corCore != null) ? (calCore - corCore) : null;
+
+    row.hr = cor ? parseFloat(cor.raw[settings.mapCore.hr]) : null;
+    const calSkin = cal ? parseFloat(cal.raw[settings.mapCalera.skin]) : null;
+    const corSkin = cor ? parseFloat(cor.raw[settings.mapCore.skin]) : null;
+    row.skinTemp = calSkin != null ? calSkin : corSkin;
+
+    let fl = flowMap.get(t);
+    if (!fl) { for (let d = 1; d <= tol; d++) { if (flowMap.get(t - d)) { row.sweatRate = parseFloat(flowMap.get(t - d).raw[settings.mapFlowbio.sweat]); break; } if (flowMap.get(t + d)) { row.sweatRate = parseFloat(flowMap.get(t + d).raw[settings.mapFlowbio.sweat]); break; } } }
+    else row.sweatRate = parseFloat(fl.raw[settings.mapFlowbio.sweat]) || null;
+    if (row.sweatRate == null) row.sweatRate = null;
+
+    let en = envMap.get(t);
+    if (!en) { for (let d = 1; d <= tol; d++) { if (envMap.get(t - d)) { row.ambient = parseFloat(envMap.get(t - d).raw[settings.mapEnv.ambient]); row.rh = parseFloat(envMap.get(t - d).raw[settings.mapEnv.rh]); break; } if (envMap.get(t + d)) { row.ambient = parseFloat(envMap.get(t + d).raw[settings.mapEnv.ambient]); row.rh = parseFloat(envMap.get(t + d).raw[settings.mapEnv.rh]); break; } } }
+    else { row.ambient = parseFloat(en.raw[settings.mapEnv.ambient]) || null; row.rh = parseFloat(en.raw[settings.mapEnv.rh]) || null; }
+
+    const z = settings.zones;
+    if (row.unifiedCore != null) {
+      if (row.unifiedCore < z.z1Max) row.zone = 'Zone 1';
+      else if (row.unifiedCore < z.z2Max) row.zone = 'Zone 2';
+      else if (row.unifiedCore < z.z3Max) row.zone = 'Zone 3';
+      else row.zone = 'Zone 4/Cutoff';
+    } else row.zone = '';
+
+    row.isBreak = AppState.events.some(e => t >= e.start && t <= e.end);
+    processed.push(row);
+  }
+  AppState.processed = processed;
+  calculateMetrics();
+  renderAthleteSummary();
+  renderProcessedTable(1);
+  renderBreakAnalysis();
+  calculateSweatMetrics();
+  updateCharts();
+  alert('Processing complete: ' + processed.length + ' rows generated.');
+}
+
+function calculateMetrics() {
+  const p = AppState.processed;
+  if (p.length === 0) return;
+  const valid = p.filter(r => r.unifiedCore != null && !isNaN(r.unifiedCore));
+  if (valid.length === 0) return;
+  const m = {};
+  m.start = valid[0].unifiedCore;
+  m.final = valid[valid.length - 1].unifiedCore;
+  m.min = Infinity; m.max = -Infinity;
+  let maxIdx = 0;
+  for (let i = 0; i < valid.length; i++) {
+    if (valid[i].unifiedCore > m.max) { m.max = valid[i].unifiedCore; maxIdx = i; }
+    if (valid[i].unifiedCore < m.min) m.min = valid[i].unifiedCore;
+  }
+  m.totalRise = m.max - m.start;
+  m.netChange = m.final - m.start;
+  const maxTime = valid[maxIdx].elapsedSec;
+  m.rateRise = (maxTime > 0) ? (m.totalRise / (maxTime / 60)) : 0;
+  m.timeToMax = maxTime / 60;
+
+  const z = settings.zones;
+  m.zones = {};
+  ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4/Cutoff'].forEach(zn => {
+    m.zones[zn] = { time: 0, pct: 0, first: null, maxTemp: -Infinity };
+  });
+  let totalTime = 0;
+  for (let i = 0; i < p.length; i++) totalTime += p[i].intervalSec || 0;
+  let transitions = 0;
+  for (let i = 1; i < p.length; i++) { if (p[i].zone && p[i - 1].zone && p[i].zone !== p[i - 1].zone) transitions++; }
+  m.transitions = transitions;
+
+  for (let i = 0; i < p.length; i++) {
+    const r = p[i];
+    if (!r.zone) continue;
+    const zd = m.zones[r.zone];
+    zd.time += (r.intervalSec || 0);
+    if (zd.first == null) zd.first = r.elapsedSec;
+    if (r.unifiedCore > zd.maxTemp) zd.maxTemp = r.unifiedCore;
+  }
+  for (const k in m.zones) {
+    m.zones[k].pct = totalTime > 0 ? (m.zones[k].time / totalTime * 100) : 0;
+  }
+
+  m.cutoffReached = m.max >= z.cutoff ? 'YES' : 'NO';
+  m.timeAboveCutoff = 0;
+  m.maxAboveCutoff = 0;
+  m.firstReached = null;
+  for (let i = 0; i < p.length; i++) {
+    if (p[i].unifiedCore != null && p[i].unifiedCore >= z.cutoff) {
+      m.timeAboveCutoff += (p[i].intervalSec || 0);
+      if (m.firstReached == null) m.firstReached = p[i].elapsedSec;
+      const above = p[i].unifiedCore - z.cutoff;
+      if (above > m.maxAboveCutoff) m.maxAboveCutoff = above;
+    }
+  }
+
+  const hrs = p.filter(r => r.hr != null && !isNaN(r.hr)).map(r => r.hr);
+  m.hrAvg = hrs.length > 0 ? hrs.reduce((a, b) => a + b, 0) / hrs.length : null;
+  m.hrMax = hrs.length > 0 ? Math.max(...hrs) : null;
+
+  let calCount = 0, coreCount = 0, divs = [];
+  for (let i = 0; i < p.length; i++) {
+    if (p[i].coreSource === 'CALERA') calCount++;
+    if (p[i].coreSource === 'CORE 2') coreCount++;
+    if (p[i].sensorDelta != null) divs.push(Math.abs(p[i].sensorDelta));
+  }
+  const totalValid = calCount + coreCount;
+  m.pctPrimary = totalValid > 0 ? (calCount / totalValid * 100) : 0;
+  m.pctBackup = totalValid > 0 ? (coreCount / totalValid * 100) : 0;
+  m.maxDivergence = divs.length > 0 ? Math.max(...divs) : null;
+
+  let missing = 0, duplicates = 0, gaps = 0, invalid = 0;
+  const times = {};
+  for (let i = 0; i < p.length; i++) {
+    if (p[i].unifiedCore == null) missing++;
+    if (p[i].unifiedCore != null && isNaN(p[i].unifiedCore)) invalid++;
+    const t = p[i].elapsedSec;
+    if (times[t]) duplicates++; else times[t] = true;
+    if (p[i].intervalSec > 5) gaps++;
+  }
+  m.quality = { missing, duplicates, gaps, invalid };
+  AppState.metrics = m;
+}
+
+function renderAthleteSummary() {
+  const m = AppState.metrics;
+  if (!m || !m.start) return;
+  document.getElementById('sum-start').textContent = fmtNum(m.start, 2);
+  document.getElementById('sum-max').textContent = fmtNum(m.max, 2);
+  if (m.max >= settings.zones.cutoff) document.getElementById('sum-max').classList.add('cutoff-red'); else document.getElementById('sum-max').classList.remove('cutoff-red');
+  document.getElementById('sum-final').textContent = fmtNum(m.final, 2);
+  document.getElementById('sum-rise').textContent = fmtNum(m.totalRise, 2);
+  document.getElementById('sum-net').textContent = fmtNum(m.netChange, 2);
+  document.getElementById('sum-rate').textContent = fmtNum(m.rateRise, 3);
+  document.getElementById('sum-timetomax').textContent = fmtNum(m.timeToMax, 1);
+  document.getElementById('sum-cutoff').textContent = m.cutoffReached;
+  document.getElementById('sum-cutoff-sub').textContent = settings.zones.cutoff + ' °C threshold';
+
+  const dur = AppState.processed.length > 0 ? AppState.processed[AppState.processed.length - 1].elapsedSec : 0;
+  document.getElementById('sum-duration').textContent = fmtTime(dur);
+
+  const zmap = { 'Zone 1': 'z1', 'Zone 2': 'z2', 'Zone 3': 'z3', 'Zone 4/Cutoff': 'z4' };
+  for (const k in zmap) {
+    const zd = m.zones[k];
+    document.getElementById(zmap[k] + '-time').textContent = fmtNum(zd.time, 1) + ' s';
+    document.getElementById(zmap[k] + '-pct').textContent = fmtNum(zd.pct, 1) + '%';
+    document.getElementById(zmap[k] + '-first').textContent = zd.first != null ? fmtTime(zd.first) : '—';
+  }
+  document.getElementById('sum-transitions').textContent = m.transitions;
+
+  document.getElementById('sum-hr-avg').textContent = m.hrAvg != null ? fmtNum(m.hrAvg, 1) + ' bpm' : '—';
+  document.getElementById('sum-hr-max').textContent = m.hrMax != null ? fmtNum(m.hrMax, 1) + ' bpm' : '—';
+
+  document.getElementById('sum-pct-primary').textContent = fmtNum(m.pctPrimary, 1) + '%';
+  document.getElementById('sum-pct-backup').textContent = fmtNum(m.pctBackup, 1) + '%';
+  document.getElementById('sum-divergence').textContent = m.maxDivergence != null ? fmtNum(m.maxDivergence, 2) + ' °C' : '—';
+
+  let badges = '';
+  if (m.max >= settings.zones.cutoff) {
+    badges += '<span class="badge badge-red"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Cutoff Reached (' + fmtNum(m.max, 2) + '°C)</span>';
+  } else if (m.max >= settings.zones.z3Min) {
+    badges += '<span class="badge badge-yellow"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Zone 3 Warning</span>';
+  } else {
+    badges += '<span class="badge badge-green"><i class="fa-solid fa-check mr-1"></i> Normal Thermal Load</span>';
+  }
+
+  if (m.quality && m.quality.gaps > 0) {
+    badges += '<span class="badge badge-yellow">Gaps Detected (' + m.quality.gaps + ')</span>';
+  }
+  
+  const qb = document.getElementById('quality-badges');
+  if (qb) qb.innerHTML = badges;
+}
+
+function renderProcessedTable(page) {
+  const tbody = document.getElementById('processed-tbody');
+  if (!tbody || !AppState.processed.length) return;
+
+  const pageSize = 100;
+  const start = ((page || 1) - 1) * pageSize;
+  const end = Math.min(start + pageSize, AppState.processed.length);
+  const rows = AppState.processed.slice(start, end);
+
+  let html = '';
+  for (const r of rows) {
+    html += `<tr>
+      <td>${r.elapsedSec}</td>
+      <td>${r.hhmmss}</td>
+      <td>${r.intervalSec}</td>
+      <td>${fmtNum(r.unifiedCore, 2)}</td>
+      <td><span class="badge ${r.coreSource === 'CALERA' ? 'badge-green' : 'badge-yellow'}">${r.coreSource}</span></td>
+      <td>${fmtNum(r.caleraCore, 2)}</td>
+      <td>${fmtNum(r.core2Core, 2)}</td>
+      <td>${fmtNum(r.sensorDelta, 2)}</td>
+      <td>${r.hr ?? '—'}</td>
+      <td>${fmtNum(r.skinTemp, 1)}</td>
+      <td>${fmtNum(r.sweatRate, 2)}</td>
+      <td>${fmtNum(r.ambient, 1)}</td>
+      <td>${fmtNum(r.rh, 1)}</td>
+      <td>${r.zone}</td>
+      <td>${r.isBreak ? 'Yes' : 'No'}</td>
+    </tr>`;
+  }
+  tbody.innerHTML = html;
+  const pc = document.getElementById('proc-count');
+  if (pc) pc.textContent = `${AppState.processed.length} rows`;
+}
+
+function renderBreakAnalysis() {
+  const tbody = document.getElementById('breaks-tbody');
+  if (!tbody) return;
+  
+  let html = '';
+  AppState.events.filter(e => e.type === 'Break').forEach((brk, idx) => {
+    const pInBreak = AppState.processed.filter(r => r.elapsedSec >= brk.start && r.elapsedSec <= brk.end && r.unifiedCore != null);
+    if (pInBreak.length === 0) return;
+
+    const tStart = pInBreak[0].unifiedCore;
+    const tEnd = pInBreak[pInBreak.length - 1].unifiedCore;
+    const deltaT = tEnd - tStart;
+    const duration = brk.end - brk.start;
+    const rate = duration > 0 ? (deltaT / (duration / 60)) : 0;
+
+    html += `<tr>
+      <td>#${idx + 1}</td>
+      <td>${fmtTime(duration)}</td>
+      <td>${fmtNum(tStart, 2)}°C</td>
+      <td>${fmtNum(tEnd, 2)}°C</td>
+      <td class="${deltaT < 0 ? 'text-green-600' : 'text-red-600'}">${fmtNum(deltaT, 2)}°C</td>
+      <td>${fmtNum(rate, 3)}°C/min</td>
+      <td>—</td>
+      <td>—</td>
+    </tr>`;
+  });
+  tbody.innerHTML = html || '<tr><td colspan="8" class="text-center text-slate-400 py-2">No break events recorded</td></tr>';
+}
+
+function renderEventsTable() {
+  const tbody = document.getElementById('events-tbody');
+  if (!tbody) return;
+  let html = '';
+  AppState.events.forEach((e, i) => {
+    html += `<tr>
+      <td><input type="number" value="${e.start}" class="w-16 border rounded px-1" onchange="AppState.events[${i}].start=parseFloat(this.value)"></td>
+      <td><input type="number" value="${e.end}" class="w-16 border rounded px-1" onchange="AppState.events[${i}].end=parseFloat(this.value)"></td>
+      <td>${e.type}</td>
+      <td>${e.desc}</td>
+      <td><button onclick="AppState.events.splice(${i},1); renderEventsTable();" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+function addEventRow() {
+  AppState.events.push({ start: 0, end: 60, type: 'Break', desc: 'Custom Event' });
+  renderEventsTable();
+}
+
+function calculateSweatMetrics() {
+  const pre = parseFloat(document.getElementById('sw-pre')?.value) || 0;
+  const post = parseFloat(document.getElementById('sw-post')?.value) || 0;
+  const fluid = parseFloat(document.getElementById('sw-fluid')?.value) || 0;
+  const urine = parseFloat(document.getElementById('sw-urine')?.value) || 0;
+
+  if (pre > 0 && post > 0) {
+    const lossMass = (pre - post) + fluid - urine;
+    const swMassEl = document.getElementById('sw-mass');
+    if (swMassEl) swMassEl.textContent = fmtNum(lossMass, 2) + ' kg';
+  }
+}
+
+function decimate(arr, maxPoints) {
+  if (arr.length <= maxPoints) return arr;
+  const step = Math.ceil(arr.length / maxPoints);
+  const out = [];
+  for (let i = 0; i < arr.length; i += step) out.push(arr[i]);
+  return out;
+}
+
+function buildAnnotations() {
+  const z = settings.zones;
+  const anns = {};
+  anns.zone1 = { type: 'box', yMin: 35, yMax: z.z1Max, backgroundColor: 'rgba(13,148,136,0.06)', borderWidth: 0 };
+  anns.zone2 = { type: 'box', yMin: z.z2Min, yMax: z.z2Max, backgroundColor: 'rgba(217,119,6,0.06)', borderWidth: 0 };
+  anns.zone3 = { type: 'box', yMin: z.z3Min, yMax: z.z3Max, backgroundColor: 'rgba(234,88,12,0.06)', borderWidth: 0 };
+  anns.zone4 = { type: 'box', yMin: z.z3Max, yMax: 42, backgroundColor: 'rgba(220,38,38,0.08)', borderWidth: 0 };
+  anns.cutoff = { type: 'line', yMin: z.cutoff, yMax: z.cutoff, borderColor: '#000', borderWidth: 2, label: { content: z.cutoff + '°C — ACTIVITY CESSATION THRESHOLD', display: true, position: 'end', color: '#000', font: { size: 10 } } };
+  AppState.events.forEach((e, idx) => {
+    anns['break' + idx] = { type: 'box', xMin: e.start, xMax: e.end, backgroundColor: 'rgba(0,0,0,0.12)', borderWidth: 0, label: { content: 'BREAK', display: true, position: 'start', color: '#333', font: { size: 9 }, rotation: 90 } };
+  });
+  return anns;
+}
+
+function buildScatterZoneAnnotations() {
+  const z = settings.zones;
+  return {
+    zone1: { type: 'box', xMin: 35, xMax: z.z1Max, backgroundColor: 'rgba(13,148,136,0.06)', borderWidth: 0 },
+    zone2: { type: 'box', xMin: z.z2Min, xMax: z.z2Max, backgroundColor: 'rgba(217,119,6,0.06)', borderWidth: 0 },
+    zone3: { type: 'box', xMin: z.z3Min, xMax: z.z3Max, backgroundColor: 'rgba(234,88,12,0.06)', borderWidth: 0 },
+    zone4: { type: 'box', xMin: z.z3Max, xMax: 42, backgroundColor: 'rgba(220,38,38,0.08)', borderWidth: 0 },
+    cutoff: { type: 'line', xMin: z.cutoff, xMax: z.cutoff, borderColor: '#000', borderWidth: 2, label: { content: 'CUTOFF', display: true, position: 'start', color: '#000', font: { size: 10 } } }
+  };
+}
+
+function initCharts() {
+  const common = { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } }, tooltip: { enabled: true } } };
+
+  AppState.charts.coreHr = new Chart(document.getElementById('chart-core-hr'), {
+    type: 'line', data: { labels: [], datasets: [] },
+    options: Object.assign({}, common, {
+      scales: { x: { title: { display: true, text: 'Elapsed Time (s)' } }, y: { position: 'left', title: { display: true, text: 'Core Temperature (°C)' }, min: 36.5, max: 41 }, y1: { position: 'right', title: { display: true, text: 'Heart Rate (bpm)' }, grid: { drawOnChartArea: false }, min: 60, max: 200 } },
+      plugins: { annotation: { annotations: {} } }
+    })
+  });
+
+  AppState.charts.coreEnv = new Chart(document.getElementById('chart-core-env'), {
+    type: 'line', data: { labels: [], datasets: [] },
+    options: Object.assign({}, common, {
+      scales: { x: { title: { display: true, text: 'Elapsed Time (s)' } }, y: { position: 'left', title: { display: true, text: 'Core Temp (°C)' }, min: 36.5, max: 41 }, y1: { position: 'right', title: { display: true, text: 'Environment' }, grid: { drawOnChartArea: false } } },
+      plugins: { annotation: { annotations: {} } }
+    })
+  });
+
+  AppState.charts.coreSweat = new Chart(document.getElementById('chart-core-sweat'), {
+    type: 'line', data: { labels: [], datasets: [] },
+    options: Object.assign({}, common, {
+      scales: { x: { title: { display: true, text: 'Elapsed Time (s)' } }, y: { position: 'left', title: { display: true, text: 'Core Temp (°C)' }, min: 36.5, max: 41 }, y1: { position: 'right', title: { display: true, text: 'Sweat Rate (L/hr)' }, grid: { drawOnChartArea: false } } },
+      plugins: { annotation: { annotations: {} } }
+    })
+  });
+
+  AppState.charts.sweatTime = new Chart(document.getElementById('chart-sweat-time'), {
+    type: 'line', data: { labels: [], datasets: [] },
+    options: Object.assign({}, common, {
+      scales: { x: { title: { display: true, text: 'Elapsed Time (s)' } }, y: { title: { display: true, text: 'Sweat Rate (L/hr)' } } },
+      plugins: { annotation: { annotations: {} } }
+    })
+  });
+
+  AppState.charts.skinCore = new Chart(document.getElementById('chart-skin-core'), {
+    type: 'scatter', data: { datasets: [] },
+    options: Object.assign({}, common, {
+      showLine: true, tension: 0.3,
+      scales: { x: { title: { display: true, text: 'Core Temperature (°C)' }, min: 36.5, max: 41 }, y: { title: { display: true, text: 'Skin Temperature (°C)' }, min: 28, max: 38 } },
+      plugins: { annotation: { annotations: buildScatterZoneAnnotations() } }
+    })
+  });
+
+  AppState.charts.sweatCore = new Chart(document.getElementById('chart-sweat-core'), {
+    type: 'scatter', data: { datasets: [] },
+    options: Object.assign({}, common, {
+      showLine: false,
+      scales: { x: { title: { display: true, text: 'Core Temperature (°C)' }, min: 36.5, max: 41 }, y: { title: { display: true, text: 'Sweat Rate (L/hr)' } } },
+      plugins: { annotation: { annotations: buildScatterZoneAnnotations() } }
+    })
+  });
+}
+
+function updateCharts() {
+  const p = AppState.processed;
+  if (p.length === 0) return;
+  const maxPts = 5000;
+  const dp = decimate(p, maxPts);
+  const labels = dp.map(r => r.elapsedSec);
+  const showCal = document.getElementById('show-calera').checked;
+  const showCor = document.getElementById('show-core2').checked;
+  const showAmb = document.getElementById('show-ambient').checked;
+  const showRh = document.getElementById('show-rh').checked;
+
+  const ds1 = [
+    { label: 'Unified Core', data: dp.map(r => r.unifiedCore), borderColor: '#1D3557', backgroundColor: '#1D3557', yAxisID: 'y', tension: 0.3, pointRadius: 0, borderWidth: 2.5 }
+  ];
+  if (showCal) ds1.push({ label: 'CALERA', data: dp.map(r => r.caleraCore), borderColor: '#6A4C93', borderDash: [5, 5], yAxisID: 'y', tension: 0.3, pointRadius: 0, borderWidth: 1.5 });
+  if (showCor) ds1.push({ label: 'CORE 2', data: dp.map(r => r.core2Core), borderColor: '#2A9D8F', borderDash: [3, 3], yAxisID: 'y', tension: 0.3, pointRadius: 0, borderWidth: 1.5 });
+  ds1.push({ label: 'Heart Rate', data: dp.map(r => r.hr), borderColor: '#e11d48', backgroundColor: '#e11d48', yAxisID: 'y1', tension: 0.3, pointRadius: 0, borderWidth: 1.5 });
+  AppState.charts.coreHr.data.labels = labels;
+  AppState.charts.coreHr.data.datasets = ds1;
+  AppState.charts.coreHr.options.plugins.annotation.annotations = buildAnnotations();
+  AppState.charts.coreHr.update();
+
+  const ds2 = [
+    { label: 'Unified Core', data: dp.map(r => r.unifiedCore), borderColor: '#1D3557', yAxisID: 'y', tension: 0.3, pointRadius: 0, borderWidth: 2.5 }
+  ];
+  if (showAmb) ds2.push({ label: 'Ambient', data: dp.map(r => r.ambient), borderColor: '#f59e0b', yAxisID: 'y1', tension: 0.3, pointRadius: 0, borderWidth: 1.5 });
+  if (showRh) ds2.push({ label: 'RH %', data: dp.map(r => r.rh), borderColor: '#3b82f6', borderDash: [4, 4], yAxisID: 'y1', tension: 0.3, pointRadius: 0, borderWidth: 1.5 });
+  AppState.charts.coreEnv.data.labels = labels;
+  AppState.charts.coreEnv.data.datasets = ds2;
+  AppState.charts.coreEnv.options.plugins.annotation.annotations = buildAnnotations();
+  AppState.charts.coreEnv.update();
+
+  const ds3 = [
+    { label: 'Unified Core', data: dp.map(r => r.unifiedCore), borderColor: '#1D3557', yAxisID: 'y', tension: 0.3, pointRadius: 0, borderWidth: 2.5 }
+  ];
+  ds3.push({ label: 'Sweat Rate', data: dp.map(r => r.sweatRate), borderColor: '#0ea5e9', yAxisID: 'y1', tension: 0.3, pointRadius: 0, borderWidth: 1.5 });
+  AppState.charts.coreSweat.data.labels = labels;
+  AppState.charts.coreSweat.data.datasets = ds3;
+  AppState.charts.coreSweat.options.plugins.annotation.annotations = buildAnnotations();
+  AppState.charts.coreSweat.update();
+
+  AppState.charts.sweatTime.data.labels = labels;
+  AppState.charts.sweatTime.data.datasets = [
+    { label: 'Sweat Rate', data: dp.map(r => r.sweatRate), borderColor: '#0ea5e9', tension: 0.3, pointRadius: 0, borderWidth: 1.5, fill: true, backgroundColor: 'rgba(14,165,233,0.1)' }
+  ];
+  const stAnn = {};
+  AppState.events.forEach((e, idx) => { stAnn['break' + idx] = { type: 'box', xMin: e.start, xMax: e.end, backgroundColor: 'rgba(0,0,0,0.12)', borderWidth: 0 }; });
+  AppState.charts.sweatTime.options.plugins.annotation.annotations = stAnn;
+  AppState.charts.sweatTime.update();
+
+  const scData = p.filter(r => r.unifiedCore != null && r.skinTemp != null).map(r => ({ x: r.unifiedCore, y: r.skinTemp }));
+  AppState.charts.skinCore.data.datasets = [
+    { label: 'Skin vs Core', data: decimate(scData, maxPts), borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.5)', pointRadius: 2, borderWidth: 1.5, showLine: true }
+  ];
+  AppState.charts.skinCore.options.plugins.annotation.annotations = buildScatterZoneAnnotations();
+  AppState.charts.skinCore.update();
+
+  const swData = p.filter(r => r.unifiedCore != null && r.sweatRate != null).map(r => ({ x: r.unifiedCore, y: r.sweatRate }));
+  AppState.charts.sweatCore.data.datasets = [
+    { label: 'Sweat vs Core', data: decimate(swData, maxPts), borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,0.5)', pointRadius: 2 }
+  ];
+  AppState.charts.sweatCore.options.plugins.annotation.annotations = buildScatterZoneAnnotations();
+  AppState.charts.sweatCore.update();
+}
+
+function exportProcessedCSV() {
+  if (AppState.processed.length === 0) { alert('No processed data to export.'); return; }
+  const headers = ['elapsedSec', 'elapsedMin', 'hhmmss', 'intervalSec', 'unifiedCore', 'coreSource', 'caleraCore', 'core2Core', 'sensorDelta', 'hr', 'skinTemp', 'sweatRate', 'ambient', 'rh', 'zone', 'isBreak'];
+  let csv = headers.join(',') + '\n';
+  for (let i = 0; i < AppState.processed.length; i++) {
+    const r = AppState.processed[i];
+    csv += [r.elapsedSec, r.elapsedMin, r.hhmmss, r.intervalSec, r.unifiedCore, r.coreSource, r.caleraCore, r.core2Core, r.sensorDelta, r.hr, r.skinTemp, r.sweatRate, r.ambient, r.rh, r.zone, r.isBreak].join(',') + '\n';
+  }
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'processed_data.csv'; a.click(); URL.revokeObjectURL(url);
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  loadSettings();
+  initCharts();
+  renderEventsTable();
+  if (AppState.events.length === 0) {
+    AppState.events.push({ start: 480, end: 520, type: 'Break', desc: 'Hydration stop' });
+    renderEventsTable();
+  }
+});
+</script>
+</body>
+</html>
