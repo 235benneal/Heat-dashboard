@@ -11,40 +11,139 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; }
-.tab-btn.active { background: #0284c7; color: white; border-color: #0284c7; }
-.tab-btn:hover:not(.active) { background: #e2e8f0; color: #0f172a; }
-.card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 1rem; position: relative; transition: background-color 0.2s ease, border-color 0.2s ease; }
-.card:hover { background-color: #e0f2fe; border-color: #38bdf8; }
-.big-number { font-size: 1.75rem; font-weight: 700; line-height: 1; }
-@media (min-width: 768px) { .big-number { font-size: 2.25rem; } }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --ink: #12161d;
+  --ink-soft: #3a4250;
+  --muted: #78716a;
+  --muted-light: #9c9686;
+  --paper: #f5f2ea;
+  --paper-alt: #eeeae0;
+  --card: #ffffff;
+  --border: #e4dfd2;
+  --border-soft: #ede9dd;
+  --navy: #0b1220;
+  --navy-soft: #142132;
+  --teal-deep: #123a5e;
+  --ember: #2c7be5;
+  --ember-deep: #14538f;
+  --ember-light: #7ec8f2;
+  --ember-wash: #eaf4fe;
+}
+
+body { font-family: 'Inter', system-ui, sans-serif; background-color: var(--paper); background-image: radial-gradient(rgba(18,22,29,0.05) 1px, transparent 1px); background-size: 24px 24px; color: var(--ink); }
+header h1, .card h3, .card h4 { font-family: 'Sora', 'Inter', sans-serif; letter-spacing: -0.01em; }
+
+::selection { background: var(--ember-light); color: var(--navy); }
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d8d2c2; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+header button, #upload-bar button, #pdf-container button { transition: transform .15s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease; }
+header button:active, #upload-bar button:active, #pdf-container button:active { transform: scale(0.97); }
+
+/* ---- Header: gradient + soft radial highlight, scoped to the single <header> element ---- */
+header { position: relative; overflow: hidden; background: linear-gradient(120deg, var(--navy) 0%, var(--teal-deep) 100%) !important; }
+header::before {
+  content: ""; position: absolute; inset: 0;
+  background-image: radial-gradient(circle at 8% 10%, rgba(44,123,229,0.22), transparent 42%), radial-gradient(circle at 92% 90%, rgba(56,189,248,0.2), transparent 45%);
+  pointer-events: none;
+}
+header > div { position: relative; z-index: 1; }
+header .border-slate-800 { border-color: rgba(255,255,255,0.14) !important; }
+header .bg-slate-800 { background-color: rgba(255,255,255,0.08) !important; }
+header .border-slate-700 { border-color: rgba(255,255,255,0.18) !important; }
+header .hover\:bg-slate-700:hover { background-color: rgba(255,255,255,0.15) !important; }
+header .bg-blue-600 { background: linear-gradient(135deg, var(--ember), var(--ember-deep)) !important; box-shadow: 0 4px 14px -4px rgba(20,83,143,0.55); }
+header .hover\:bg-blue-500:hover { background: linear-gradient(135deg, #4f95e8, var(--ember)) !important; }
+
+/* ---- Re-theme dashboard chrome only (header / upload bar / #pdf-container). #pdf-report-template is a separate sibling and is never matched by these rules, so the export stays exactly as it was ---- */
+header .text-slate-400, #upload-bar .text-slate-400, #pdf-container .text-slate-400 { color: var(--muted-light) !important; }
+#upload-bar .text-slate-500, #pdf-container .text-slate-500 { color: var(--muted) !important; }
+#upload-bar .text-slate-600, #pdf-container .text-slate-600 { color: var(--muted) !important; }
+#upload-bar .hover\:text-slate-900:hover, #pdf-container .hover\:text-slate-900:hover { color: var(--ink) !important; }
+#upload-bar .text-slate-700, #pdf-container .text-slate-700 { color: var(--ink-soft) !important; }
+#pdf-container .text-slate-800, #pdf-container .text-slate-900 { color: var(--ink) !important; }
+#pdf-container .border-slate-100 { border-color: var(--border-soft) !important; }
+#pdf-container .border-slate-200 { border-color: var(--border) !important; }
+#pdf-container .bg-slate-50 { background-color: var(--paper-alt) !important; }
+#upload-bar .bg-slate-900, #pdf-container .bg-slate-900 { background: linear-gradient(135deg, var(--navy), var(--navy-soft)) !important; }
+#upload-bar .hover\:bg-slate-800:hover, #pdf-container .hover\:bg-slate-800:hover { background: var(--navy-soft) !important; }
+#pdf-container .bg-red-100 { background-color: #fbe4e0 !important; }
+#pdf-container .hover\:bg-red-200:hover { background-color: #f6d0ca !important; }
+#pdf-container .text-red-700 { color: #a3341f !important; }
+#upload-bar { border-color: var(--border) !important; }
+.bg-slate-200\/60 { background-color: rgba(228,223,210,0.65) !important; }
+
+/* ---- Numeric / instrument-style data (dashboard only) ---- */
+.big-number, #pdf-container table.data-table td, #pdf-container table.data-table th,
+#pdf-container [id^="sum-"], #pdf-container [id^="z1-"], #pdf-container [id^="z2-"], #pdf-container [id^="z3-"], #pdf-container [id^="z4-"],
+#pdf-container [id^="sw-"], #pdf-container [id^="cmp-res-"] {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums;
+}
+.big-number { font-size: 1.75rem; font-weight: 600; line-height: 1; letter-spacing: -0.02em; }
+@media (min-width: 768px) { .big-number { font-size: 2.15rem; } }
+
+/* ---- Zones: identical hues to before (this class is also used inside the PDF template's zone table, so colors are kept byte-for-byte the same) ---- */
 .zone-1 { color: #0d9488; }
 .zone-2 { color: #d97706; }
 .zone-3 { color: #ea580c; }
 .zone-4 { color: #dc2626; }
-.badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
-.badge-green { background: #dcfce7; color: #166534; }
-.badge-yellow { background: #fef9c3; color: #854d0e; }
-.badge-red { background: #fee2e2; color: #991b1b; }
-.drag-zone { border: 2px dashed #cbd5e1; border-radius: 12px; transition: all 0.2s; background: white; }
-.drag-zone:hover, .drag-zone.dragover { border-color: #3b82f6; background: #eff6ff; }
-table.data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; }
-table.data-table th { background: #f8fafc; padding: 8px 12px; text-align: left; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; }
-table.data-table td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
-table.data-table tr:hover td { background: #f8fafc; }
-.cutoff-red { color: #dc2626; }
+
+/* ---- Badges (custom class, dashboard-only) ---- */
+.badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+.badge-green { background: #e3f3e6; color: #1c6b3a; }
+.badge-yellow { background: #fdf1e2; color: #92400e; }
+.badge-red { background: #fbe4e0; color: #a3341f; }
+
+.cutoff-red { color: #dc2626 !important; animation: pulseGlow 2.2s ease-in-out infinite; }
+@keyframes pulseGlow { 0%, 100% { text-shadow: 0 0 0 rgba(220,38,38,0); } 50% { text-shadow: 0 0 14px rgba(220,38,38,0.45); } }
+
+/* ---- Tabs (custom classes; !important guards against Tailwind's own text-slate-600 utility that still sits on inactive buttons) ---- */
+.tab-btn { font-weight: 600; color: var(--muted) !important; transition: color .2s ease, background-color .2s ease, box-shadow .2s ease; }
+.tab-btn.active { background: linear-gradient(135deg, var(--ember), var(--ember-deep)) !important; color: #fff !important; border-color: transparent; box-shadow: 0 4px 14px -3px rgba(20,83,143,0.5); }
+.tab-btn:hover:not(.active) { background: var(--card) !important; color: var(--ink) !important; box-shadow: 0 1px 4px rgba(18,22,29,0.08); }
+
+/* ---- Cards: lift-on-hover instead of the old flat blue wash, plus a gentle staggered entrance every time a tab is shown ---- */
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(18,22,29,0.04); margin-bottom: 1rem; position: relative;
+  transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, border-color .25s ease;
+  animation: fadeInUp .5s cubic-bezier(.16,1,.3,1) both;
+}
+.card:hover { transform: translateY(-3px); box-shadow: 0 14px 28px -12px rgba(18,22,29,0.18); border-color: var(--ember-light); }
+.card:nth-of-type(2) { animation-delay: .05s; }
+.card:nth-of-type(3) { animation-delay: .1s; }
+.card:nth-of-type(4) { animation-delay: .15s; }
+
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.tab-content:not(.hidden) { animation: fadeInUp .4s cubic-bezier(.16,1,.3,1) both; }
+
+/* ---- Upload zones ---- */
+.drag-zone { border: 1.5px dashed var(--border); border-radius: 12px; transition: all .25s ease; background: var(--card); }
+.drag-zone:hover, .drag-zone.dragover { border-color: var(--ember); background: var(--ember-wash); transform: translateY(-1px); }
+
+/* ---- Data tables (custom class, dashboard-only) ---- */
+table.data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.78rem; }
+table.data-table th { background: var(--paper-alt); padding: 8px 12px; text-align: left; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--border); position: sticky; top: 0; text-transform: uppercase; font-size: 0.66rem; letter-spacing: 0.04em; }
+table.data-table td { padding: 8px 12px; border-bottom: 1px solid var(--border-soft); }
+table.data-table tr { transition: background-color .15s ease; }
+table.data-table tr:hover td { background: var(--paper-alt); }
+.cutoff-red { border-radius: 4px; }
 
 /* Touch/Hover Responsive Tooltips for Desktop & iPad */ 
 .sci-tooltip { 
   visibility: hidden; position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%); 
-  background: #0f172a; color: #f8fafc; text-align: left; padding: 10px 14px; 
+  background: var(--navy); color: #f4f1e8; text-align: left; padding: 10px 14px; 
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 8px; font-size: 0.75rem; font-weight: 400; width: 280px; line-height: 1.4; 
-  z-index: 50; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); pointer-events: none; opacity: 0; transition: opacity 0.2s ease; 
+  z-index: 50; box-shadow: 0 10px 20px -5px rgba(0,0,0,0.35); pointer-events: none; opacity: 0; transition: opacity 0.2s ease; 
 } 
 .sci-tooltip::after { 
   content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; 
-  border-width: 5px; border-style: solid; border-color: #0f172a transparent transparent transparent; 
+  border-width: 5px; border-style: solid; border-color: var(--navy) transparent transparent transparent; 
 } 
 .tooltip-trigger:hover .sci-tooltip, .tooltip-trigger.active-tap .sci-tooltip { visibility: visible; opacity: 1; pointer-events: auto; }
 .tooltip-trigger.right-aligned .sci-tooltip { left: auto; right: 0; transform: none; } 
@@ -53,7 +152,7 @@ table.data-table tr:hover td { background: #f8fafc; }
 @media print { 
   .no-print { display: none !important; } 
   body { background: white; color: black; }
-  .card { box-shadow: none; border: 1px solid #cbd5e1; break-inside: avoid; margin-bottom: 1rem; }
+  .card { box-shadow: none; border: 1px solid #cbd5e1; break-inside: avoid; margin-bottom: 1rem; animation: none; }
   .pdf-page-break { page-break-before: always; break-before: page; }
   #pdf-footer-content { display: block !important; position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 8px; }
 }
@@ -88,7 +187,7 @@ table.data-table tr:hover td { background: #f8fafc; }
 </header>
 
 <!-- UPLOAD FILE DROPDOWN SECTION -->
-<div class="bg-white border-b border-slate-200 no-print">
+<div id="upload-bar" class="bg-white border-b border-slate-200 no-print">
   <div class="max-w-[1600px] mx-auto px-4 py-2.5">
     <button type="button" id="upload-toggle-btn" class="w-full flex items-center justify-between text-xs sm:text-sm font-semibold text-slate-700 py-1.5 focus:outline-none cursor-pointer">
       <div class="flex items-center gap-2">
