@@ -590,7 +590,7 @@ table.data-table tr:hover td { background: var(--paper-alt); }
 </div>
 
 <!-- TOP-CLASS PROFESSIONAL PDF EXPORT REPORT TEMPLATE (Spread out with larger spacing) -->
-<div id="pdf-report-template" class="hidden bg-white p-6 max-w-[800px] mx-auto text-slate-800" style="font-family: 'Inter', sans-serif; box-sizing: border-box;">
+<div id="pdf-report-template" class="hidden bg-white p-6 max-w-[800px] mx-auto text-slate-800 box-border" style="font-family: 'Inter', sans-serif; width: 750px; margin: 0 auto;">
   
   <!-- Header / Branding -->
   <div class="flex items-center justify-between border-b-2 border-slate-900 pb-4 mb-4">
@@ -631,7 +631,7 @@ table.data-table tr:hover td { background: var(--paper-alt); }
       <span class="text-[10px] text-slate-400">Tcore (°C) vs HR (bpm)</span>
     </div>
     <div class="relative w-full h-[200px] border border-slate-200 rounded-lg bg-white p-2">
-      <canvas id="pdfChartCoreHR"></canvas>
+      <canvas id="pdfChartCoreHR" style="width: 100%; height: 100%;"></canvas>
     </div>
   </div>
 
@@ -2696,10 +2696,10 @@ function exportPDF() {
       ]
     },
     options: {
-      responsive: false,
+      responsive: true,
       maintainAspectRatio: false,
       animation: false,
-      layout: { padding: { right: 32, top: 6, bottom: 2 } },
+      layout: { padding: { left: 10, right: 36, top: 10, bottom: 5 } },
       scales: {
         x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
         y: { position: 'left', title: { display: true, text: 'Core (°C)' } },
@@ -2709,7 +2709,7 @@ function exportPDF() {
           suggestedMax: Math.max(220, ...hrData.filter(v => v != null)) + 10,
           title: { display: true, text: 'HR (bpm)' },
           grid: { drawOnChartArea: false },
-          ticks: { padding: 8 }
+          ticks: { padding: 4 }
         }
       }
     }
@@ -2719,7 +2719,7 @@ function exportPDF() {
   requestAnimationFrame(() => requestAnimationFrame(() => {
     if (typeof html2pdf !== 'undefined') {
       html2pdf().set({
-        margin: 0.25,
+        margin: [0.4, 0.4, 0.4, 0.4],
         filename: 'Heat_Sweat_Hydration_Report.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: reportTemplate.scrollWidth },
