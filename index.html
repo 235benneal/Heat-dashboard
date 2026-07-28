@@ -589,7 +589,7 @@ table.data-table tr:hover td { background: var(--paper-alt); }
 
 </div>
 
-<!-- TOP-CLASS PROFESSIONAL PDF EXPORT REPORT TEMPLATE (Spread out with larger spacing) -->
+<!-- TOP-CLASS PROFESSIONAL PDF EXPORT REPORT TEMPLATE -->
 <div id="pdf-report-template" class="hidden bg-white p-6 text-slate-800 box-border" style="font-family: 'Inter', sans-serif; width: 800px; position: absolute; top: 0; left: 0; z-index: -1000;">
   
   <!-- Header / Branding -->
@@ -1858,7 +1858,7 @@ const translations = {
     tip_sweat: "कुल झोल पदार्थ हानि र पसिना दर मूल्याङ्कन गर्दछ।",
     tip_hr: "सत्रको आन्तरिक शारीरिक लागत प्रतिबिम्बित गर्दछ।",
     tip_charts: "कोर तापक्रम वृद्धि र पसिना हानिबीचको सम्बन्ध देखाउँछ।",
-    tip_compare: "सत्रका विशिष्ट खण्डहरू तुलना गर्दछ。"
+    tip_compare: "सत्रका विशिष्ट खण्डहरू तुलना गर्दछ।"
   }
 };
 
@@ -2699,7 +2699,7 @@ function exportPDF() {
       responsive: true,
       maintainAspectRatio: false,
       animation: false,
-      layout: { padding: { left: 10, right: 55, top: 10, bottom: 5 } }, // Increased right padding to 55 for HR label
+      layout: { padding: { left: 10, right: 55, top: 10, bottom: 5 } }, // Right padding increased so HR label won't clip
       scales: {
         x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
         y: { position: 'left', title: { display: true, text: 'Core (°C)' } },
@@ -2716,16 +2716,20 @@ function exportPDF() {
   });
 
   pdfChartCoreHRInstance.resize();
+  
   requestAnimationFrame(() => requestAnimationFrame(() => {
     if (typeof html2pdf !== 'undefined') {
       html2pdf().set({
         margin: [0.4, 0.4, 0.4, 0.4],
         filename: 'Heat_Sweat_Hydration_Report.pdf',
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true }, // Removed windowWidth constraints
+        html2canvas: { scale: 2, useCORS: true }, 
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-      }).from(reportTemplate).save().then(() => reportTemplate.classList.add('hidden'))
-      .catch(() => reportTemplate.classList.add('hidden'));
+      }).from(reportTemplate).save().then(() => {
+        reportTemplate.classList.add('hidden');
+      }).catch(() => {
+        reportTemplate.classList.add('hidden');
+      });
     } else {
       window.print();
       reportTemplate.classList.add('hidden');
