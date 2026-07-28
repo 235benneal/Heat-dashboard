@@ -2399,7 +2399,6 @@ function renderChart() {
     if (!ctx) return instanceHolder;
     const p = AppState.processed;
     if (!p || p.length === 0) return instanceHolder;
-
     const dict = translations[AppState.currentLang] || translations['en'];
     const labels = p.map(r => r.hhmmss);
     const coreData = p.map(r => r.unifiedCore);
@@ -2408,25 +2407,58 @@ function renderChart() {
 
     if (instanceHolder) instanceHolder.destroy();
 
+    const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(220,38,38,0.25)');
+    gradient.addColorStop(1, 'rgba(220,38,38,0)');
+    const cutoffValue = settings.zones.cutoff;
+
     return new Chart(ctx, {
       type: 'line',
       data: {
         labels: labels,
         datasets: [
-          { label: dict.chart_core_label || 'Core Temp (°C)', data: coreData, borderColor: '#dc2626', borderWidth: 2, pointRadius: 0, yAxisID: 'y' },
-          { label: dict.chart_hr_label || 'Heart Rate (bpm)', data: hrData, borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 0, yAxisID: 'y1' },
-          { label: dict.chart_sweat_label || 'Cumulative Sweat Loss (L)', data: sweatData, borderColor: '#0d9488', borderWidth: 2, pointRadius: 0, yAxisID: 'y2' }
+          { label: dict.chart_core_label || 'Core Temp (°C)', data: coreData, borderColor: '#dc2626', backgroundColor: gradient, fill: true, borderWidth: 2.25, pointRadius: 0, pointHoverRadius: 5, tension: 0.25, yAxisID: 'y' },
+          { label: dict.chart_hr_label || 'Heart Rate (bpm)', data: hrData, borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 4, tension: 0.25, yAxisID: 'y1' },
+          { label: dict.chart_sweat_label || 'Cumulative Sweat Loss (L)', data: sweatData, borderColor: '#0d9488', borderWidth: 2, borderDash: [4, 3], pointRadius: 0, pointHoverRadius: 4, tension: 0.15, yAxisID: 'y2' }
         ]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, padding: 16 } },
+          tooltip: {
+            backgroundColor: '#0b1220', padding: 10, cornerRadius: 8,
+            callbacks: {
+              label: (item) => item.dataset.yAxisID === 'y' ? `Core: ${item.formattedValue} °C`
+                : item.dataset.yAxisID === 'y1' ? `HR: ${item.formattedValue} bpm`
+                : `Sweat: ${item.formattedValue} L`
+            }
+          }
+        },
         scales: {
           x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
-          y: { type: 'linear', position: 'left', title: { display: true, text: dict.chart_y_core || 'Core Temperature (°C)' } },
-          y1: { type: 'linear', position: 'right', min: 40, max: 220, title: { display: true, text: dict.chart_y_hr || 'Heart Rate (bpm)' }, grid: { drawOnChartArea: false } },
-          y2: { display: false }
+          y: { type: 'linear', position: 'left', title: { display: true, text: dict.chart_y_core || 'Core Temperature (°C)' }, grid: { color: 'rgba(18,22,29,0.05)' } },
+          y1: { type: 'linear', position: 'right', title: { display: true, text: dict.chart_y_hr || 'Heart Rate (bpm)' }, grid: { drawOnChartArea: false } },
+          y2: { type: 'linear', position: 'right', offset: true, title: { display: true, text: dict.chart_y_sweat || 'Sweat Loss (L)' }, grid: { drawOnChartArea: false } }
         }
-      }
+      },
+      plugins: [{
+        id: 'cutoffLine',
+        afterDraw(chart) {
+          const yScale = chart.scales.y;
+          const yPixel = yScale.getPixelForValue(cutoffValue);
+          if (yPixel < yScale.top || yPixel > yScale.bottom) return;
+          const { ctx, chartArea } = chart;
+          ctx.save();
+          ctx.strokeStyle = '#dc2626'; ctx.setLineDash([6, 4]); ctx.lineWidth = 1.25;
+          ctx.beginPath(); ctx.moveTo(chartArea.left, yPixel); ctx.lineTo(chartArea.right, yPixel); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#dc2626'; ctx.font = '10px Inter, sans-serif';
+          ctx.fillText(`Cutoff ${cutoffValue.toFixed(1)}°C`, chartArea.left + 4, yPixel - 4);
+          ctx.restore();
+        }
+      }]
     });
   };
 
@@ -2664,33 +2696,41 @@ function exportPDF() {
       ]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: false,
+      maintainAspectRatio: false,
+      animation: false,
+      layout: { padding: { right: 32, top: 6, bottom: 2 } },
       scales: {
         x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
         y: { position: 'left', title: { display: true, text: 'Core (°C)' } },
-        y1: { position: 'right', min: 40, max: 220, title: { display: true, text: 'HR (bpm)' }, grid: { drawOnChartArea: false }, ticks: { callback: function(value) { return value + ' '; } } }
+        y1: {
+          position: 'right',
+          suggestedMin: 40,
+          suggestedMax: Math.max(220, ...hrData.filter(v => v != null)) + 10,
+          title: { display: true, text: 'HR (bpm)' },
+          grid: { drawOnChartArea: false },
+          ticks: { padding: 8 }
+        }
       }
     }
   });
 
-  setTimeout(() => {
+  pdfChartCoreHRInstance.resize();
+  requestAnimationFrame(() => requestAnimationFrame(() => {
     if (typeof html2pdf !== 'undefined') {
       html2pdf().set({
         margin: 0.25,
         filename: 'Heat_Sweat_Hydration_Report.pdf',
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: reportTemplate.scrollWidth },
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-      }).from(reportTemplate).save().then(() => {
-        reportTemplate.classList.add('hidden');
-      }).catch(() => {
-        reportTemplate.classList.add('hidden');
-      });
+      }).from(reportTemplate).save().then(() => reportTemplate.classList.add('hidden'))
+      .catch(() => reportTemplate.classList.add('hidden'));
     } else {
       window.print();
       reportTemplate.classList.add('hidden');
     }
-  }, 500);
+  }));
 }
 
 window.addEventListener('DOMContentLoaded', () => { 
