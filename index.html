@@ -44,11 +44,17 @@ header h1, .card h3, .card h4 { font-family: 'Sora', 'Inter', sans-serif; letter
 header button, #upload-bar button, #pdf-container button { transition: transform .15s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease; }
 header button:active, #upload-bar button:active, #pdf-container button:active { transform: scale(0.97); }
 
-/* ---- Header: gradient + soft radial highlight, scoped to the single <header> element ---- */
-header { position: relative; overflow: hidden; background: linear-gradient(120deg, var(--navy) 0%, var(--teal-deep) 100%) !important; }
+/* ---- Header: Solid nice blue styling with Gemini-inspired subtle spark background pattern ---- */
+header {
+  position: relative;
+  overflow: hidden;
+  background-color: #1a365d !important;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px) !important;
+  background-size: 16px 16px !important;
+}
 header::before {
   content: ""; position: absolute; inset: 0;
-  background-image: radial-gradient(circle at 8% 10%, rgba(44,123,229,0.22), transparent 42%), radial-gradient(circle at 92% 90%, rgba(56,189,248,0.2), transparent 45%);
+  background-image: radial-gradient(circle at 8% 10%, rgba(44,123,229,0.15), transparent 42%), radial-gradient(circle at 92% 90%, rgba(56,189,248,0.12), transparent 45%);
   pointer-events: none;
 }
 header > div { position: relative; z-index: 1; }
@@ -138,7 +144,7 @@ table.data-table tr:hover td { background: var(--paper-alt); }
   visibility: hidden; position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%); 
   background: var(--navy); color: #f4f1e8; text-align: left; padding: 10px 14px; 
   border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 8px; font-size: 0.75rem; font-weight: 400; width: 280px; line-height: 1.4; 
+  border-radius: 8px; font-size: 0.75rem; font-weight: 400; width: min(280px, 78vw); line-height: 1.4; 
   z-index: 50; box-shadow: 0 10px 20px -5px rgba(0,0,0,0.35); pointer-events: none; opacity: 0; transition: opacity 0.2s ease; 
 } 
 .sci-tooltip::after { 
@@ -163,14 +169,14 @@ table.data-table tr:hover td { background: var(--paper-alt); }
 </head>
 <body class="text-slate-800">
 
-<header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800">
+<header class="text-white sticky top-0 z-50 border-b border-slate-700/60 shadow-md">
   <div class="max-w-[1600px] mx-auto px-4 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
     <div>
       <h1 class="font-bold text-xl sm:text-2xl tracking-wide" data-i18n="app_title">Heat, Sweat and Hydration Analysis</h1>
-      <p class="text-xs sm:text-sm text-slate-400 mt-1">CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO</p>
+      <p class="text-xs sm:text-sm text-slate-300 mt-1">CALERA Primary &middot; CORE 2 Backup &middot; FLOWBIO</p>
     </div>
     <div class="flex items-center gap-2 w-full sm:w-auto justify-end no-print flex-wrap">
-      <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none">
+      <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-blue-900/60 text-white border border-blue-400/30 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none">
         <option value="en">English (UK)</option>
         <option value="es">Español (Spanish)</option>
         <option value="pt">Português (Portuguese)</option>
@@ -179,8 +185,9 @@ table.data-table tr:hover td { background: var(--paper-alt); }
         <option value="fr">Français (French)</option>
         <option value="zh">中文 (Chinese)</option>
         <option value="de">Deutsch (German)</option>
+        <option value="ne">नेपाली (Nepali)</option>
       </select>
-      <button type="button" onclick="exportCSV()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs sm:text-sm transition text-center cursor-pointer"><i class="fa-solid fa-download mr-1"></i> <span data-i18n="export_csv">Export CSV</span></button>
+      <button type="button" onclick="exportCSV()" class="px-4 py-2 bg-blue-900/50 hover:bg-blue-800/60 border border-blue-400/30 rounded-lg text-xs sm:text-sm transition text-center cursor-pointer"><i class="fa-solid fa-download mr-1"></i> <span data-i18n="export_csv">Export CSV</span></button>
       <button type="button" onclick="exportPDF()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs sm:text-sm transition text-center font-medium cursor-pointer"><i class="fa-solid fa-file-pdf mr-1"></i> <span data-i18n="export_pdf">Export PDF</span></button>
     </div>
   </div>
@@ -1722,6 +1729,136 @@ const translations = {
     tip_hr: "Spiegelt die physiologische Belastung der Sitzung wider.",
     tip_charts: "Visuelle Darstellung von Kerntemperaturanstieg und Schweißverlust.",
     tip_compare: "Vergleicht bestimmte Sitzungsabschnitte."
+  },
+  ne: {
+    app_title: "तातो, पसिना र हाइड्रेशन विश्लेषण",
+    export_csv: "CSV निर्यात गर्नुहोस्",
+    export_pdf: "PDF निर्यात गर्नुहोस्",
+    process: "डेटा प्रशोधन गर्नुहोस्",
+    upload_toggle: "डेटा फाइलहरू व्यवस्थापन र अपलोड गर्नुहोस् (CALERA, CORE 2, FLOWBIO, वातावरण)",
+    no_file: "कुनै फाइल छैन",
+    sensor_env: "वातावरण",
+    tab_dashboard: "ड्यासबोर्ड",
+    tab_processed: "प्रशोधित डेटा",
+    tab_charts: "अन्तरक्रियात्मक चार्टहरू",
+    tab_compare: "अवधिहरू तुलना गर्नुहोस्",
+    tab_archive: "सुरक्षित गरिएका प्रतिवेदनहरू",
+    tab_sweat: "पसिना",
+    tab_events: "घटनाहरू र विश्रामहरू",
+    tab_settings: "सेटिङहरू",
+    sec_session: "सत्र जानकारी",
+    sec_core: "कोर तापक्रम",
+    sec_zones: "क्षेत्रहरूमा बिताएको समय",
+    sec_sweat: "पसिना प्रतिक्रिया",
+    sec_hr: "मुटुको गति (HR)",
+    sec_compare: "विशिष्ट अवधिहरूमा कोर तापक्रम तुलना गर्नुहोस्",
+    sec_charts: "कोर तापक्रम र पसिना क्षतिको गतिशीलता",
+    sec_body_mass: "शरीरको तौल इनपुटहरू",
+    sec_calc_metrics: "गणना गरिएका मेट्रिक्सहरू",
+    sec_break_analysis: "विश्राम विश्लेषण",
+    sec_core_zones: "कोर तापक्रम क्षेत्रहरू",
+    sec_sensor_config: "सेन्सर कन्फिगरेसन",
+    sec_env_mapping: "वातावरणीय म्यापिङ",
+    lbl_athlete: "खेलाडी",
+    lbl_sport: "खेलकुद",
+    lbl_datetime: "मिति र समय",
+    lbl_duration: "अवधि",
+    lbl_environment: "वातावरण",
+    lbl_start: "सुरुवात",
+    lbl_maximum: "अधिकतम",
+    lbl_final: "अन्तिम",
+    lbl_cutoff_reached: "सीमा पुग्यो?",
+    lbl_cutoff_threshold: "३९.७ °C सीमा",
+    lbl_total_rise: "कुल वृद्धि",
+    lbl_net_change: "खुद परिवर्तन",
+    lbl_rate_rise: "वृद्धिको दर",
+    lbl_time_max: "अधिकतम पुग्न लागेको समय",
+    lbl_transitions: "संक्रमणहरू",
+    lbl_avg_sweat: "औसत पसिना दर",
+    lbl_max_sweat: "अधिकतम पसिना दर",
+    lbl_total_sensor_loss: "कुल सेन्सर हानि",
+    lbl_est_loss_mass: "अनुमानित हानि (तौल)",
+    lbl_sodium_loss: "सोडियम हानि",
+    lbl_sensor_integration: "सेन्सर र तौल भिन्नता एकीकरण",
+    lbl_avg_hr: "औसत HR",
+    lbl_max_hr: "अधिकतम HR",
+    lbl_breaks: "विश्रामहरू",
+    lbl_total_break_time: "कुल विश्राम समय",
+    lbl_largest_decline: "सबैभन्दा ठूलो ΔT गिरावट",
+    lbl_master_timeline: "प्रशोधित मास्टर समयरेखा",
+    lbl_interval_a: "अन्तरराल A",
+    lbl_interval_b: "अन्तरराल B",
+    lbl_start_min: "सुरु (मिनेट)",
+    lbl_end_min: "अन्त्य (मिनेट)",
+    lbl_interval_a_stats: "अन्तरराल A तथ्याङ्क",
+    lbl_interval_b_stats: "अन्तरराल B तथ्याङ्क",
+    lbl_diff_kinetics: "भिन्नता र काइनेटिक्स",
+    lbl_pre_mass: "सत्र अघिको तौल (kg)",
+    lbl_post_mass: "सत्र पछि तौल (kg)",
+    lbl_fluid_consumed: "सेवन गरिएको झोल (L)",
+    lbl_urine_output: "पिसाबको मात्रा (L)",
+    lbl_core_temp: "कोर तापक्रम",
+    lbl_skin_temp: "छालाको तापक्रम",
+    lbl_ambient_temp: "परिवेश तापक्रम",
+    lbl_quality: "गुणस्तर",
+    lbl_rh: "सापेक्ष आर्द्रता",
+    ph_name: "नाम",
+    ph_sport: "उदा. ब्याडमिटन",
+    ph_env: "उदा. २४.५ °C : ६०% RH",
+    ph_search: "खोज्नुहोस्...",
+    btn_save_archive: "प्रतिवेदन अभिलेखमा सुरक्षित गर्नुहोस्",
+    btn_run_comparison: "तुलना विश्लेषण चलाउनुहोस्",
+    btn_add_event: "+ घटना थप्नुहोस्",
+    btn_clear_archive: "अभिलेख खाली गर्नुहोस्",
+    btn_save_settings: "सेटिङहरू सुरक्षित गर्नुहोस्",
+    btn_reset_defaults: "पूर्वनिर्धारित रिसेट गर्नुहोस्",
+    tbl_zone: "क्षेत्र",
+    tbl_time: "समय",
+    tbl_first_entry: "पहिलो प्रवेश",
+    th_elapsed_s: "बितेको समय (सेकेन्ड)",
+    th_hhmmss: "HH:MM:SS",
+    th_interval_s: "अन्तरराल (सेकेन्ड)",
+    th_unified_core: "एकीकृत कोर",
+    th_source: "स्रोत",
+    th_skin: "छाला",
+    th_sweat: "पसिना",
+    th_ambient: "परिवेश",
+    th_break: "विश्राम?",
+    th_start_time: "सुरु समय",
+    th_end_time: "अन्त्य समय",
+    th_type: "प्रकार",
+    th_desc: "विवरण",
+    th_break_num: "विश्राम #",
+    th_tcore_start: "Tcore सुरु",
+    th_tcore_end: "Tcore अन्त्य",
+    th_rate: "दर",
+    th_date_saved: "सुरक्षित मिति",
+    th_max_temp: "अधिकतम तापक्रम (°C)",
+    th_actions: "कार्यहरू",
+    msg_no_archive: "अभिलेखमा कुनै सुरक्षित प्रतिवेदन छैन।",
+    set_z1_max: "क्षेत्र १ अधिकतम (°C)",
+    set_z2_min: "क्षेत्र २ न्यूनतम (°C)",
+    set_z2_max: "क्षेत्र २ अधिकतम (°C)",
+    set_z3_min: "क्षेत्र ३ न्यूनतम (°C)",
+    set_z3_max: "क्षेत्र ३ अधिकतम (°C)",
+    set_cutoff: "सीमा (°C)",
+    set_primary_sensor: "प्राथमिक सेन्सर",
+    set_fallback: "ब्याकअपमा जाने",
+    set_tolerance: "सहिष्णुता (सेकेन्ड)",
+    set_calera_quality: "CALERA गुणस्तर फ्ल्यागहरू",
+    chart_core_label: "कोर तापक्रम (°C)",
+    chart_hr_label: "मुटुको गति (bpm)",
+    chart_sweat_label: "संचित पसिना हानि (L)",
+    chart_y_core: "कोर तापक्रम (°C)",
+    chart_y_hr: "मुटुको गति (bpm)",
+    chart_y_sweat: "पसिना हानि (L)",
+    tip_session: "खेलाडी, मिति, समय, खेलकुद र वातावरणीय अवस्थासम्बन्धी मेटाडेटा।",
+    tip_core: "आन्तरिक थर्मल तनाव मूल्याङ्कन गर्दछ।",
+    tip_zones: "थर्मल तनाव क्षेत्रहरूमा बिताएको समय र प्रतिशत गणना गर्दछ।",
+    tip_sweat: "कुल झोल पदार्थ हानि र पसिना दर मूल्याङ्कन गर्दछ।",
+    tip_hr: "सत्रको आन्तरिक शारीरिक लागत प्रतिबिम्बित गर्दछ।",
+    tip_charts: "कोर तापक्रम वृद्धि र पसिना हानिबीचको सम्बन्ध देखाउँछ।",
+    tip_compare: "सत्रका विशिष्ट खण्डहरू तुलना गर्दछ।"
   }
 };
 
