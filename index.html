@@ -590,7 +590,7 @@ table.data-table tr:hover td { background: var(--paper-alt); }
 </div>
 
 <!-- TOP-CLASS PROFESSIONAL PDF EXPORT REPORT TEMPLATE (Spread out with larger spacing) -->
-<div id="pdf-report-template" class="hidden bg-white p-6 max-w-[800px] mx-auto text-slate-800 box-border" style="font-family: 'Inter', sans-serif; width: 750px; margin: 0 auto;">
+<div id="pdf-report-template" class="hidden bg-white p-6 text-slate-800 box-border" style="font-family: 'Inter', sans-serif; width: 800px; position: absolute; top: 0; left: 0; z-index: -1000;">
   
   <!-- Header / Branding -->
   <div class="flex items-center justify-between border-b-2 border-slate-900 pb-4 mb-4">
@@ -1858,7 +1858,7 @@ const translations = {
     tip_sweat: "कुल झोल पदार्थ हानि र पसिना दर मूल्याङ्कन गर्दछ।",
     tip_hr: "सत्रको आन्तरिक शारीरिक लागत प्रतिबिम्बित गर्दछ।",
     tip_charts: "कोर तापक्रम वृद्धि र पसिना हानिबीचको सम्बन्ध देखाउँछ।",
-    tip_compare: "सत्रका विशिष्ट खण्डहरू तुलना गर्दछ।"
+    tip_compare: "सत्रका विशिष्ट खण्डहरू तुलना गर्दछ。"
   }
 };
 
@@ -2699,7 +2699,7 @@ function exportPDF() {
       responsive: true,
       maintainAspectRatio: false,
       animation: false,
-      layout: { padding: { left: 10, right: 36, top: 10, bottom: 5 } },
+      layout: { padding: { left: 10, right: 55, top: 10, bottom: 5 } }, // Increased right padding to 55 for HR label
       scales: {
         x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
         y: { position: 'left', title: { display: true, text: 'Core (°C)' } },
@@ -2722,7 +2722,7 @@ function exportPDF() {
         margin: [0.4, 0.4, 0.4, 0.4],
         filename: 'Heat_Sweat_Hydration_Report.pdf',
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: reportTemplate.scrollWidth },
+        html2canvas: { scale: 2, useCORS: true }, // Removed windowWidth constraints
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
       }).from(reportTemplate).save().then(() => reportTemplate.classList.add('hidden'))
       .catch(() => reportTemplate.classList.add('hidden'));
