@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1247,7 +1248,6 @@ function renderChart() {
     const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
     gradient.addColorStop(0, 'rgba(220,38,38,0.25)');
     gradient.addColorStop(1, 'rgba(220,38,38,0)');
-    const cutoffValue = settings.zones.cutoff;
 
     return new Chart(ctx, {
       type: 'line',
