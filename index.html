@@ -146,8 +146,8 @@ table.data-table tr:hover td { background: var(--paper-alt); }
   border-width: 5px; border-style: solid; border-color: var(--navy) transparent transparent transparent; 
 } 
 .tooltip-trigger:hover .sci-tooltip, .tooltip-trigger.active-tap .sci-tooltip { visibility: visible; opacity: 1; pointer-events: auto; }
-.tooltip-trigger.right-aligned .sci-tooltip { left: auto; right: 0; transform: none; } 
-.tooltip-trigger.right-aligned .sci-tooltip::after { left: auto; right: 12px; margin-left: 0; }
+.tooltip-trigger.right-aligned .sci-tooltip { left: 50%; right: auto; transform: translateX(-50%); } 
+.tooltip-trigger.right-aligned .sci-tooltip::after { left: 50%; right: auto; margin-left: -5px; }
 
 @media print { 
   .no-print { display: none !important; } 
