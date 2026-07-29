@@ -149,24 +149,21 @@ table.data-table tr:hover td { background: var(--paper-alt); }
 } 
 .tooltip-trigger:hover .sci-tooltip, .tooltip-trigger.active-tap .sci-tooltip { visibility: visible; opacity: 1; pointer-events: auto; }
 
-/* Fixed positioning trick for html2pdf/html2canvas */
+/* FIX STEP 1: Absolute positioning trick for html2canvas rendering */
 #pdf-report-template {
-  position: fixed;
-  left: 0;
+  position: absolute;
   top: 0;
-  width: 750px;
+  left: 0;
+  width: 750px !important;
   background-color: #ffffff;
   padding: 24px;
   box-sizing: border-box;
-  opacity: 0;
-  pointer-events: none;
-  z-index: -9999;
+  display: none;
 }
 
 #pdf-report-template.rendering-pdf {
-  opacity: 1 !important;
+  display: block !important;
   z-index: 99999 !important;
-  pointer-events: auto !important;
 }
 
 @media print { 
@@ -1391,7 +1388,6 @@ function renderChart() {
     const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
     gradient.addColorStop(0, 'rgba(220,38,38,0.25)');
     gradient.addColorStop(1, 'rgba(220,38,38,0)');
-    const cutoffValue = settings.zones.cutoff;
 
     return new Chart(ctx, {
       type: 'line',
@@ -1583,12 +1579,13 @@ function exportCSV() {
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
+/* FIX STEP 2: Zero scroll origin PDF capture logic */
 async function exportPDF() {
   if (AppState.processed.length === 0) { alert('No processed data to export.'); return; }
 
   const reportTemplate = document.getElementById('pdf-report-template');
   
-  // Populating values
+  // Populating field values
   const athleteName = document.getElementById('inp-athlete').value || 'Athlete';
   const sportName = document.getElementById('inp-activity').value || 'Trial';
   const envText = document.getElementById('inp-env').value || '—';
@@ -1635,7 +1632,7 @@ async function exportPDF() {
     }
   }
 
-  // Render chart onto the PDF element
+  // Render chart onto PDF template
   const p = AppState.processed;
   const labels = p.map(r => r.hhmmss);
   const coreData = p.map(r => r.unifiedCore);
@@ -1664,13 +1661,12 @@ async function exportPDF() {
     }
   });
 
-  // Make visible to DOM for capturing
+  // Make template visible to DOM renderer
   reportTemplate.classList.add('rendering-pdf');
 
-  // Let browser process DOM paint and chart rendering
   setTimeout(() => {
     const opt = {
-      margin: 0.3,
+      margin: 0.2,
       filename: 'Heat_Sweat_Hydration_Report.pdf',
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: {
@@ -1678,8 +1674,9 @@ async function exportPDF() {
         useCORS: true,
         scrollX: 0,
         scrollY: 0,
-        width: reportTemplate.scrollWidth,
-        height: reportTemplate.scrollHeight
+        windowWidth: 800,
+        x: 0,
+        y: 0
       },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
     };
@@ -1690,7 +1687,7 @@ async function exportPDF() {
       console.error(err);
       reportTemplate.classList.remove('rendering-pdf');
     });
-  }, 300);
+  }, 250);
 }
 
 window.addEventListener('DOMContentLoaded', () => { 
