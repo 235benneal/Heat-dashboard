@@ -591,8 +591,8 @@ table.data-table tr:hover td { background: var(--paper-alt); }
 
 </div>
 
-<!-- TOP-CLASS PROFESSIONAL PDF EXPORT REPORT TEMPLATE (Spread out with larger spacing) -->
-<div id="pdf-report-template" class="hidden bg-white p-6 max-w-[800px] mx-auto text-slate-800 box-border" style="font-family: 'Inter', sans-serif; width: 750px; margin: 0 auto;">
+<!-- TOP-CLASS PROFESSIONAL PDF EXPORT REPORT TEMPLATE (Updated with 700px width and centered layout) -->
+<div id="pdf-report-template" class="hidden bg-white p-6 max-w-[800px] mx-auto text-slate-800 box-border" style="font-family: 'Inter', sans-serif; width: 700px; margin: 0 auto;">
   
   <!-- Header / Branding -->
   <div class="flex items-center justify-between border-b-2 border-slate-900 pb-4 mb-4">
@@ -631,8 +631,8 @@ table.data-table tr:hover td { background: var(--paper-alt); }
       <span>Core Temperature & Heart Rate Dynamics</span>
       <span class="text-[10px] text-slate-400">Tcore (°C) vs HR (bpm)</span>
     </div>
-    <div class="relative w-full h-[200px] border border-slate-200 rounded-lg bg-white p-2">
-      <canvas id="pdfChartCoreHR" style="width: 100%; height: 100%;"></canvas>
+    <div class="relative w-full h-[200px] border border-slate-200 rounded-lg bg-white p-2" style="width: 650px;">
+      <canvas id="pdfChartCoreHR" style="width: 650px; height: 200px;"></canvas>
     </div>
   </div>
 
@@ -2754,10 +2754,10 @@ async function exportPDF() {
   requestAnimationFrame(() => requestAnimationFrame(() => {
     if (typeof html2pdf !== 'undefined') {
       html2pdf().set({
-        margin: [0.4, 0.4, 0.4, 0.4],
+        margin: [0.4, 0.6, 0.4, 0.6], // Increased side safety margins
         filename: 'Heat_Sweat_Hydration_Report.pdf',
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, scrollX: -window.scrollX, scrollY: -window.scrollY, windowWidth: document.documentElement.scrollWidth, windowHeight: document.documentElement.scrollHeight },
+        html2canvas: { scale: 2, useCORS: true, scrollX: -window.scrollX, scrollY: -window.scrollY, windowWidth: 800, windowHeight: document.documentElement.scrollHeight },
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
       }).from(reportTemplate).save().then(() => reportTemplate.classList.add('hidden'))
       .catch(() => reportTemplate.classList.add('hidden'));
