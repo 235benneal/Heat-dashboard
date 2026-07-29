@@ -149,20 +149,23 @@ table.data-table tr:hover td { background: var(--paper-alt); }
 } 
 .tooltip-trigger:hover .sci-tooltip, .tooltip-trigger.active-tap .sci-tooltip { visibility: visible; opacity: 1; pointer-events: auto; }
 
-/* FIX STEP 1: Absolute positioning trick for html2canvas rendering */
+/* Fixed positioning to preserve layout dimensions while remaining hidden */
 #pdf-report-template {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 750px !important;
   background-color: #ffffff;
   padding: 24px;
   box-sizing: border-box;
-  display: none;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -9999;
 }
 
 #pdf-report-template.rendering-pdf {
-  display: block !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
   z-index: 99999 !important;
 }
 
@@ -1579,13 +1582,15 @@ function exportCSV() {
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
-/* FIX STEP 2: Zero scroll origin PDF capture logic */
 async function exportPDF() {
   if (AppState.processed.length === 0) { alert('No processed data to export.'); return; }
 
   const reportTemplate = document.getElementById('pdf-report-template');
-  
-  // Populating field values
+
+  // 1. Reveal template so layout engine registers dimensions
+  reportTemplate.classList.add('rendering-pdf');
+
+  // Populating fields
   const athleteName = document.getElementById('inp-athlete').value || 'Athlete';
   const sportName = document.getElementById('inp-activity').value || 'Trial';
   const envText = document.getElementById('inp-env').value || '—';
@@ -1632,7 +1637,7 @@ async function exportPDF() {
     }
   }
 
-  // Render chart onto PDF template
+  // Render chart onto the PDF template canvas (AFTER template is visible)
   const p = AppState.processed;
   const labels = p.map(r => r.hhmmss);
   const coreData = p.map(r => r.unifiedCore);
@@ -1661,8 +1666,9 @@ async function exportPDF() {
     }
   });
 
-  // Make template visible to DOM renderer
-  reportTemplate.classList.add('rendering-pdf');
+  // 2. Temporarily scroll to top so html2canvas captures relative origin (0,0)
+  const currentScrollY = window.scrollY;
+  window.scrollTo(0, 0);
 
   setTimeout(() => {
     const opt = {
@@ -1674,18 +1680,18 @@ async function exportPDF() {
         useCORS: true,
         scrollX: 0,
         scrollY: 0,
-        windowWidth: 800,
-        x: 0,
-        y: 0
+        windowWidth: 800
       },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
     };
 
     html2pdf().set(opt).from(reportTemplate).save().then(() => {
       reportTemplate.classList.remove('rendering-pdf');
+      window.scrollTo(0, currentScrollY);
     }).catch(err => {
       console.error(err);
       reportTemplate.classList.remove('rendering-pdf');
+      window.scrollTo(0, currentScrollY);
     });
   }, 250);
 }
