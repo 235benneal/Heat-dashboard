@@ -418,18 +418,20 @@ table.data-table tr:hover td { background: var(--paper-alt); }
       </div>
     </div>
 
-    <!-- Core Temp vs HR Chart with Tooltip Added -->
+<!-- Core Temp vs HR Chart with Tooltip Matching the First Chart -->
     <div class="card p-4">
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="font-semibold text-slate-700 text-sm">Core Temperature vs. Heart Rate Correlation</h3>
-        <div class="relative tooltip-trigger right-aligned cursor-help no-print" ontouchstart="toggleTooltip(event, this)">
-          <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
-          <div class="sci-tooltip">
-            <strong>How to read this chart:</strong><br>
-            • <strong>X-Axis:</strong> Internal core body temperature (°C).<br>
-            • <strong>Y-Axis:</strong> Heart rate (bpm) measuring cardiovascular effort.<br>
-            • <strong>Upward Trend:</strong> Shows how heart rate increases alongside thermal strain.<br>
-            • <strong>Clustering:</strong> Dense clouds indicate your steady-state working zones.
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
+        <div class="flex items-center">
+          <h3 class="font-semibold text-slate-700 text-sm">Core Temperature vs. Heart Rate Correlation</h3>
+          <div class="relative tooltip-trigger cursor-help no-print ml-2" ontouchstart="toggleTooltip(event, this)">
+            <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+            <div class="sci-tooltip">
+              <strong>How to read this chart:</strong><br>
+              • <strong>X-Axis:</strong> Internal core body temperature (°C).<br>
+              • <strong>Y-Axis:</strong> Heart rate (bpm) measuring cardiovascular effort.<br>
+              • <strong>Upward Trend:</strong> Shows how heart rate increases alongside thermal strain.<br>
+              • <strong>Clustering:</strong> Dense clouds indicate your steady-state working zones.
+            </div>
           </div>
         </div>
       </div>
@@ -437,7 +439,6 @@ table.data-table tr:hover td { background: var(--paper-alt); }
         <canvas id="chartCoreVsHr"></canvas>
       </div>
     </div>
-  </div>
 
   <!-- COMPARE LENGTHS TAB -->
   <div id="tab-compare" class="tab-content hidden">
@@ -983,6 +984,7 @@ function classifyZone(core, z) {
   if (core < z.z2Max) return 'Zone 2';
   if (core < z.z3Max) return 'Zone 3';
   return 'Zone 4/Cutoff';
+  
 }
 
 function showTab(name) {
@@ -1512,7 +1514,7 @@ function renderCoreVsHrChart() {
         label: 'Core Temp vs Heart Rate',
         data: scatterData,
         backgroundColor: 'rgba(220, 38, 38, 0.4)',
-        pointRadius: 1.5, // Smaller points for the website view
+        pointRadius: 1.5,
         pointHoverRadius: 4
       }]
     },
@@ -1527,6 +1529,8 @@ function renderCoreVsHrChart() {
           title: { display: true, text: 'Core Temperature (°C)' },
           type: 'linear',
           position: 'bottom',
+          suggestedMin: 35.0,
+          suggestedMax: 38.5, // Adds padding on the right edge to stop clipping
           grid: { color: 'rgba(18,22,29,0.05)' }
         },
         y: {
