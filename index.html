@@ -1420,7 +1420,7 @@ function renderAthleteSummary() {
     document.getElementById(zmap[k] + '-time').textContent = fmtNum(zd.time / 60, 1) + ' min';
     document.getElementById(zmap[k] + '-pct').textContent = fmtNum(zd.pct, 1) + '%';
     document.getElementById(zmap[k] + '-first').textContent = zd.first != null ? fmtTime(zd.first) : '—';
-  }
+}
   document.getElementById('sum-transitions').textContent = m.transitions;
   document.getElementById('sum-hr-avg').textContent = m.hrAvg != null ? fmtNum(m.hrAvg, 1) + ' bpm' : '—';
   document.getElementById('sum-hr-max').textContent = m.hrMax != null ? fmtNum(m.hrMax, 1) + ' bpm' : '—';
@@ -1435,6 +1435,34 @@ function renderAthleteSummary() {
   document.getElementById('sw-max').textContent = sweatMaxText;
   document.getElementById('sw-total').textContent = sweatTotalText;
 }
+
+function renderChart() {
+  const drawChart = (canvasId, instanceHolder) => {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return instanceHolder;
+    const p = AppState.processed;
+    if (!p || p.length === 0) return instanceHolder;
+    const dict = translations[AppState.currentLang] || translations['en'];
+    const labels = p.map(r => r.hhmmss);
+    const coreData = p.map(r => r.unifiedCore);
+    const hrData = p.map(r => r.hr);
+    const sweatData = p.map(r => r.cumulativeSweat);
+
+    if (instanceHolder) instanceHolder.destroy();
+
+    const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(220,38,38,0.25)');
+    gradient.addColorStop(1, 'rgba(220,38,38,0)');
+
+    return new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: dict.chart_core_label || 'Core Temp (°C)', data: coreData, borderColor: '#dc2626', backgroundColor: gradient, fill: true, borderWidth: 2.25, pointRadius: 0, pointHoverRadius: 5, tension: 0.25, yAxisID: 'y' },
+          { label: dict.chart_hr_label || 'Heart Rate (bpm)', data: hrData, borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 4, tension: 0.25, yAxisID: 'y1' },
+          { label: dict.chart_sweat_label || 'Cumulative Sweat Loss (L)', data: sweatData, borderColor: '#0d9488', borderWidth: 2, borderDash: [4, 3], pointRadius: 0, pointHoverRadius: 4, tension: 0.15, yAxisID: 'y2' }
+        ]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
@@ -1456,6 +1484,12 @@ function renderAthleteSummary() {
           y1: { type: 'linear', position: 'right', title: { display: true, text: dict.chart_y_hr || 'Heart Rate (bpm)' }, grid: { drawOnChartArea: false } },
           y2: { type: 'linear', position: 'right', offset: true, title: { display: true, text: dict.chart_y_sweat || 'Sweat Loss (L)' }, grid: { drawOnChartArea: false } }
         }
+      }
+    });
+  };
+
+  AppState.chartCoreHR = drawChart('chartCoreHR', AppState.chartCoreHR);
+}
       },
       plugins: [{
         id: 'cutoffLine',
