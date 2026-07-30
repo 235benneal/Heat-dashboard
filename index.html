@@ -2679,7 +2679,7 @@ async function exportPDF() {
   updateZoneLabelsDisplay();
 
   // FIX: Force clean block rendering centered without shifting off-screen
-reportTemplate.classList.remove('hidden');
+  reportTemplate.classList.remove('hidden');
   reportTemplate.style.display = 'block';
   reportTemplate.style.position = 'relative';
   reportTemplate.style.left = '-7px';
@@ -2687,17 +2687,24 @@ reportTemplate.classList.remove('hidden');
   reportTemplate.style.width = '784px';
   reportTemplate.style.background = '#ffffff';
 
-  // Explicitly trigger your chart generation function here so it binds to the visible DOM container
-  if (typeof drawPDFChart === 'function') {
-    drawPDFChart();
+  // 1. Capture the interactive chart canvas as a static image string
+  const chartCanvas = document.getElementById('pdfChartCoreHR'); // Make sure this matches your chart canvas ID
+  let chartImageTag = null;
+  
+  if (chartCanvas && typeof chartCanvas.toDataURL === 'function') {
+    const dataURL = chartCanvas.toDataURL('image/png');
+    // Find the canvas parent or container inside the template and swap it with an image
+    const chartContainer = reportTemplate.querySelector('#pdf-chart-container-id'); // Replace with your container's actual ID or query selector
+    if (chartContainer) {
+      chartImageTag = document.createElement('img');
+      chartImageTag.src = dataURL;
+      chartImageTag.style.width = '100%';
+      chartImageTag.style.height = 'auto';
+      chartCanvas.style.display = 'none'; // Hide real canvas
+      chartContainer.appendChild(chartImageTag); // Append image representation
+    }
   }
 
-  if (typeof pdfChartCoreHRInstance !== 'undefined' && pdfChartCoreHRInstance) {
-    pdfChartCoreHRInstance.resize();
-    pdfChartCoreHRInstance.update('none');
-  }
-
-  // Increased timeout to 600ms to guarantee Chart.js finishes painting pixels before the snapshot
   setTimeout(async () => {
     if (typeof html2pdf !== 'undefined') {
       const options = {
@@ -2720,15 +2727,20 @@ reportTemplate.classList.remove('hidden');
         console.error("PDF Export Error:", err);
         window.print();
       } finally {
+        // Cleanup: remove temporary image and restore canvas visibility
+        if (chartImageTag) chartImageTag.remove();
+        if (chartCanvas) chartCanvas.style.display = '';
         reportTemplate.removeAttribute('style');
         reportTemplate.classList.add('hidden');
       }
     } else {
       window.print();
+      if (chartImageTag) chartImageTag.remove();
+      if (chartCanvas) chartCanvas.style.display = '';
       reportTemplate.removeAttribute('style');
       reportTemplate.classList.add('hidden');
     }
-  }, 600);
+  }, 400);
 }
 
 window.addEventListener('DOMContentLoaded', () => { 
