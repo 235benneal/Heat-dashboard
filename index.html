@@ -1474,7 +1474,7 @@ function renderChart() {
             callbacks: {
               label: (item) => item.dataset.yAxisID === 'y' ? `Core: ${item.formattedValue} °C`
                 : item.dataset.yAxisID === 'y1' ? `HR: ${item.formattedValue} bpm`
-                : `Sweat: ${item.formattedValue} L`
+: `Sweat: ${item.formattedValue} L`
             }
           }
         },
@@ -1484,12 +1484,6 @@ function renderChart() {
           y1: { type: 'linear', position: 'right', title: { display: true, text: dict.chart_y_hr || 'Heart Rate (bpm)' }, grid: { drawOnChartArea: false } },
           y2: { type: 'linear', position: 'right', offset: true, title: { display: true, text: dict.chart_y_sweat || 'Sweat Loss (L)' }, grid: { drawOnChartArea: false } }
         }
-      }
-    });
-  };
-
-  AppState.chartCoreHR = drawChart('chartCoreHR', AppState.chartCoreHR);
-}
       },
       plugins: [{
         id: 'cutoffLine',
