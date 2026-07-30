@@ -1853,7 +1853,7 @@ async function exportPDF() {
   if (pdfScatterCanvasCtx && AppState.processed.length > 0) {
     const scaleFactor = 2;
     const computedWidth = pdfScatterCanvasCtx.parentElement ? pdfScatterCanvasCtx.parentElement.clientWidth : 750;
-    const computedHeight = 170;
+    const computedHeight = 140; // Adjusted height for clean single-page fit
     
     pdfScatterCanvasCtx.width = computedWidth * scaleFactor;
     pdfScatterCanvasCtx.height = computedHeight * scaleFactor;
@@ -1861,7 +1861,7 @@ async function exportPDF() {
     pdfScatterCanvasCtx.style.height = computedHeight + 'px';
 
     const scatterDataForPdf = AppState.processed
-      .filter(r => r.unifiedCore != null && r.hr != null && r.hr > 30)
+      .filter((r, index) => r.unifiedCore != null && r.hr != null && r.hr > 30 && index % 15 === 0)
       .map(r => ({ x: Number(r.unifiedCore.toFixed(2)), y: r.hr }));
 
     tempPdfScatterChart = new Chart(pdfScatterCanvasCtx, {
@@ -1870,8 +1870,8 @@ async function exportPDF() {
         datasets: [{
           label: 'Core Temp vs Heart Rate',
           data: scatterDataForPdf,
-          backgroundColor: 'rgba(220, 38, 38, 0.5)',
-          pointRadius: 2.5
+          backgroundColor: 'rgba(220, 38, 38, 0.4)',
+          pointRadius: 2
         }]
       },
       options: {
@@ -1886,7 +1886,7 @@ async function exportPDF() {
       }
     });
   }
-
+  
   setTimeout(async () => {
     if (typeof html2pdf !== 'undefined') {
       const options = {
