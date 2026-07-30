@@ -1006,6 +1006,7 @@ function setViewMode(mode) {
   renderProcessedTable(1);
 }
 
+// REPLACE your current computeMinuteAverages() function with this exact block:
 function computeMinuteAverages() {
   const p = AppState.processed;
   if (!p || p.length === 0) { AppState.minuteAverages = []; return; }
@@ -1050,7 +1051,6 @@ function computeMinuteAverages() {
 
   AppState.minuteAverages = averages;
 }
-
     averages.push({
       minute: b.minute,
       hhmmss: fmtTime(minNum * 60),
