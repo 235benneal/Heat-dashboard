@@ -2688,6 +2688,7 @@ async function exportPDF() {
   reportTemplate.style.background = '#ffffff';
 
   // Force draw a dedicated chart instance directly onto the PDF canvas element
+// Force draw a dedicated chart instance directly onto the PDF canvas element
   let tempPdfChart = null;
   const pdfCanvasCtx = document.getElementById('pdfChartCoreHR');
   if (pdfCanvasCtx && AppState.processed.length > 0) {
@@ -2697,19 +2698,30 @@ async function exportPDF() {
     const sweatData = AppState.processed.map(r => r.cumulativeSweatLiters || 0);
     const cutoffValue = parseFloat(document.getElementById('inp-cutoff')?.value) || 39.5;
 
+    // HIGH-RES FIX: Multiply physical canvas resolution by 2 to match html2canvas scale
+    const scaleFactor = 2;
+    const computedWidth = pdfCanvasCtx.parentElement ? pdfCanvasCtx.parentElement.clientWidth : 750;
+    const computedHeight = 280; // Match your container's designed height
+    
+    pdfCanvasCtx.width = computedWidth * scaleFactor;
+    pdfCanvasCtx.height = computedHeight * scaleFactor;
+    pdfCanvasCtx.style.width = computedWidth + 'px';
+    pdfCanvasCtx.style.height = computedHeight + 'px';
+
     tempPdfChart = new Chart(pdfCanvasCtx, {
       type: 'line',
       data: {
         labels: labels,
         datasets: [
-          { label: 'Core Temp (°C)', data: coreData, borderColor: '#dc2626', borderWidth: 2, pointRadius: 0, yAxisID: 'y' },
-          { label: 'Heart Rate (bpm)', data: hrData, borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 0, yAxisID: 'y1' },
-          { label: 'Sweat Loss (L)', data: sweatData, borderColor: '#0d9488', borderWidth: 1.5, borderDash: [4, 3], pointRadius: 0, yAxisID: 'y2' }
+          { label: 'Core Temp (°C)', data: coreData, borderColor: '#dc2626', borderWidth: 2.5, pointRadius: 0, yAxisID: 'y' },
+          { label: 'Heart Rate (bpm)', data: hrData, borderColor: '#2563eb', borderWidth: 1.75, pointRadius: 0, yAxisID: 'y1' },
+          { label: 'Sweat Loss (L)', data: sweatData, borderColor: '#0d9488', borderWidth: 1.75, borderDash: [4, 3], pointRadius: 0, yAxisID: 'y2' }
         ]
       },
       options: {
         responsive: false,
         animation: false,
+        devicePixelRatio: scaleFactor, // Tells Chart.js to render at retina/high-DPI sharpness
         scales: {
           x: { display: true, ticks: { maxTicksLimit: 8 } },
           y: { 
