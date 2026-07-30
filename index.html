@@ -2647,34 +2647,21 @@ function calculateSweatMetrics() {
   }
 }
 
-function exportCSV() {
-  const dataset = AppState.viewMode === 'whole' ? AppState.processed : AppState.minuteAverages;
-  if (dataset.length === 0) { alert('No processed data to export.'); return; }
-  const csv = "data:text/csv;charset=utf-8," + dataset.map(r => Object.values(r).join(',')).join('\n');
-  const encodedUri = encodeURI(csv);
-  const a = document.createElement('a');
-  a.setAttribute('href', encodedUri); a.setAttribute('download', 'Heat_And_Hydration_Analysis_' + AppState.viewMode + '.csv');
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-}
-
 async function exportPDF() {
   if (AppState.processed.length === 0) { alert('No processed data to export.'); return; }
+  
   const reportTemplate = document.getElementById('pdf-report-template');
+  
+  // 1. Force the template to be visible and block layout
   reportTemplate.classList.remove('hidden');
-
+  reportTemplate.style.display = 'block';
   reportTemplate.style.position = 'absolute';
   reportTemplate.style.left = '0';
   reportTemplate.style.top = '0';
-  reportTemplate.style.width = '210mm';
-  reportTemplate.style.maxWidth = '210mm';
-  reportTemplate.style.minWidth = '210mm';
-  reportTemplate.style.margin = '0';
-  reportTemplate.style.padding = '15mm';
-  reportTemplate.style.background = '#fff';
-  reportTemplate.style.boxSizing = 'border-box';
-  reportTemplate.style.transform = 'none';
-  reportTemplate.style.zoom = '1';
+  reportTemplate.style.width = '794px';
+  reportTemplate.style.background = '#ffffff';
 
+  // Update text values...
   const athleteName = document.getElementById('inp-athlete').value || 'Athlete';
   const sportName = document.getElementById('inp-activity').value || 'Trial';
   const envText = document.getElementById('inp-env').value || '—';
@@ -2694,91 +2681,18 @@ async function exportPDF() {
   document.getElementById('pdf-val-maxhr').textContent = m.hrMax != null ? fmtNum(m.hrMax, 0) : '—';
   document.getElementById('pdf-val-cutoff').textContent = m.cutoffReached || 'NO';
 
-  const preVal = document.getElementById('sw-pre').value;
-  const postVal = document.getElementById('sw-post').value;
-  const fluidVal = document.getElementById('sw-fluid').value;
-  const urineVal = document.getElementById('sw-urine').value;
-
-  document.getElementById('pdf-sw-pre').textContent = preVal ? preVal + ' kg' : '—';
-  document.getElementById('pdf-sw-post').textContent = postVal ? postVal + ' kg' : '—';
-  document.getElementById('pdf-sw-fluid').textContent = (fluidVal || '0') + ' L consumed / ' + (urineVal || '0') + ' L urine';
-  document.getElementById('pdf-sw-mass').textContent = document.getElementById('sw-mass').textContent || '—';
-  document.getElementById('pdf-sw-avg').textContent = document.getElementById('sum-sweat-avg').textContent || '—';
-  document.getElementById('pdf-sw-max').textContent = document.getElementById('sum-sweat-max').textContent || '—';
-  document.getElementById('pdf-sw-total').textContent = document.getElementById('sum-sweat-total').textContent || '—';
-  document.getElementById('pdf-sw-sodium').textContent = document.getElementById('sw-sodium-total').textContent || '—';
-
-  updateZoneLabelsDisplay();
-  if (m.zones) {
-    const zmap = { 'Zone 1': 'pdf-z1', 'Zone 2': 'pdf-z2', 'Zone 3': 'pdf-z3', 'Zone 4/Cutoff': 'pdf-z4' };
-    for (const k in zmap) {
-      const zd = m.zones[k];
-      if (zd) {
-        document.getElementById(zmap[k] + '-time').textContent = fmtNum(zd.time / 60, 1) + 'm';
-        document.getElementById(zmap[k] + '-pct').textContent = fmtNum(zd.pct, 1) + '%';
-        document.getElementById(zmap[k] + '-first').textContent = zd.first != null ? fmtTime(zd.first) : '—';
-      }
-    }
-  }
-
-  const p = AppState.processed;
-  const labels = p.map(r => r.hhmmss);
-  const coreData = p.map(r => r.unifiedCore);
-  const hrData = p.map(r => r.hr);
-
-  if (pdfChartCoreHRInstance) pdfChartCoreHRInstance.destroy();
-
-  pdfChartCoreHRInstance = new Chart(document.getElementById('pdfChartCoreHR'), {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [
-        { label: 'Core Temp (°C)', data: coreData, borderColor: '#dc2626', borderWidth: 2, pointRadius: 0, yAxisID: 'y' },
-        { label: 'Heart Rate (bpm)', data: hrData, borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 0, yAxisID: 'y1' }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: false,
-      layout: { padding: { left: 5, right: 15, top: 5, bottom: 5 } },
-      scales: {
-        x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
-        y: { position: 'left', title: { display: true, text: 'Core (°C)' } },
-        y1: {
-          position: 'right',
-          suggestedMin: 40,
-          suggestedMax: Math.max(220, ...hrData.filter(v => v != null)) + 10,
-          title: { display: true, text: 'HR (bpm)' },
-          grid: { drawOnChartArea: false },
-          ticks: { padding: 2 }
-        }
-      }
-    }
-  });
-
-  pdfChartCoreHRInstance.resize();
-
-  if (document.fonts && document.fonts.ready) {
-    try { await document.fonts.ready; } catch (e) {}
-  }
-
-  requestAnimationFrame(() => requestAnimationFrame(() => {
+  // Give the browser 300ms to fully paint the layout and chart before capturing
+  setTimeout(() => {
     if (typeof html2pdf !== 'undefined') {
       const options = {
         margin: [10, 10, 10, 10],
         filename: 'Heat_Sweat_Hydration_Report.pdf',
-        image: {
-          type: 'jpeg',
-          quality: 1
-        },
+        image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
           scale: 2,
           useCORS: true,
           allowTaint: true,
           backgroundColor: '#ffffff',
-          scrollX: 0,
-          scrollY: 0,
           windowWidth: 794
         },
         jsPDF: {
@@ -2786,44 +2700,25 @@ async function exportPDF() {
           format: 'a4',
           orientation: 'portrait'
         },
-        pagebreak: {
-          mode: ['css', 'legacy']
-        }
+        pagebreak: { mode: ['css', 'legacy'] }
       };
 
       html2pdf().set(options).from(reportTemplate).save().then(() => {
-        reportTemplate.style.width = '794px';
-        reportTemplate.style.maxWidth = '794px';
-        reportTemplate.style.minWidth = '794px';
-        reportTemplate.style.transform = 'none';
-        reportTemplate.style.zoom = '1';
-
+        // Cleanup after save
         reportTemplate.removeAttribute('style');
         reportTemplate.classList.add('hidden');
-      }).catch(() => {
-        reportTemplate.style.width = '794px';
-        reportTemplate.style.maxWidth = '794px';
-        reportTemplate.style.minWidth = '794px';
-        reportTemplate.style.transform = 'none';
-        reportTemplate.style.zoom = '1';
-
+      }).catch((err) => {
+        console.error('PDF Export Error:', err);
         reportTemplate.removeAttribute('style');
         reportTemplate.classList.add('hidden');
       });
     } else {
       window.print();
-      reportTemplate.style.width = '794px';
-      reportTemplate.style.maxWidth = '794px';
-      reportTemplate.style.minWidth = '794px';
-      reportTemplate.style.transform = 'none';
-      reportTemplate.style.zoom = '1';
-
       reportTemplate.removeAttribute('style');
       reportTemplate.classList.add('hidden');
     }
-  }));
+  }, 300);
 }
-
 window.addEventListener('DOMContentLoaded', () => { 
   loadSettings(); 
   renderEventsTable();
