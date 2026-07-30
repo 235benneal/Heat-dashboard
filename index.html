@@ -2692,16 +2692,19 @@ async function exportPDF() {
   setTimeout(async () => {
     if (typeof html2pdf !== 'undefined') {
       const options = {
-        margin: 10,
+        const options = {
+        margin: [10, 10, 10, 10],
         filename: 'Heat_Sweat_Hydration_Report.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
-          scale: 2,
+          scale: 1.25, // Lowered from 2 to 1.25 so it zooms out and fits the page cleanly
           useCORS: true,
           logging: false,
-          backgroundColor: '#ffffff'
+          backgroundColor: '#ffffff',
+          windowWidth: 794
         },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
       };
 
       try {
