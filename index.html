@@ -1487,7 +1487,6 @@ function renderCoreVsHrChart() {
   const ctx = document.getElementById('chartCoreVsHr');
   if (!ctx || !AppState.processed || AppState.processed.length === 0) return;
 
-  // Option 1: Filter valid points and take every 15th point to eliminate clutter
   const scatterData = AppState.processed
     .filter((r, index) => r.unifiedCore != null && r.hr != null && r.hr > 30 && index % 15 === 0)
     .map(r => ({ x: Number(r.unifiedCore.toFixed(2)), y: r.hr }));
@@ -1501,8 +1500,8 @@ function renderCoreVsHrChart() {
         label: 'Core Temp vs Heart Rate',
         data: scatterData,
         backgroundColor: 'rgba(220, 38, 38, 0.4)',
-        pointRadius: 3,
-        pointHoverRadius: 5
+        pointRadius: 1.5, // Smaller points for the website view
+        pointHoverRadius: 4
       }]
     },
     options: {
