@@ -1879,28 +1879,34 @@ async function exportPDF() {
       .filter((r, index) => r.unifiedCore != null && r.hr != null && r.hr > 30 && index % 15 === 0)
       .map(r => ({ x: Number(r.unifiedCore.toFixed(2)), y: r.hr }));
 
-    tempPdfScatterChart = new Chart(pdfScatterCanvasCtx, {
-      type: 'scatter',
-      data: {
-        datasets: [{
-          label: 'Core Temp vs Heart Rate',
-          data: scatterDataForPdf,
-          backgroundColor: 'rgba(220, 38, 38, 0.4)',
-          pointRadius: 2
-        }]
-      },
-      options: {
-        responsive: false,
-        animation: false,
-        devicePixelRatio: scaleFactor,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { type: 'linear', position: 'bottom', title: { display: true, text: 'Core Temperature (°C)' } },
-          y: { title: { display: true, text: 'Heart Rate (bpm)' } }
-        }
+  tempPdfScatterChart = new Chart(pdfScatterCanvasCtx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Core Temp vs Heart Rate',
+        data: scatterDataForPdf,
+        backgroundColor: 'rgba(220, 38, 38, 0.4)',
+        pointRadius: 2
+      }]
+    },
+    options: {
+      responsive: false,
+      animation: false,
+      devicePixelRatio: scaleFactor,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { 
+          type: 'linear', 
+          position: 'bottom', 
+          suggestedMin: 35.0,
+          suggestedMax: 38.5, 
+          title: { display: true, text: 'Core Temperature (°C)' } 
+        },
+        y: { title: { display: true, text: 'Heart Rate (bpm)' } }
       }
-    });
-  }
+    }
+  });
+}
   
   setTimeout(async () => {
     if (typeof html2pdf !== 'undefined') {
