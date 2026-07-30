@@ -2737,7 +2737,15 @@ window.addEventListener('DOMContentLoaded', () => {
   const addEventBtn = document.getElementById('add-event-btn');
   if (addEventBtn) {
     addEventBtn.addEventListener('click', addEventRow);
-  }
+  } 
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.getAttribute('data-target');
+      if (target) showTab(target);
+    });
+  });
+});
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
