@@ -1899,7 +1899,6 @@ async function exportPDF() {
   }
 
   if (pdfScatterCanvasCtx && AppState.processed.length > 0) {
-
     const scaleFactor = 2;
     const computedWidth = pdfScatterCanvasCtx.parentElement.clientWidth;
     const computedHeight = 140;
@@ -1941,44 +1940,27 @@ async function exportPDF() {
             responsive: false,
             animation: false,
             devicePixelRatio: scaleFactor,
-
             layout: {
-                padding: {
-                    left: 5,
-                    right: 5,
-                    top: 5,
-                    bottom: 5
-                }
+                padding: { left: 5, right: 5, top: 5, bottom: 5 }
             },
-
             plugins: {
-                legend: {
-                    display: false
-                }
+                legend: { display: false }
             },
-
             scales: {
                 x: {
                     type: 'linear',
                     position: 'bottom',
                     min: 35,
                     max: Math.ceil((maxCore + 0.6) * 10) / 10,
-                    title: {
-                        display: true,
-                        text: 'Core Temperature (°C)'
-                    }
+                    title: { display: true, text: 'Core Temperature (°C)' }
                 },
                 y: {
-                    title: {
-                        display: true,
-                        text: 'Heart Rate (bpm)'
-                    }
+                    title: { display: true, text: 'Heart Rate (bpm)' }
                 }
             }
         }
     });
-
-}
+  }
   
   setTimeout(async () => {
     if (typeof html2pdf !== 'undefined') {
@@ -2026,14 +2008,15 @@ window.addEventListener('DOMContentLoaded', () => {
     addEventBtn.addEventListener('click', addEventRow);
   }  
 
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const target = btn.getAttribute('data-target');
-    if (target && typeof showTab === 'function') {
-      showTab(target);
-    }
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.getAttribute('data-target');
+      if (target && typeof showTab === 'function') {
+        showTab(target);
+      }
+    });
   });
-
+});
 </script>
 </body>
 </html>
