@@ -2700,7 +2700,7 @@ async function exportPDF() {
     // HIGH-RES FIX: Multiply physical canvas resolution by 2 to match html2canvas scale
     const scaleFactor = 2;
     const computedWidth = pdfCanvasCtx.parentElement ? pdfCanvasCtx.parentElement.clientWidth : 750;
-    const computedHeight = 180; // Match your container's designed height
+    const computedHeight = 190; // Slightly shorter to ensure vertical fit
     
     pdfCanvasCtx.width = computedWidth * scaleFactor;
     pdfCanvasCtx.height = computedHeight * scaleFactor;
@@ -2720,7 +2720,12 @@ async function exportPDF() {
       options: {
         responsive: false,
         animation: false,
-        devicePixelRatio: scaleFactor, // Tells Chart.js to render at retina/high-DPI sharpness
+        devicePixelRatio: scaleFactor,
+        layout: {
+          padding: {
+            right: 25 // Adds inner padding on the right so the axis title stays inside the card box
+          }
+        },
         scales: {
           x: { display: true, ticks: { maxTicksLimit: 8 } },
           y: { 
@@ -2744,7 +2749,6 @@ async function exportPDF() {
         }
       }
     });
-  }
 
   setTimeout(async () => {
     if (typeof html2pdf !== 'undefined') {
