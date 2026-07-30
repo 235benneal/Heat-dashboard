@@ -2758,20 +2758,30 @@ async function exportPDF() {
 
   requestAnimationFrame(() => requestAnimationFrame(() => {
     if (typeof html2pdf !== 'undefined') {
-      html2pdf().set({
-        margin: [0.3, 0.3, 0.3, 0.3], // Slightly reduced outer margins to give content breathing room
-        filename: 'Heat_Sweat_Hydration_Report.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2, 
-          useCORS: true, 
-          letterRendering: true,
-          scrollX: 0,
-          scrollY: 0,
-          windowWidth: reportTemplate.offsetWidth // fixed, matches the template's own width — not the browser viewport
-        },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-      }).from(reportTemplate).save().then(() => {
+     if (typeof html2pdf !== 'undefined') {
+  html2pdf().set({
+    margin: 10,
+    filename: 'report.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true
+    },
+    jsPDF: {
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    },
+    pagebreak: {
+      mode: 'avoid-all'
+    }
+  }).from(reportTemplate).save().then(() => {
+    reportTemplate.classList.add('hidden');
+  }).catch(() => {
+    reportTemplate.classList.add('hidden');
+  });
+}.from(reportTemplate).save().then(() => {
         reportTemplate.classList.add('hidden');
       }).catch(() => {
         reportTemplate.classList.add('hidden');
