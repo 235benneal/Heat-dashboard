@@ -2442,7 +2442,7 @@ function renderChart() {
     gradient.addColorStop(1, 'rgba(220,38,38,0)');
     const cutoffValue = settings.zones.cutoff;
 
-    return new Chart(ctx, {
+return new Chart(ctx, {
       type: 'line',
       data: {
         labels: labels,
@@ -2678,11 +2678,11 @@ async function exportPDF() {
 
   updateZoneLabelsDisplay();
 
-  // FIX: Force it into a centered, visible block instead of absolute left-edge positioning
+  // FIX: Force clean block rendering centered without shifting off-screen
   reportTemplate.classList.remove('hidden');
   reportTemplate.style.display = 'block';
   reportTemplate.style.position = 'relative';
-  reportTemplate.style.left = '-30px';
+  reportTemplate.style.left = '0px';
   reportTemplate.style.margin = '0 auto';
   reportTemplate.style.width = '794px';
   reportTemplate.style.background = '#ffffff';
@@ -2692,12 +2692,11 @@ async function exportPDF() {
   setTimeout(async () => {
     if (typeof html2pdf !== 'undefined') {
       const options = {
-        const options = {
         margin: [10, 10, 10, 10],
         filename: 'Heat_Sweat_Hydration_Report.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
-          scale: 1.25, // Lowered from 2 to 1.25 so it zooms out and fits the page cleanly
+          scale: 1.25,
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
@@ -2713,7 +2712,6 @@ async function exportPDF() {
         console.error("PDF Export Error:", err);
         window.print();
       } finally {
-        // Clean up styles and re-hide
         reportTemplate.removeAttribute('style');
         reportTemplate.classList.add('hidden');
       }
@@ -2738,14 +2736,6 @@ window.addEventListener('DOMContentLoaded', () => {
   if (addEventBtn) {
     addEventBtn.addEventListener('click', addEventRow);
   } 
-
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.getAttribute('data-target');
-      if (target) showTab(target);
-    });
-  });
-});
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
