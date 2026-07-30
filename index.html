@@ -279,101 +279,111 @@ table.data-table tr:hover td { background: var(--paper-alt); }
         <div class="mt-4 pt-3 border-t border-slate-100 flex gap-2 no-print">
           <button type="button" onclick="saveCurrentReportToArchive()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition cursor-pointer"><i class="fa-solid fa-bookmark mr-1"></i> <span data-i18n="btn_save_archive">Save Report to Archive</span></button>
         </div>
-      </div>
+    </div>
 
-      <div class="card p-4 lg:col-span-2">
-        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
-          <div class="flex items-center">
-            <span data-i18n="sec_core">Core Temp</span>
-            <div class="relative tooltip-trigger right-aligned cursor-help no-print ml-2" ontouchstart="toggleTooltip(event, this)">
-              <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
-              <div class="sci-tooltip" data-i18n="tip_core">Evaluates internal thermal strain. Key indicators include the maximum temperature achieved, total rise from baseline, and how rapidly heat accumulated during the session.</div>
-            </div>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_start">Start</div><div class="big-number text-slate-700" id="sum-start">—</div><div class="text-[10px] text-slate-400">°C</div></div>
-          <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_maximum">Maximum</div><div class="big-number" id="sum-max">—</div><div class="text-[10px] text-slate-400">°C</div></div>
-          <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_final">Final</div><div class="big-number text-slate-700" id="sum-final">—</div><div class="text-[10px] text-slate-400">°C</div></div>
-          <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_cutoff_reached">Cutoff Reached?</div><div class="big-number" id="sum-cutoff">—</div><div class="text-[10px] text-slate-400" id="sum-cutoff-sub"><span id="sum-cutoff-threshold-text">39.7 °C threshold</span></div></div>
-        </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-4 pt-4 border-t border-slate-100">
-          <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_total_rise">Total Rise</div><div class="font-semibold text-base sm:text-lg" id="sum-rise">—</div><div class="text-[10px] text-slate-400">°C</div></div>
-          <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_net_change">Net Change</div><div class="font-semibold text-base sm:text-lg" id="sum-net">—</div><div class="text-[10px] text-slate-400">°C</div></div>
-          <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_rate_rise">Rate of Rise</div><div class="font-semibold text-base sm:text-lg" id="sum-rate">—</div><div class="text-[10px] text-slate-400">°C/min</div></div>
-          <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_time_max">Time to Max</div><div class="font-semibold text-base sm:text-lg" id="sum-timetomax">—</div><div class="text-[10px] text-slate-400">min</div></div>
+  <div class="card p-4 lg:col-span-2 flex flex-col">
+    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
+      <div class="flex items-center">
+        <span data-i18n="sec_core">Core Temp & Environment</span>
+        <div class="relative tooltip-trigger right-aligned cursor-help no-print ml-2" ontouchstart="toggleTooltip(event, this)">
+          <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+          <div class="sci-tooltip">Evaluates internal thermal strain alongside the corresponding environmental conditions during the session.</div>
         </div>
       </div>
     </div>
+    
+    <!-- Row 1: Core Temp Main -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 flex-grow">
+      <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_start">Start</div><div class="big-number text-slate-700" id="sum-start">—</div><div class="text-[10px] text-slate-400">°C</div></div>
+      <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_maximum">Maximum</div><div class="big-number" id="sum-max">—</div><div class="text-[10px] text-slate-400">°C</div></div>
+      <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_final">Final</div><div class="big-number text-slate-700" id="sum-final">—</div><div class="text-[10px] text-slate-400">°C</div></div>
+      <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_cutoff_reached">Cutoff Reached?</div><div class="big-number" id="sum-cutoff">—</div><div class="text-[10px] text-slate-400" id="sum-cutoff-sub"><span id="sum-cutoff-threshold-text">39.7 °C threshold</span></div></div>
+    </div>
+    
+    <!-- Row 2: Core Temp Kinetics -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-4 pt-4 border-t border-slate-100">
+      <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_total_rise">Total Rise</div><div class="font-semibold text-base sm:text-lg" id="sum-rise">—</div><div class="text-[10px] text-slate-400">°C</div></div>
+      <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_net_change">Net Change</div><div class="font-semibold text-base sm:text-lg" id="sum-net">—</div><div class="text-[10px] text-slate-400">°C</div></div>
+      <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_rate_rise">Rate of Rise</div><div class="font-semibold text-base sm:text-lg" id="sum-rate">—</div><div class="text-[10px] text-slate-400">°C/min</div></div>
+      <div><div class="text-xs text-slate-400 mb-1" data-i18n="lbl_time_max">Time to Max</div><div class="font-semibold text-base sm:text-lg" id="sum-timetomax">—</div><div class="text-[10px] text-slate-400">min</div></div>
+    </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
-      <div class="card p-4">
-        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
-          <div class="flex items-center">
-            <span data-i18n="sec_zones">Time Spent in Zones</span>
-            <div class="relative tooltip-trigger cursor-help no-print ml-2" ontouchstart="toggleTooltip(event, this)">
-              <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
-              <div class="sci-tooltip" data-i18n="tip_zones">Quantifies the total duration and percentage of the session the athlete spent in specific physiological thermal strain bands.</div>
-            </div>
-          </div>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs sm:text-sm">
-            <thead><tr class="text-left text-[10px] sm:text-xs text-slate-400 border-b border-slate-100"><th class="pb-2" data-i18n="tbl_zone">Zone</th><th class="pb-2" data-i18n="tbl_time">Time</th><th class="pb-2">%</th><th class="pb-2" data-i18n="tbl_first_entry">First Entry</th></tr></thead>
-            <tbody id="zone-table">
-              <tr><td class="py-1.5 font-medium zone-1" id="dash-z1-label">Zone 1 (&lt;38.0)</td><td class="py-1.5" id="z1-time">—</td><td class="py-1.5" id="z1-pct">—</td><td class="py-1.5" id="z1-first">—</td></tr>
-              <tr><td class="py-1.5 font-medium zone-2" id="dash-z2-label">Zone 2 (38.0–38.9)</td><td class="py-1.5" id="z2-time">—</td><td class="py-1.5" id="z2-pct">—</td><td class="py-1.5" id="z2-first">—</td></tr>
-              <tr><td class="py-1.5 font-medium zone-3" id="dash-z3-label">Zone 3 (39.0–39.6)</td><td class="py-1.5" id="z3-time">—</td><td class="py-1.5" id="z3-pct">—</td><td class="py-1.5" id="z3-first">—</td></tr>
-              <tr><td class="py-1.5 font-medium zone-4" id="dash-z4-label">Zone 4 / Cutoff (&ge;39.7)</td><td class="py-1.5" id="z4-time">—</td><td class="py-1.5" id="z4-pct">—</td><td class="py-1.5" id="z4-first">—</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500"><span data-i18n="lbl_transitions">Transitions</span>: <span class="font-semibold text-slate-700" id="sum-transitions">—</span></div>
-      </div>
-
-      <div class="card p-4">
-        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
-          <div class="flex items-center">
-            <span data-i18n="sec_sweat">Sweat Response</span>
-            <div class="relative tooltip-trigger cursor-help no-print ml-2" ontouchstart="toggleTooltip(event, this)">
-              <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
-              <div class="sci-tooltip" data-i18n="tip_sweat">Evaluates total fluid loss and sweat rate derived from real-time continuous sensors alongside precise body mass differentials entered by the user.</div>
-            </div>
-          </div>
-        </div>
-        <div class="space-y-2 text-xs sm:text-sm">
-          <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_avg_sweat">Avg Sweat Rate</span><span class="font-semibold" id="sum-sweat-avg">—</span></div>
-          <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_max_sweat">Max Sweat Rate</span><span class="font-semibold" id="sum-sweat-max">—</span></div>
-          <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_total_sensor_loss">Total Sensor Loss</span><span class="font-semibold" id="sum-sweat-total">—</span></div>
-          <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_est_loss_mass">Est. Loss (Mass)</span><span class="font-semibold" id="sum-sweat-mass-sum">—</span></div>
-          <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_sodium_loss">Sodium Loss</span><span class="font-semibold" id="sum-sodium">—</span></div>
-        </div>
-        <div class="mt-3 pt-3 border-t border-slate-100 text-[10px] text-slate-400" data-i18n="lbl_sensor_integration">Sensor & Mass Differential Integration</div>
-      </div>
-
-      <div class="card p-4">
-        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
-          <div class="flex items-center">
-            <span data-i18n="sec_hr">Heart Rate (HR)</span>
-            <div class="relative tooltip-trigger right-aligned cursor-help no-print ml-2" ontouchstart="toggleTooltip(event, this)">
-              <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
-              <div class="sci-tooltip" data-i18n="tip_hr">Reflects the internal physiological cost of the session, highlighting average working intensity and peak cardiovascular demand alongside any recorded breaks.</div>
-            </div>
-          </div>
-        </div>
-        <div class="space-y-2 text-xs sm:text-sm mb-3">
-          <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_avg_hr">Average HR</span><span class="font-semibold" id="sum-hr-avg">—</span></div>
-          <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_max_hr">Maximum HR</span><span class="font-semibold" id="sum-hr-max">—</span></div>
-        </div>
-        <div class="border-t border-slate-100 pt-3 space-y-2 text-xs sm:text-sm">
-          <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_breaks">Breaks</span><span class="font-semibold" id="sum-breaks-count">—</span></div>
-          <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_total_break_time">Total Break Time</span><span class="font-semibold" id="sum-breaks-total">—</span></div>
-          <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_largest_decline">Largest &Delta;T Decline</span><span class="font-semibold" id="sum-breaks-largest">—</span></div>
-        </div>
-      </div>
+    <!-- Row 3: Environment Data Footer -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-5 pt-3 border-t border-slate-200 bg-slate-50 -mx-4 -mb-4 p-4 rounded-b-xl">
+      <div><div class="text-xs text-slate-400 mb-1">Avg Ambient</div><div class="font-semibold text-base sm:text-lg text-slate-700" id="sum-env-ambient">—</div><div class="text-[10px] text-slate-400">°C</div></div>
+      <div><div class="text-xs text-slate-400 mb-1">Avg Humidity</div><div class="font-semibold text-base sm:text-lg text-slate-700" id="sum-env-rh">—</div><div class="text-[10px] text-slate-400">%</div></div>
+      <div><div class="text-xs text-slate-400 mb-1">Avg WBGT</div><div class="font-semibold text-base sm:text-lg text-slate-700" id="sum-env-wbgt">—</div><div class="text-[10px] text-slate-400">°C</div></div>
+      <div><div class="text-xs text-slate-400 mb-1">Avg Skin Temp</div><div class="font-semibold text-base sm:text-lg text-slate-700" id="sum-env-skin">—</div><div class="text-[10px] text-slate-400">°C</div></div>
     </div>
   </div>
+</div>
 
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+  <div class="card p-4">
+    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
+      <div class="flex items-center">
+        <span data-i18n="sec_zones">Time Spent in Zones</span>
+        <div class="relative tooltip-trigger cursor-help no-print ml-2" ontouchstart="toggleTooltip(event, this)">
+          <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+          <div class="sci-tooltip" data-i18n="tip_zones">Quantifies the total duration and percentage of the session the athlete spent in specific physiological thermal strain bands.</div>
+        </div>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs sm:text-sm">
+        <thead><tr class="text-left text-[10px] sm:text-xs text-slate-400 border-b border-slate-100"><th class="pb-2" data-i18n="tbl_zone">Zone</th><th class="pb-2" data-i18n="tbl_time">Time</th><th class="pb-2">%</th><th class="pb-2" data-i18n="tbl_first_entry">First Entry</th></tr></thead>
+        <tbody id="zone-table">
+          <tr><td class="py-1.5 font-medium zone-1" id="dash-z1-label">Zone 1 (&lt;38.0)</td><td class="py-1.5" id="z1-time">—</td><td class="py-1.5" id="z1-pct">—</td><td class="py-1.5" id="z1-first">—</td></tr>
+          <tr><td class="py-1.5 font-medium zone-2" id="dash-z2-label">Zone 2 (38.0–38.9)</td><td class="py-1.5" id="z2-time">—</td><td class="py-1.5" id="z2-pct">—</td><td class="py-1.5" id="z2-first">—</td></tr>
+          <tr><td class="py-1.5 font-medium zone-3" id="dash-z3-label">Zone 3 (39.0–39.6)</td><td class="py-1.5" id="z3-time">—</td><td class="py-1.5" id="z3-pct">—</td><td class="py-1.5" id="z3-first">—</td></tr>
+          <tr><td class="py-1.5 font-medium zone-4" id="dash-z4-label">Zone 4 / Cutoff (&ge;39.7)</td><td class="py-1.5" id="z4-time">—</td><td class="py-1.5" id="z4-pct">—</td><td class="py-1.5" id="z4-first">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500"><span data-i18n="lbl_transitions">Transitions</span>: <span class="font-semibold text-slate-700" id="sum-transitions">—</span></div>
+  </div>
+
+  <div class="card p-4">
+    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
+      <div class="flex items-center">
+        <span data-i18n="sec_sweat">Sweat Response</span>
+        <div class="relative tooltip-trigger cursor-help no-print ml-2" ontouchstart="toggleTooltip(event, this)">
+          <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+          <div class="sci-tooltip" data-i18n="tip_sweat">Evaluates total fluid loss and sweat rate derived from real-time continuous sensors alongside precise body mass differentials entered by the user.</div>
+        </div>
+      </div>
+    </div>
+    <div class="space-y-2 text-xs sm:text-sm">
+      <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_avg_sweat">Avg Sweat Rate</span><span class="font-semibold" id="sum-sweat-avg">—</span></div>
+      <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_max_sweat">Max Sweat Rate</span><span class="font-semibold" id="sum-sweat-max">—</span></div>
+      <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_total_sensor_loss">Total Sensor Loss</span><span class="font-semibold" id="sum-sweat-total">—</span></div>
+      <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_est_loss_mass">Est. Loss (Mass)</span><span class="font-semibold" id="sum-sweat-mass-sum">—</span></div>
+      <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_sodium_loss">Sodium Loss</span><span class="font-semibold" id="sum-sodium">—</span></div>
+    </div>
+    <div class="mt-3 pt-3 border-t border-slate-100 text-[10px] text-slate-400" data-i18n="lbl_sensor_integration">Sensor & Mass Differential Integration</div>
+  </div>
+
+  <div class="card p-4">
+    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
+      <div class="flex items-center">
+        <span data-i18n="sec_hr">Heart Rate (HR)</span>
+        <div class="relative tooltip-trigger right-aligned cursor-help no-print ml-2" ontouchstart="toggleTooltip(event, this)">
+          <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+          <div class="sci-tooltip" data-i18n="tip_hr">Reflects the internal physiological cost of the session, highlighting average working intensity and peak cardiovascular demand alongside any recorded breaks.</div>
+        </div>
+      </div>
+    </div>
+    <div class="space-y-2 text-xs sm:text-sm mb-3">
+      <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_avg_hr">Average HR</span><span class="font-semibold" id="sum-hr-avg">—</span></div>
+      <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_max_hr">Maximum HR</span><span class="font-semibold" id="sum-hr-max">—</span></div>
+    </div>
+    <div class="border-t border-slate-100 pt-3 space-y-2 text-xs sm:text-sm">
+      <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_breaks">Breaks</span><span class="font-semibold" id="sum-breaks-count">—</span></div>
+      <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_total_break_time">Total Break Time</span><span class="font-semibold" id="sum-breaks-total">—</span></div>
+      <div class="flex justify-between"><span class="text-slate-500" data-i18n="lbl_largest_decline">Largest &Delta;T Decline</span><span class="font-semibold" id="sum-breaks-largest">—</span></div>
+    </div>
+  </div>
+</div>
   <!-- PROCESSED DATA TAB -->
   <div id="tab-processed" class="tab-content hidden">
     <div class="card p-4">
