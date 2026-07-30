@@ -245,6 +245,19 @@ table.data-table tr:hover td { background: var(--paper-alt); }
 
 <div class="max-w-[1600px] mx-auto px-4 pb-12" id="pdf-container">
 
+  <div class="max-w-[1600px] mx-auto px-4 py-3 no-print overflow-x-auto hide-scrollbar">
+  <div class="flex gap-1 bg-slate-200/60 p-1 rounded-xl inline-flex min-w-full sm:min-w-0">
+    <button type="button" class="tab-btn active px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap cursor-pointer" onclick="showTab('summary')" data-target="summary" id="tab-btn-dashboard" data-i18n="tab_dashboard">Dashboard</button>
+    <button type="button" class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap cursor-pointer" onclick="showTab('processed')" data-target="processed" id="tab-btn-processed" data-i18n="tab_processed">Processed Data</button>
+    <button type="button" class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap cursor-pointer" onclick="showTab('charts')" data-target="charts" id="tab-btn-charts" data-i18n="tab_charts">Interactive Charts</button>
+    <button type="button" class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap cursor-pointer" onclick="showTab('compare')" data-target="compare" id="tab-btn-compare" data-i18n="tab_compare">Compare Lengths</button>
+    <button type="button" class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap cursor-pointer" onclick="showTab('sweat')" data-target="sweat" id="tab-btn-sweat" data-i18n="tab_sweat">Sweat</button>
+    <button type="button" class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap cursor-pointer" onclick="showTab('events')" data-target="events" id="tab-btn-events" data-i18n="tab_events">Events & Breaks</button>
+    <button type="button" class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap cursor-pointer" onclick="showTab('archive')" data-target="archive" id="tab-btn-archive" data-i18n="tab_archive">Saved Reports & Archive</button>
+    <button type="button" class="tab-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition text-slate-600 hover:text-slate-900 whitespace-nowrap cursor-pointer" onclick="showTab('settings')" data-target="settings" id="tab-btn-settings" data-i18n="tab_settings">Settings</button>
+  </div>
+</div>
+
   <!-- DASHBOARD TAB -->
   <div id="tab-summary" class="tab-content">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -2007,15 +2020,6 @@ window.addEventListener('DOMContentLoaded', () => {
   if (addEventBtn) {
     addEventBtn.addEventListener('click', addEventRow);
   }  
-
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.getAttribute('data-target');
-      if (target && typeof showTab === 'function') {
-        showTab(target);
-      }
-    });
-  });
 });
 </script>
 </body>
