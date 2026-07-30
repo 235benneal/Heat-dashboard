@@ -2153,6 +2153,24 @@ function loadSettings() {
   document.getElementById('map-e-wbgt').value = settings.mapEnv.wbgt;
 
   updateZoneLabelsDisplay();
+  }
+  
+  function updateZoneLabelsDisplay() {
+  const z1 = document.getElementById('set-z1max')?.value || '37.5';
+  const z2Min = document.getElementById('set-z2min')?.value || '37.6';
+  const z2Max = document.getElementById('set-z2max')?.value || '38.4';
+  const z3Min = document.getElementById('set-z3min')?.value || '38.5';
+  const z3Max = document.getElementById('set-z3max')?.value || '39.2';
+  const cutoff = document.getElementById('set-cutoff')?.value || '39.2';
+
+  if (document.getElementById('pdf-zone-1-range')) 
+    document.getElementById('pdf-zone-1-range').textContent = `< ${z1}°C`;
+  if (document.getElementById('pdf-zone-2-range')) 
+    document.getElementById('pdf-zone-2-range').textContent = `${z2Min}–${z2Max}°C`;
+  if (document.getElementById('pdf-zone-3-range')) 
+    document.getElementById('pdf-zone-3-range').textContent = `${z3Min}–${z3Max}°C`;
+  if (document.getElementById('pdf-zone-4-range')) 
+    document.getElementById('pdf-zone-4-range').textContent = `≥ ${cutoff}°C`;
 }
 
 function processDataArray(type, aoa) {
