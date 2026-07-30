@@ -41,14 +41,11 @@ header h1, .card h3, .card h4 { font-family: 'Sora', 'Inter', sans-serif; letter
 ::-webkit-scrollbar-thumb { background: #d8d2c2; border-radius: 8px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
-header button, #upload-bar button, #pdf-container button { transition: transform .15s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease; }
-header button:active, #upload-bar button:active, #pdf-container button:active { transform: scale(0.97); }
-
 header {
   position: relative;
   overflow: hidden;
   background-color: #1a365d !important;
-  background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px) !important;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px) !important;
   background-size: 16px 16px !important;
 }
 header::before {
@@ -64,22 +61,8 @@ header .hover\:bg-slate-700:hover { background-color: rgba(255,255,255,0.15) !im
 header .bg-blue-600 { background: linear-gradient(135deg, var(--ember), var(--ember-deep)) !important; box-shadow: 0 4px 14px -4px rgba(20,83,143,0.55); }
 header .hover\:bg-blue-500:hover { background: linear-gradient(135deg, #4f95e8, var(--ember)) !important; }
 
-#upload-bar .text-slate-400, #pdf-container .text-slate-400 { color: var(--muted-light) !important; }
-#upload-bar .text-slate-500, #pdf-container .text-slate-500 { color: var(--muted) !important; }
-#upload-bar .text-slate-600, #pdf-container .text-slate-600 { color: var(--muted) !important; }
-#upload-bar .hover\:text-slate-900:hover, #pdf-container .hover\:text-slate-900:hover { color: var(--ink) !important; }
-#upload-bar .text-slate-700, #pdf-container .text-slate-700 { color: var(--ink-soft) !important; }
-#pdf-container .text-slate-800, #pdf-container .text-slate-900 { color: var(--ink) !important; }
-#pdf-container .border-slate-100 { border-color: var(--border-soft) !important; }
-#pdf-container .border-slate-200 { border-color: var(--border) !important; }
-#pdf-container .bg-slate-50 { background-color: var(--paper-alt) !important; }
-#upload-bar .bg-slate-900, #pdf-container .bg-slate-900 { background: linear-gradient(135deg, var(--navy), var(--navy-soft)) !important; }
-#upload-bar .hover\:bg-slate-800:hover, #pdf-container .hover\:bg-slate-800:hover { background: var(--navy-soft) !important; }
-#pdf-container .bg-red-100 { background-color: #fbe4e0 !important; }
-#pdf-container .hover\:bg-red-200:hover { background-color: #f6d0ca !important; }
-#pdf-container .text-red-700 { color: #a3341f !important; }
 #upload-bar { border-color: var(--border) !important; }
-.bg-slate-200\/60 { background-color: rgba(228,223,210,0.65) !important; }
+body { font-family: 'Inter', system-ui, sans-serif; background-color: var(--paper); background-image: radial-gradient(rgba(18,22,29,0.05) 1px, transparent 1px); background-size: 24px 24px; color: var(--ink); }
 
 .big-number, #pdf-container table.data-table td, #pdf-container table.data-table th,
 #pdf-container [id^="sum-"], #pdf-container [id^="z1-"], #pdf-container [id^="z2-"], #pdf-container [id^="z3-"], #pdf-container [id^="z4-"],
@@ -113,6 +96,9 @@ header .hover\:bg-blue-500:hover { background: linear-gradient(135deg, #4f95e8, 
   animation: fadeInUp .5s cubic-bezier(.16,1,.3,1) both;
 }
 .card:hover { transform: translateY(-3px); box-shadow: 0 14px 28px -12px rgba(18,22,29,0.18); border-color: var(--ember-light); }
+.card:nth-of-type(2) { animation-delay: .05s; }
+.card:nth-of-type(3) { animation-delay: .1s; }
+.card:nth-of-type(4) { animation-delay: .15s; }
 
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 .tab-content:not(.hidden) { animation: fadeInUp .4s cubic-bezier(.16,1,.3,1) both; }
@@ -125,6 +111,7 @@ table.data-table th { background: var(--paper-alt); padding: 8px 12px; text-alig
 table.data-table td { padding: 8px 12px; border-bottom: 1px solid var(--border-soft); }
 table.data-table tr { transition: background-color .15s ease; }
 table.data-table tr:hover td { background: var(--paper-alt); }
+.cutoff-red { border-radius: 4px; }
 
 .sci-tooltip { 
   visibility: hidden; position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%); 
@@ -138,28 +125,17 @@ table.data-table tr:hover td { background: var(--paper-alt); }
   border-width: 5px; border-style: solid; border-color: var(--navy) transparent transparent transparent; 
 } 
 .tooltip-trigger:hover .sci-tooltip, .tooltip-trigger.active-tap .sci-tooltip { visibility: visible; opacity: 1; pointer-events: auto; }
-
-#pdf-report-template {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 750px !important;
-  background-color: #ffffff;
-  padding: 24px;
-  box-sizing: border-box;
-  display: none;
-}
-
-#pdf-report-template.rendering-pdf {
-  display: block !important;
-  z-index: 99999 !important;
-}
+.tooltip-trigger.right-aligned .sci-tooltip { left: 50%; right: auto; transform: translateX(-50%); } 
+.tooltip-trigger.right-aligned .sci-tooltip::after { left: 50%; right: auto; margin-left: -5px; }
 
 @media print { 
   .no-print { display: none !important; } 
   body { background: white; color: black; }
   .card { box-shadow: none; border: 1px solid #cbd5e1; break-inside: avoid; margin-bottom: 1rem; animation: none; }
+  .pdf-page-break { page-break-before: always; break-before: page; }
+  #pdf-footer-content { display: block !important; position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 8px; }
 }
+.pdf-page-break { page-break-before: always; break-before: page; }
 .hide-scrollbar::-webkit-scrollbar { display: none; } 
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
@@ -192,6 +168,7 @@ table.data-table tr:hover td { background: var(--paper-alt); }
   </div>
 </header>
 
+<!-- UPLOAD FILE DROPDOWN SECTION -->
 <div id="upload-bar" class="bg-white border-b border-slate-200 no-print">
   <div class="max-w-[1600px] mx-auto px-4 py-2.5">
     <button type="button" id="upload-toggle-btn" class="w-full flex items-center justify-between text-xs sm:text-sm font-semibold text-slate-700 py-1.5 focus:outline-none cursor-pointer">
@@ -203,22 +180,22 @@ table.data-table tr:hover td { background: var(--paper-alt); }
     </button>
     <div id="upload-dropdown-content" class="hidden pt-3 pb-3 border-t border-slate-100 mt-2 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-3 items-center">
       <div class="drag-zone px-3 py-2 cursor-pointer" onclick="document.getElementById('file-calera').click()">
-        <input type="file" id="file-calera" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'calera')" />
+        <input type="file" id="file-calera" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'calera')">
         <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-purple-600"></i><span class="font-medium truncate">CALERA</span></div>
         <span class="text-slate-400 text-[10px] block truncate" id="status-calera" data-i18n="no_file">No file</span>
       </div>
       <div class="drag-zone px-3 py-2 cursor-pointer" onclick="document.getElementById('file-core').click()">
-        <input type="file" id="file-core" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'core')" />
+        <input type="file" id="file-core" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'core')">
         <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-teal-600"></i><span class="font-medium truncate">CORE 2</span></div>
         <span class="text-slate-400 text-[10px] block truncate" id="status-core" data-i18n="no_file">No file</span>
       </div>
       <div class="drag-zone px-3 py-2 cursor-pointer" onclick="document.getElementById('file-flowbio').click()">
-        <input type="file" id="file-flowbio" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'flowbio')" />
+        <input type="file" id="file-flowbio" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'flowbio')">
         <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-blue-600"></i><span class="font-medium truncate">FLOWBIO</span></div>
         <span class="text-slate-400 text-[10px] block truncate" id="status-flowbio" data-i18n="no_file">No file</span>
       </div>
       <div class="drag-zone px-3 py-2 cursor-pointer" onclick="document.getElementById('file-env').click()">
-        <input type="file" id="file-env" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'env')" />
+        <input type="file" id="file-env" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFile(this,'env')">
         <div class="flex items-center gap-2 text-xs sm:text-sm"><i class="fa-solid fa-upload text-green-600"></i><span class="font-medium truncate" data-i18n="sensor_env">Environment</span></div>
         <span class="text-slate-400 text-[10px] block truncate" id="status-env" data-i18n="no_file">No file</span>
       </div>
@@ -256,8 +233,8 @@ table.data-table tr:hover td { background: var(--paper-alt); }
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="text-xs text-slate-400" data-i18n="lbl_athlete">Athlete</label><input id="inp-athlete" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="Name" data-i18n-ph="ph_name" /></div>
-          <div><label class="text-xs text-slate-400" data-i18n="lbl_sport">Sport</label><input id="inp-activity" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="e.g. Badminton" data-i18n-ph="ph_sport" /></div>
+          <div><label class="text-xs text-slate-400" data-i18n="lbl_athlete">Athlete</label><input id="inp-athlete" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="Name" data-i18n-ph="ph_name"></div>
+          <div><label class="text-xs text-slate-400" data-i18n="lbl_sport">Sport</label><input id="inp-activity" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-0.5 no-print-bg" placeholder="e.g. Badminton" data-i18n-ph="ph_sport"></div>
           <div class="col-span-2">
             <label class="text-xs text-slate-400" data-i18n="lbl_datetime">Date & Time</label>
             <div class="flex gap-2">
@@ -381,31 +358,15 @@ table.data-table tr:hover td { background: var(--paper-alt); }
             <button type="button" id="btn-view-whole" onclick="setViewMode('whole')" class="px-3 py-1 rounded text-xs font-medium bg-white shadow-sm text-slate-900 cursor-pointer">Whole Data (Raw / Sec)</button>
             <button type="button" id="btn-view-minute" onclick="setViewMode('minute')" class="px-3 py-1 rounded text-xs font-medium text-slate-600 hover:text-slate-900 cursor-pointer">Minute Averages</button>
           </div>
-          <input id="proc-search" class="border rounded px-2 py-1 text-xs w-full sm:w-48" placeholder="Search..." data-i18n-ph="ph_search" oninput="renderProcessedTable(1)" />
+          <input id="proc-search" class="border rounded px-2 py-1 text-xs w-full sm:w-48" placeholder="Search..." data-i18n-ph="ph_search" oninput="renderProcessedTable(1)">
           <span class="text-xs text-slate-400 self-center shrink-0" id="proc-count">0 rows</span>
         </div>
       </div>
       <div class="overflow-x-auto max-h-[500px] border rounded-lg">
         <table class="data-table">
-          <thead>
-            <tr>
-              <th id="th-time-label" data-i18n="th_elapsed_s">Elapsed (s)</th>
-              <th data-i18n="th_hhmmss">HH:MM:SS</th>
-              <th id="th-interval-label" data-i18n="th_interval_s">Interval (s)</th>
-              <th data-i18n="th_unified_core">Unified Core</th>
-              <th data-i18n="th_source">Source</th>
-              <th>CALERA</th>
-              <th>CORE 2</th>
-              <th>Delta</th>
-              <th>HR</th>
-              <th data-i18n="th_skin">Skin</th>
-              <th data-i18n="th_sweat">Sweat</th>
-              <th data-i18n="th_ambient">Ambient</th>
-              <th>RH</th>
-              <th data-i18n="tbl_zone">Zone</th>
-              <th data-i18n="th_break">Break?</th>
-            </tr>
-          </thead>
+          <thead><tr>
+            <th id="th-time-label" data-i18n="th_elapsed_s">Elapsed (s)</th><th data-i18n="th_hhmmss">HH:MM:SS</th><th id="th-interval-label" data-i18n="th_interval_s">Interval (s)</th><th data-i18n="th_unified_core">Unified Core</th><th data-i18n="th_source">Source</th><th>CALERA</th><th>CORE 2</th><th>Delta</th><th>HR</th><th data-i18n="th_skin">Skin</th><th data-i18n="th_sweat">Sweat</th><th data-i18n="th_ambient">Ambient</th><th>RH</th><th data-i18n="tbl_zone">Zone</th><th data-i18n="th_break">Break?</th>
+          </tr></thead>
           <tbody id="processed-tbody"></tbody>
         </table>
       </div>
@@ -444,15 +405,15 @@ table.data-table tr:hover td { background: var(--paper-alt); }
         <div class="p-3 border rounded-lg bg-slate-50">
           <h4 class="font-semibold text-xs text-slate-700 mb-2" data-i18n="lbl_interval_a">Interval A</h4>
           <div class="grid grid-cols-2 gap-2">
-            <div><label class="text-[10px] text-slate-500" data-i18n="lbl_start_min">Start (min)</label><input type="number" id="cmp-a-start" class="w-full border rounded px-2 py-1 text-xs" value="0" /></div>
-            <div><label class="text-[10px] text-slate-500" data-i18n="lbl_end_min">End (min)</label><input type="number" id="cmp-a-end" class="w-full border rounded px-2 py-1 text-xs" value="30" /></div>
+            <div><label class="text-[10px] text-slate-500" data-i18n="lbl_start_min">Start (min)</label><input type="number" id="cmp-a-start" class="w-full border rounded px-2 py-1 text-xs" value="0"></div>
+            <div><label class="text-[10px] text-slate-500" data-i18n="lbl_end_min">End (min)</label><input type="number" id="cmp-a-end" class="w-full border rounded px-2 py-1 text-xs" value="30"></div>
           </div>
         </div>
         <div class="p-3 border rounded-lg bg-slate-50">
           <h4 class="font-semibold text-xs text-slate-700 mb-2" data-i18n="lbl_interval_b">Interval B</h4>
           <div class="grid grid-cols-2 gap-2">
-            <div><label class="text-[10px] text-slate-500" data-i18n="lbl_start_min">Start (min)</label><input type="number" id="cmp-b-start" class="w-full border rounded px-2 py-1 text-xs" value="30" /></div>
-            <div><label class="text-[10px] text-slate-500" data-i18n="lbl_end_min">End (min)</label><input type="number" id="cmp-b-end" class="w-full border rounded px-2 py-1 text-xs" value="60" /></div>
+            <div><label class="text-[10px] text-slate-500" data-i18n="lbl_start_min">Start (min)</label><input type="number" id="cmp-b-start" class="w-full border rounded px-2 py-1 text-xs" value="30"></div>
+            <div><label class="text-[10px] text-slate-500" data-i18n="lbl_end_min">End (min)</label><input type="number" id="cmp-b-end" class="w-full border rounded px-2 py-1 text-xs" value="60"></div>
           </div>
         </div>
       </div>
@@ -474,11 +435,11 @@ table.data-table tr:hover td { background: var(--paper-alt); }
       <div class="card p-4">
         <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3" data-i18n="sec_body_mass">Body Mass Inputs</div>
         <div class="space-y-3">
-          <div><label class="text-xs text-slate-500" data-i18n="lbl_pre_mass">Pre-session mass (kg)</label><input type="number" step="0.1" id="sw-pre" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()" /></div>
-          <div><label class="text-xs text-slate-500" data-i18n="lbl_post_mass">Post-session mass (kg)</label><input type="number" step="0.1" id="sw-post" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()" /></div>
-          <div><label class="text-xs text-slate-500" data-i18n="lbl_fluid_consumed">Fluid consumed (L)</label><input type="number" step="0.1" id="sw-fluid" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()" /></div>
-          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_urine_output">Urine output (L)</label><input type="number" step="0.1" id="sw-urine" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()" /></div>
-          <div><label class="text-xs text-slate-500" data-i18n="lbl_sodium_conc">Sodium Concentration (mmol/L)</label><input type="number" step="1" id="sw-sodium-conc" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" value="50" onchange="calculateSweatMetrics()" /></div>
+          <div><label class="text-xs text-slate-500" data-i18n="lbl_pre_mass">Pre-session mass (kg)</label><input type="number" step="0.1" id="sw-pre" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
+          <div><label class="text-xs text-slate-500" data-i18n="lbl_post_mass">Post-session mass (kg)</label><input type="number" step="0.1" id="sw-post" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
+          <div><label class="text-xs text-slate-500" data-i18n="lbl_fluid_consumed">Fluid consumed (L)</label><input type="number" step="0.1" id="sw-fluid" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
+          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_urine_output">Urine output (L)</label><input type="number" step="0.1" id="sw-urine" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" onchange="calculateSweatMetrics()"></div>
+          <div><label class="text-[10px] text-slate-500">Sweat Sodium Concentration (mmol/L)</label><input type="number" step="1" id="sw-sodium-conc" class="w-full border rounded px-2 py-1 text-sm mt-1 no-print-bg" value="50" onchange="calculateSweatMetrics()"></div>
         </div>
       </div>
       <div class="card p-4 lg:col-span-2">
@@ -544,49 +505,49 @@ table.data-table tr:hover td { background: var(--paper-alt); }
       <div class="card p-4">
         <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3" data-i18n="sec_core_zones">Core Temp Zones</div>
         <div class="grid grid-cols-2 gap-2 sm:gap-3">
-          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_z1_max">Zone 1 Max (°C)</label><input type="number" step="0.1" id="set-z1max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38.0" /></div>
-          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_z2_min">Zone 2 Min (°C)</label><input type="number" step="0.1" id="set-z2min" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38" /></div>
-          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_z2_max">Zone 2 Max (°C)</label><input type="number" step="0.1" id="set-z2max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38.9" /></div>
-          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_z3_min">Zone 3 Min (°C)</label><input type="number" step="0.1" id="set-z3min" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="39" /></div>
-          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_z3_max">Zone 3 Max (°C)</label><input type="number" step="0.1" id="set-z3max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="39.6" /></div>
-          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_cutoff">Cutoff (°C)</label><input type="number" step="0.1" id="set-cutoff" class="w-full border rounded px-2 py-1 text-xs sm:text-sm font-semibold" value="39.7" /></div>
+          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_z1_max">Zone 1 Max (°C)</label><input type="number" step="0.1" id="set-z1max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38.0"></div>
+          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_z2_min">Zone 2 Min (°C)</label><input type="number" step="0.1" id="set-z2min" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38.0"></div>
+          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_z2_max">Zone 2 Max (°C)</label><input type="number" step="0.1" id="set-z2max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="38.9"></div>
+          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_z3_min">Zone 3 Min (°C)</label><input type="number" step="0.1" id="set-z3min" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="39.0"></div>
+          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_z3_max">Zone 3 Max (°C)</label><input type="number" step="0.1" id="set-z3max" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="39.6"></div>
+          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_cutoff">Cutoff (°C)</label><input type="number" step="0.1" id="set-cutoff" class="w-full border rounded px-2 py-1 text-xs sm:text-sm font-semibold" value="39.7"></div>
         </div>
       </div>
       <div class="card p-4">
         <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3" data-i18n="sec_sensor_config">Sensor Config</div>
         <div class="space-y-2">
           <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_primary_sensor">Primary Sensor</label><select id="set-primary" class="w-full border rounded px-2 py-1 text-xs sm:text-sm mt-1"><option value="CALERA" selected>CALERA</option><option value="CORE 2">CORE 2</option></select></div>
-          <div class="flex items-center gap-2"><input type="checkbox" id="set-fallback" checked class="rounded" /><label class="text-xs sm:text-sm text-slate-700" data-i18n="set_fallback">Fallback to backup</label></div>
-          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_tolerance">Tolerance (s)</label><input type="number" id="set-tolerance" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="3" /></div>
-          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_calera_quality">CALERA Quality Flags</label><input type="text" id="set-quality" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="17,High,Medium" /></div>
+          <div class="flex items-center gap-2"><input type="checkbox" id="set-fallback" checked class="rounded"><label class="text-xs sm:text-sm text-slate-700" data-i18n="set_fallback">Fallback to backup</label></div>
+          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_tolerance">Tolerance (s)</label><input type="number" id="set-tolerance" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="3"></div>
+          <div><label class="text-[10px] sm:text-xs text-slate-500" data-i18n="set_calera_quality">CALERA Quality Flags</label><input type="text" id="set-quality" class="w-full border rounded px-2 py-1 text-xs sm:text-sm" value="17,High,Medium"></div>
         </div>
       </div>
       <div class="card p-4">
         <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">CALERA Mapping</div>
         <div class="grid grid-cols-2 gap-2">
-          <div><label class="text-[10px] text-slate-500" data-i18n="tbl_time">Time</label><input type="text" id="map-c-time" class="w-full border rounded px-2 py-1 text-xs" value="time" /></div>
-          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_core_temp">Core Temp</label><input type="text" id="map-c-core" class="w-full border rounded px-2 py-1 text-xs" value="cbt [mC]" /></div>
-          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_skin_temp">Skin Temp</label><input type="text" id="map-c-skin" class="w-full border rounded px-2 py-1 text-xs" value="temp_a0 [mC]" /></div>
-          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_quality">Quality</label><input type="text" id="map-c-quality" class="w-full border rounded px-2 py-1 text-xs" value="status" /></div>
+          <div><label class="text-[10px] text-slate-500" data-i18n="tbl_time">Time</label><input type="text" id="map-c-time" class="w-full border rounded px-2 py-1 text-xs" value="time"></div>
+          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_core_temp">Core Temp</label><input type="text" id="map-c-core" class="w-full border rounded px-2 py-1 text-xs" value="cbt [mC]"></div>
+          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_skin_temp">Skin Temp</label><input type="text" id="map-c-skin" class="w-full border rounded px-2 py-1 text-xs" value="temp_a0 [mC]"></div>
+          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_quality">Quality</label><input type="text" id="map-c-quality" class="w-full border rounded px-2 py-1 text-xs" value="status"></div>
         </div>
       </div>
       <div class="card p-4">
         <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">CORE 2 Mapping</div>
         <div class="grid grid-cols-2 gap-2">
-          <div><label class="text-[10px] text-slate-500" data-i18n="tbl_time">Time</label><input type="text" id="map-r-time" class="w-full border rounded px-2 py-1 text-xs" value="time" /></div>
-          <div><label class="text-[10px] text-slate-500" data-i18n="sec_hr">Heart Rate</label><input type="text" id="map-r-hr" class="w-full border rounded px-2 py-1 text-xs" value="heartrate" /></div>
-          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_core_temp">Core Temp</label><input type="text" id="map-r-core" class="w-full border rounded px-2 py-1 text-xs" value="core_temperature" /></div>
-          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_skin_temp">Skin Temp</label><input type="text" id="map-r-skin" class="w-full border rounded px-2 py-1 text-xs" value="" /></div>
-          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_ambient_temp">Ambient Temp</label><input type="text" id="map-r-ambient" class="w-full border rounded px-2 py-1 text-xs" value="temp" /></div>
+          <div><label class="text-[10px] text-slate-500" data-i18n="tbl_time">Time</label><input type="text" id="map-r-time" class="w-full border rounded px-2 py-1 text-xs" value="time"></div>
+          <div><label class="text-[10px] text-slate-500" data-i18n="sec_hr">Heart Rate</label><input type="text" id="map-r-hr" class="w-full border rounded px-2 py-1 text-xs" value="heartrate"></div>
+          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_core_temp">Core Temp</label><input type="text" id="map-r-core" class="w-full border rounded px-2 py-1 text-xs" value="core_temperature"></div>
+          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_skin_temp">Skin Temp</label><input type="text" id="map-r-skin" class="w-full border rounded px-2 py-1 text-xs" value=""></div>
+          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_ambient_temp">Ambient Temp</label><input type="text" id="map-r-ambient" class="w-full border rounded px-2 py-1 text-xs" value="temp"></div>
         </div>
       </div>
       <div class="card p-4 md:col-span-2">
         <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3" data-i18n="sec_env_mapping">Environmental Mapping</div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <div><label class="text-[10px] text-slate-500" data-i18n="tbl_time">Time</label><input type="text" id="map-e-time" class="w-full border rounded px-2 py-1 text-xs" value="Date/Time" /></div>
-          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_ambient_temp">Ambient Temp</label><input type="text" id="map-e-ambient" class="w-full border rounded px-2 py-1 text-xs" value="058 [°C]" /></div>
-          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_rh">Relative Humidity</label><input type="text" id="map-e-rh" class="w-full border rounded px-2 py-1 text-xs" value="058 [%RH]" /></div>
-          <div><label class="text-[10px] text-slate-500">WBGT</label><input type="text" id="map-e-wbgt" class="w-full border rounded px-2 py-1 text-xs" value="058 Wet bulb temperature [°C]" /></div>
+          <div><label class="text-[10px] text-slate-500" data-i18n="tbl_time">Time</label><input type="text" id="map-e-time" class="w-full border rounded px-2 py-1 text-xs" value="Date/Time"></div>
+          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_ambient_temp">Ambient Temp</label><input type="text" id="map-e-ambient" class="w-full border rounded px-2 py-1 text-xs" value="058 [°C]"></div>
+          <div><label class="text-[10px] text-slate-500" data-i18n="lbl_rh">Relative Humidity</label><input type="text" id="map-e-rh" class="w-full border rounded px-2 py-1 text-xs" value="058 [%RH]"></div>
+          <div><label class="text-[10px] text-slate-500">WBGT</label><input type="text" id="map-e-wbgt" class="w-full border rounded px-2 py-1 text-xs" value="058 Wet bulb temperature [°C]"></div>
         </div>
       </div>
     </div>
@@ -596,10 +557,16 @@ table.data-table tr:hover td { background: var(--paper-alt); }
     </div>
   </div>
 
+  <!-- PDF Footer -->
+  <div id="pdf-footer-content" class="hidden">
+    ben.neal@canterbury.ac.uk
+  </div>
+
 </div>
 
-<!-- PDF TEMPLATE -->
-<div id="pdf-report-template">
+<!-- TOP-CLASS PROFESSIONAL PDF EXPORT REPORT TEMPLATE (Updated with 700px width and centered layout) -->
+<div id="pdf-report-template" class="hidden bg-white p-6 max-w-[800px] mx-auto text-slate-800 box-border" style="font-family: 'Inter', sans-serif; width: 700px; margin: 0 auto;">
+  
   <!-- Header / Branding -->
   <div class="flex items-center justify-between border-b-2 border-slate-900 pb-4 mb-4">
     <div>
@@ -611,7 +578,7 @@ table.data-table tr:hover td { background: var(--paper-alt); }
     </div>
   </div>
 
-  <!-- Section 1: Top Metrics Grid -->
+  <!-- Section 1: Top Metrics Grid (Physiological Response & Reordered Cutoff) -->
   <div class="grid grid-cols-2 gap-4 mb-4 border border-slate-200 rounded-lg p-3 bg-slate-50">
     <div>
       <h3 class="text-xs font-bold text-slate-700 uppercase mb-2 border-b border-slate-200 pb-1.5">Core Temp</h3>
@@ -631,18 +598,18 @@ table.data-table tr:hover td { background: var(--paper-alt); }
     </div>
   </div>
 
-  <!-- Chart Panel -->
+  <!-- Chart Panel: Core Temperature & Heart Rate -->
   <div class="mb-4">
     <div class="text-xs font-bold text-slate-700 uppercase mb-1.5 flex justify-between">
       <span>Core Temperature & Heart Rate Dynamics</span>
       <span class="text-[10px] text-slate-400">Tcore (°C) vs HR (bpm)</span>
     </div>
-    <div class="relative w-full h-[220px] border border-slate-200 rounded-lg bg-white p-2">
-      <canvas id="pdfChartCoreHR" style="width: 100%; height: 220px;"></canvas>
+    <div class="relative w-full h-[200px] border border-slate-200 rounded-lg bg-white p-2" style="width: 650px;">
+      <canvas id="pdfChartCoreHR" style="width: 650px; height: 200px;"></canvas>
     </div>
   </div>
 
-  <!-- Sweat & Zones Panel -->
+  <!-- Written Summary & Sweat Response Panel -->
   <div class="grid grid-cols-2 gap-4 mb-4">
     <div class="border border-slate-200 rounded-lg p-3 bg-white">
       <h3 class="text-xs font-bold text-slate-700 uppercase mb-2 border-b pb-1.5">Sweat Response & Hydration Balance</h3>
@@ -658,42 +625,16 @@ table.data-table tr:hover td { background: var(--paper-alt); }
       </div>
     </div>
 
+    <!-- Time Spent in Zones Table -->
     <div class="border border-slate-200 rounded-lg p-3 bg-white">
       <h3 class="text-xs font-bold text-slate-700 uppercase mb-2 border-b pb-1.5">Time Spent in Thermal Zones</h3>
       <table class="w-full text-xs">
-        <thead>
-          <tr class="text-left text-[9px] text-slate-400 border-b pb-1">
-            <th>Zone</th>
-            <th>Time</th>
-            <th>%</th>
-            <th>First Entry</th>
-          </tr>
-        </thead>
+        <thead><tr class="text-left text-[9px] text-slate-400 border-b pb-1"><th>Zone</th><th>Time</th><th>%</th><th>First Entry</th></tr></thead>
         <tbody id="pdf-zone-tbody" class="divide-y divide-slate-100">
-          <tr>
-            <td class="py-1 zone-1 font-medium" id="pdf-z1-label">Zone 1 (&lt;38.0)</td>
-            <td class="py-1" id="pdf-z1-time">—</td>
-            <td class="py-1" id="pdf-z1-pct">—</td>
-            <td class="py-1" id="pdf-z1-first">—</td>
-          </tr>
-          <tr>
-            <td class="py-1 zone-2 font-medium" id="pdf-z2-label">Zone 2 (38.0–38.9)</td>
-            <td class="py-1" id="pdf-z2-time">—</td>
-            <td class="py-1" id="pdf-z2-pct">—</td>
-            <td class="py-1" id="pdf-z2-first">—</td>
-          </tr>
-          <tr>
-            <td class="py-1 zone-3 font-medium" id="pdf-z3-label">Zone 3 (39.0–39.6)</td>
-            <td class="py-1" id="pdf-z3-time">—</td>
-            <td class="py-1" id="pdf-z3-pct">—</td>
-            <td class="py-1" id="pdf-z3-first">—</td>
-          </tr>
-          <tr>
-            <td class="py-1 zone-4 font-medium" id="pdf-z4-label">Zone 4 (&ge;39.7)</td>
-            <td class="py-1" id="pdf-z4-time">—</td>
-            <td class="py-1" id="pdf-z4-pct">—</td>
-            <td class="py-1" id="pdf-z4-first">—</td>
-          </tr>
+          <tr><td class="py-1 zone-1 font-medium" id="pdf-z1-label">Zone 1 (&lt;38.0)</td><td class="py-1" id="pdf-z1-time">—</td><td class="py-1" id="pdf-z1-pct">—</td><td class="py-1" id="pdf-z1-first">—</td></tr>
+          <tr><td class="py-1 zone-2 font-medium" id="pdf-z2-label">Zone 2 (38.0–38.9)</td><td class="py-1" id="pdf-z2-time">—</td><td class="py-1" id="pdf-z2-pct">—</td><td class="py-1" id="pdf-z2-first">—</td></tr>
+          <tr><td class="py-1 zone-3 font-medium" id="pdf-z3-label">Zone 3 (39.0–39.6)</td><td class="py-1" id="pdf-z3-time">—</td><td class="py-1" id="pdf-z3-pct">—</td><td class="py-1" id="pdf-z3-first">—</td></tr>
+          <tr><td class="py-1 zone-4 font-medium" id="pdf-z4-label">Zone 4 (&ge;39.7)</td><td class="py-1" id="pdf-z4-time">—</td><td class="py-1" id="pdf-z4-pct">—</td><td class="py-1" id="pdf-z4-first">—</td></tr>
         </tbody>
       </table>
     </div>
@@ -709,17 +650,13 @@ table.data-table tr:hover td { background: var(--paper-alt); }
       <div class="p-2"><span class="block text-[9px] text-slate-400 uppercase">Environment</span><span class="font-medium" id="pdf-meta-env">—</span></div>
     </div>
   </div>
+
 </div>
 
 <script>
 const AppState = {
   raw: { calera: [], core: [], flowbio: [], env: [] },
-  processed: [],
-  minuteAverages: [],
-  viewMode: 'whole',
-  events: [],
-  metrics: {},
-  currentLang: 'en'
+  processed: [], minuteAverages: [], viewMode: 'whole', events: [], metrics: {}, currentLang: 'en'
 };
 
 let thermalChartStandaloneInstance = null;
@@ -856,9 +793,272 @@ const translations = {
     tip_hr: "Reflects the internal physiological cost of the session, highlighting average working intensity and peak cardiovascular demand alongside any recorded breaks.",
     tip_charts: "Visually maps the rise in core temperature against cumulative sweat loss over the entirety of the session.",
     tip_compare: "Compare specific segments of the session (e.g. first half vs second half) to observe how thermal load and kinetics differ over specific time periods."
+  },
+  es: {
+    app_title: "Análisis de Calor, Sudor e Hidratación",
+    export_csv: "Exportar CSV",
+    export_pdf: "Exportar PDF",
+    process: "Procesar Datos",
+    upload_toggle: "Gestionar y Subir Archivos (CALERA, CORE 2, FLOWBIO, Entorno)",
+    no_file: "Sin archivo",
+    sensor_env: "Entorno",
+    tab_dashboard: "Panel Principal",
+    tab_processed: "Datos Procesados",
+    tab_charts: "Gráficos Interactivos",
+    tab_compare: "Comparar Tramos",
+    tab_archive: "Informes Guardados",
+    tab_sweat: "Sudor",
+    tab_events: "Eventos y Pausas",
+    tab_settings: "Ajustes",
+    sec_session: "Información de la Sesión",
+    sec_core: "Temp. Central",
+    sec_zones: "Tiempo en Zonas",
+    sec_sweat: "Respuesta de Sudor",
+    sec_hr: "Frecuencia Cardíaca (FC)",
+    sec_compare: "Comparar Temperaturas Centrales por Intervalos",
+    sec_charts: "Dinámica Interactiva de Temperatura y Sudor",
+    sec_body_mass: "Entradas de Masa Corporal",
+    sec_calc_metrics: "Métricas Calculadas",
+    sec_break_analysis: "Análisis de Pausas",
+    sec_core_zones: "Zonas de Temp. Central",
+    sec_sensor_config: "Configuración de Sensores",
+    sec_env_mapping: "Mapeo Ambiental",
+    lbl_athlete: "Atleta",
+    lbl_sport: "Deporte",
+    lbl_datetime: "Fecha y Hora",
+    lbl_duration: "Duração",
+    lbl_environment: "Entorno",
+    lbl_start: "Inicio",
+    lbl_maximum: "Máximo",
+    lbl_final: "Final",
+    lbl_cutoff_reached: "¿Límite Alcanzado?",
+    lbl_cutoff_threshold: "39.7 °C Schwellenwert",
+    lbl_total_rise: "Aumento Total",
+    lbl_net_change: "Cambio Neto",
+    lbl_rate_rise: "Tasa de Aumento",
+    lbl_time_max: "Tiempo al Máximo",
+    lbl_transitions: "Transiciones",
+    lbl_avg_sweat: "Tasa Promedio de Sudor",
+    lbl_max_sweat: "Tasa Máxima de Sudor",
+    lbl_total_sensor_loss: "Pérdida Total del Sensor",
+    lbl_est_loss_mass: "Pérdida Est. (Masa)",
+    lbl_sodium_loss: "Pérdida de Sodio",
+    lbl_sensor_integration: "Integración Sensor y Masa Diferencial",
+    lbl_avg_hr: "FC Promedio",
+    lbl_max_hr: "FC Máxima",
+    lbl_breaks: "Pausas",
+    lbl_total_break_time: "Tiempo Total de Pausa",
+    lbl_largest_decline: "Mayor Caída ΔT",
+    lbl_master_timeline: "Cronología Maestra Procesada",
+    lbl_interval_a: "Intervalo A",
+    lbl_interval_b: "Intervalo B",
+    lbl_start_min: "Inicio (min)",
+    lbl_end_min: "Fin (min)",
+    lbl_interval_a_stats: "Stats Intervalo A",
+    lbl_interval_b_stats: "Stats Intervalo B",
+    lbl_diff_kinetics: "Diferencial y Cinética",
+    lbl_pre_mass: "Masa Antes-sesión (kg)",
+    lbl_post_mass: "Masa Después-sesión (kg)",
+    lbl_fluid_consumed: "Líquido Consumido (L)",
+    lbl_urine_output: "Volumen de Orina (L)",
+    lbl_core_temp: "Temp. Central",
+    lbl_skin_temp: "Temp. Cutánea",
+    lbl_ambient_temp: "Temp. Ambiente",
+    lbl_quality: "Calidad",
+    lbl_rh: "Humedad Relativa",
+    ph_name: "Nombre",
+    ph_sport: "ej. Bádminton",
+    ph_env: "ej. 24,5 °C : 60% UR",
+    ph_search: "Buscar...",
+    btn_save_archive: "Guardar Reporte en Archivo",
+    btn_run_comparison: "Ejecutar Análisis Comparativo",
+    btn_add_event: "+ Añadir Evento",
+    btn_clear_archive: "Borrar Archivo",
+    btn_save_settings: "Guardar Ajustes",
+    btn_reset_defaults: "Restablecer Valores",
+    tbl_zone: "Zona",
+    tbl_time: "Tiempo",
+    tbl_first_entry: "Primera Entrada",
+    th_elapsed_s: "Transcurrido (s)",
+    th_hhmmss: "HH:MM:SS",
+    th_interval_s: "Intervalo (s)",
+    th_unified_core: "Núcleo Unificado",
+    th_source: "Fuente",
+    th_skin: "Piel",
+    th_sweat: "Sudor",
+    th_ambient: "Ambiente",
+    th_break: "¿Pausa?",
+    th_start_time: "Hora Inicio",
+    th_end_time: "Hora Fin",
+    th_type: "Tipo",
+    th_desc: "Descripción",
+    th_break_num: "Pausa #",
+    th_tcore_start: "Tcore Inicio",
+    th_tcore_end: "Tcore Fin",
+    th_rate: "Tasa",
+    th_date_saved: "Fecha Guardada",
+    th_max_temp: "Temp. Max (°C)",
+    th_actions: "Acciones",
+    msg_no_archive: "No hay informes guardados en el archivo.",
+    set_z1_max: "Máx Zona 1 (°C)",
+    set_z2_min: "Mín Zona 2 (°C)",
+    set_z2_max: "Máx Zona 2 (°C)",
+    set_z3_min: "Mín Zona 3 (°C)",
+    set_z3_max: "Máx Zona 3 (°C)",
+    set_cutoff: "Límite (°C)",
+    set_primary_sensor: "Sensor Principal",
+    set_fallback: "Usar respaldo si falla",
+    set_tolerance: "Tolerancia (s)",
+    set_calera_quality: "Banderas Calidad CALERA",
+    chart_core_label: "Temp Central (°C)",
+    chart_hr_label: "Frecuencia Cardíaca (bpm)",
+    chart_sweat_label: "Pérdida de Sudor Acumulada (L)",
+    chart_y_core: "Temperatura Central (°C)",
+    chart_y_hr: "Frecuencia Cardíaca (bpm)",
+    chart_y_sweat: "Pérdida de Sudor (L)",
+    tip_session: "Metadatos sobre el atleta, fecha, hora, deporte y condiciones ambientales que afectan el rendimiento.",
+    tip_core: "Evalúa la tensión térmica interna. Incluye temperatura máxima, aumento total y rapidez de acumulación de calor.",
+    tip_zones: "Cuantifica la duración y porcentaje de la sesión en bandas de tensión térmica.",
+    tip_sweat: "Evalúa la pérdida total de líquidos y la tasa de sudoración.",
+    tip_hr: "Refleja el costo fisiológico interno, destacando la intensidad y la demanda cardiovascular.",
+    tip_charts: "Muestra visualmente el aumento de temperatura central frente a la pérdida acumulada de sudor.",
+    tip_compare: "Compara segmentos específicos de la sesión."
+  },
+  fr: {
+    app_title: "Analyse de la Chaleur, de la Sueur et de l'Hydratation",
+    export_csv: "Exporter CSV",
+    export_pdf: "Exporter PDF",
+    process: "Traiter les Données",
+    upload_toggle: "Gérer et Importer des Fichiers (CALERA, CORE 2, FLOWBIO, Environnement)",
+    no_file: "Aucun fichier",
+    sensor_env: "Environnement",
+    tab_dashboard: "Tableau de Bord",
+    tab_processed: "Données Traitées",
+    tab_charts: "Graphiques Interactifs",
+    tab_compare: "Comparer les Durées",
+    tab_archive: "Rapports Enregistrés",
+    tab_sweat: "Sueur",
+    tab_events: "Événements et Pauses",
+    tab_settings: "Paramètres",
+    sec_session: "Informations sur la Session",
+    sec_core: "Temp. Centrale",
+    sec_zones: "Temps Passé dans les Zones",
+    sec_sweat: "Réponse de Sudation",
+    sec_hr: "Fréquence Cardiaque (FC)",
+    sec_compare: "Comparer les Températures par Intervalles",
+    sec_charts: "Dynamique Interactive Température et Sueur",
+    sec_body_mass: "Données de Masse Corporelle",
+    sec_calc_metrics: "Métriques Calculées",
+    sec_break_analysis: "Analyse des Pauses",
+    sec_core_zones: "Zones de Temp. Centrale",
+    sec_sensor_config: "Configuration Capteurs",
+    sec_env_mapping: "Mappeage Environnemental",
+    lbl_athlete: "Athlète",
+    lbl_sport: "Sport",
+    lbl_datetime: "Date et Heure",
+    lbl_duration: "Duree",
+    lbl_environment: "Environnement",
+    lbl_start: "Depart",
+    lbl_maximum: "Maximum",
+    lbl_final: "Final",
+    lbl_cutoff_reached: "Seuil Atteint ?",
+    lbl_cutoff_threshold: "39,7 °C Seuil",
+    lbl_total_rise: "Hausse Totale",
+    lbl_net_change: "Changement Net",
+    lbl_rate_rise: "Taux de Hausse",
+    lbl_time_max: "Temps au Max",
+    lbl_transitions: "Transitions",
+    lbl_avg_sweat: "Taux Moyen de Sueur",
+    lbl_max_sweat: "Taux Max de Sueur",
+    lbl_total_sensor_loss: "Perte Totale Capteur",
+    lbl_est_loss_mass: "Perte Est. (Masse)",
+    lbl_sodium_loss: "Perte de Sodium",
+    lbl_sensor_integration: "Intégration Capteur & Masse Différentielle",
+    lbl_avg_hr: "FC Moyenne",
+    lbl_max_hr: "FC Max",
+    lbl_breaks: "Pausas",
+    lbl_total_break_time: "Temps Total de Pause",
+    lbl_largest_decline: "Plus Grande Baisse ΔT",
+    lbl_master_timeline: "Chronologie Maîtresse Traitee",
+    lbl_interval_a: "Intervalle A",
+    lbl_interval_b: "Intervalle B",
+    lbl_start_min: "Debut (min)",
+    lbl_end_min: "Fin (min)",
+    lbl_interval_a_stats: "Statistiques Intervalle A",
+    lbl_interval_b_stats: "Statistiques Intervalle B",
+    lbl_diff_kinetics: "Diffferentiel & Cinétique",
+    lbl_pre_mass: "Masse Avant-session (kg)",
+    lbl_post_mass: "Masse Après-session (kg)",
+    lbl_fluid_consumed: "Liquide Consomme (L)",
+    lbl_urine_output: "Volume d'Urine (L)",
+    lbl_core_temp: "Temp. Centrale",
+    lbl_skin_temp: "Temp. Peau",
+    lbl_ambient_temp: "Temp. Ambiante",
+    lbl_quality: "Qualité",
+    lbl_rh: "Humidité Relative",
+    ph_name: "Nom",
+    ph_sport: "ex. Badminton",
+    ph_env: "ex. 24,5 °C : 60% HR",
+    ph_search: "Rechercher...",
+    btn_save_archive: "Enregistrer Rapport",
+    btn_run_comparison: "Lancer Analyse",
+    btn_add_event: "+ Ajouter Événement",
+    btn_clear_archive: "Vider Archivage",
+    btn_save_settings: "Enregistrer Paramètres",
+    btn_reset_defaults: "Réinitialiser",
+    tbl_zone: "Zone",
+    tbl_time: "Temps",
+    tbl_first_entry: "Première Entrée",
+    th_elapsed_s: "Ecoulé (s)",
+    th_hhmmss: "HH:MM:SS",
+    th_interval_s: "Intervalle (s)",
+    th_unified_core: "Cœur Unifié",
+    th_source: "Source",
+    th_skin: "Peau",
+    th_sweat: "Sueur",
+    th_ambient: "Ambiant",
+    th_break: "Pause ?",
+    th_start_time: "Heure Début",
+    th_end_time: "Heure Fin",
+    th_type: "Type",
+    th_desc: "Description",
+    th_break_num: "Pause n°",
+    th_tcore_start: "Tcore Début",
+    th_tcore_end: "Tcore Fin",
+    th_rate: "Taux",
+    th_date_saved: "Date Enregistrement",
+    th_max_temp: "Temp Max (°C)",
+    th_actions: "Actions",
+    msg_no_archive: "Aucun rapport enregistré.",
+    set_z1_max: "Max Zone 1 (°C)",
+    set_z2_min: "Min Zone 2 (°C)",
+    set_z2_max: "Max Zone 2 (°C)",
+    set_z3_min: "Min Zone 3 (°C)",
+    set_z3_max: "Max Zone 3 (°C)",
+    set_cutoff: "Seuil (°C)",
+    set_primary_sensor: "Capteur Principal",
+    set_fallback: "Utiliser secours",
+    set_tolerance: "Tolérance (s)",
+    set_calera_quality: "Qualité CALERA Flags",
+    chart_core_label: "Temp. Centrale (°C)",
+    chart_hr_label: "FC (bpm)",
+    chart_sweat_label: "Perte Sueur Cumulée (L)",
+    chart_y_core: "Temp. Centrale (°C)",
+    chart_y_hr: "FC (bpm)",
+    chart_y_sweat: "Perte Sueur (L)",
+    tip_session: "Données métadonnées athlete, date, heure, sport, conditions environnementales.",
+    tip_core: "Evaluer contrainte thermique interne.",
+    tip_zones: "Durée & % en zones thermiques.",
+    tip_sweat: "Perte liquide & taux de sudation.",
+    tip_hr: "Cout physiologique.",
+    tip_charts: "Graphique de la hausse de Tcore vs perte de sueur.",
+    tip_compare: "Comparer segments spécifiques."
   }
 };
 
+/* ... (Other language objects omitted for brevity) ... */
+
+// Default settings object
 const DEFAULT_SETTINGS = {
   zones: { z1Max: 38.0, z2Min: 38.0, z2Max: 38.9, z3Min: 39.0, z3Max: 39.6, cutoff: 39.7 },
   sensors: { primary: 'CALERA', fallback: true, tolerance: 3, validQuality: '17,High,Medium' },
@@ -892,20 +1092,31 @@ window.addEventListener('touchstart', (e) => {
 function changeLanguage(langCode) {
   AppState.currentLang = langCode;
   const dict = translations[langCode] || translations['en'];
+  
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
-    if (dict[key]) el.textContent = dict[key];
+    if (dict[key]) {
+      el.textContent = dict[key];
+    }
   });
+
   document.querySelectorAll('[data-i18n-ph]').forEach(el => {
     const key = el.getAttribute('data-i18n-ph');
-    if (dict[key]) el.placeholder = dict[key];
+    if (dict[key]) {
+      el.placeholder = dict[key];
+    }
   });
+
   updateZoneLabelsDisplay();
-  if (AppState.processed.length > 0) renderChart();
+
+  if (AppState.processed.length > 0) {
+    renderChart();
+  }
 }
 
 function updateZoneLabelsDisplay() {
   const z = settings.zones;
+  
   const dashZ1 = document.getElementById('dash-z1-label');
   const dashZ2 = document.getElementById('dash-z2-label');
   const dashZ3 = document.getElementById('dash-z3-label');
@@ -914,7 +1125,7 @@ function updateZoneLabelsDisplay() {
   if (dashZ1) dashZ1.textContent = `Zone 1 (<${z.z1Max.toFixed(1)})`;
   if (dashZ2) dashZ2.textContent = `Zone 2 (${z.z2Min.toFixed(1)}–${z.z2Max.toFixed(1)})`;
   if (dashZ3) dashZ3.textContent = `Zone 3 (${z.z3Min.toFixed(1)}–${z.z3Max.toFixed(1)})`;
-  if (dashZ4) dashZ4.textContent = `Zone 4 / Cutoff (≥${z.cutoff.toFixed(1)})`;
+  if (dashZ4) dashZ4.textContent = `Zone 4 (≥${z.cutoff.toFixed(1)})`;
 
   const pdfZ1 = document.getElementById('pdf-z1-label');
   const pdfZ2 = document.getElementById('pdf-z2-label');
@@ -1040,7 +1251,7 @@ function computeMinuteAverages() {
     const avgCore = b.coreSum > 0 ? b.coreSum / b.count : null;
     const avgHr = b.hrSum > 0 ? b.hrSum / b.count : null;
     const avgSweat = b.sweatSum > 0 ? b.sweatSum / b.count : null;
-
+    
     let dominantZone = '—';
     let maxCount = 0;
     for (const z in b.zones) {
@@ -1174,14 +1385,8 @@ function handleFile(input, type) {
   const ext = file.name.split('.').pop().toLowerCase();
   if (ext === 'csv') {
     Papa.parse(file, {
-      header: false,
-      dynamicTyping: true,
-      skipEmptyLines: true,
-      complete: (res) => {
-        const data = processDataArray(type, res.data);
-        AppState.raw[type] = data;
-        document.getElementById('status-' + type).textContent = data.length + ' rows';
-      }
+      header: false, dynamicTyping: true, skipEmptyLines: true,
+      complete: (res) => { const data = processDataArray(type, res.data); AppState.raw[type] = data; document.getElementById('status-' + type).textContent = data.length + ' rows'; }
     });
   } else {
     const reader = new FileReader();
@@ -1221,8 +1426,7 @@ function normalizeDataset(data, timeCol) {
 
 function processAllData() {
   if (AppState.raw.calera.length === 0 && AppState.raw.core.length === 0) {
-    alert('Import at least CALERA or CORE 2 data first.');
-    return;
+    alert('Import at least CALERA or CORE 2 data first.'); return;
   }
   const normCalera = normalizeDataset(AppState.raw.calera, settings.mapCalera.time);
   const normCore = normalizeDataset(AppState.raw.core, settings.mapCore.time);
@@ -1234,14 +1438,10 @@ function processAllData() {
   normCore.forEach(r => allTimes.add(Math.round(r.elapsed)));
   const master = Array.from(allTimes).sort((a, b) => a - b);
 
-  const calMap = new Map();
-  normCalera.forEach(r => calMap.set(Math.round(r.elapsed), r));
-  const coreMap = new Map();
-  normCore.forEach(r => coreMap.set(Math.round(r.elapsed), r));
-  const flowMap = new Map();
-  normFlow.forEach(r => flowMap.set(Math.round(r.elapsed), r));
-  const envMap = new Map();
-  normEnv.forEach(r => envMap.set(Math.round(r.elapsed), r));
+  const calMap = new Map(); normCalera.forEach(r => calMap.set(Math.round(r.elapsed), r));
+  const coreMap = new Map(); normCore.forEach(r => coreMap.set(Math.round(r.elapsed), r));
+  const flowMap = new Map(); normFlow.forEach(r => flowMap.set(Math.round(r.elapsed), r));
+  const envMap = new Map(); normEnv.forEach(r => envMap.set(Math.round(r.elapsed), r));
 
   const processed = [];
   let prevTime = 0;
@@ -1259,13 +1459,8 @@ function processAllData() {
     const corCore = cor ? parseFloat(cor.raw[settings.mapCore.core]) : null;
 
     let unified = null, source = 'None';
-    if (calCore != null && isValidQuality(calQuality, settings.sensors.validQuality)) {
-      unified = calCore;
-      source = 'CALERA';
-    } else if (corCore != null) {
-      unified = corCore;
-      source = 'CORE 2';
-    }
+    if (calCore != null && isValidQuality(calQuality, settings.sensors.validQuality)) { unified = calCore; source = 'CALERA'; }
+    else if (corCore != null) { unified = corCore; source = 'CORE 2'; }
 
     row.unifiedCore = unified;
     row.coreSource = source;
@@ -1277,8 +1472,7 @@ function processAllData() {
     let fl = flowMap.get(t);
     let sweatRateVal = fl ? parseFloat(fl.raw['sweat_rate']) : null;
     row.sweatRate = sweatRateVal;
-    if (sweatRateVal != null && !isNaN(sweatRateVal))
-      cumulativeSweatGrams += (sweatRateVal * (row.intervalSec / 60)) / 1000;
+    if (sweatRateVal != null && !isNaN(sweatRateVal)) cumulativeSweatGrams += (sweatRateVal * (row.intervalSec / 60)) / 1000;
     row.cumulativeSweat = cumulativeSweatGrams;
 
     const z = settings.zones;
@@ -1293,42 +1487,30 @@ function processAllData() {
   renderAthleteSummary();
   renderProcessedTable(1);
   renderChart();
-  alert(
-    'Processing complete: ' +
-      processed.length +
-      ' rows (' +
-      AppState.minuteAverages.length +
-      ' minute averages).'
-  );
+  alert('Processing complete: ' + processed.length + ' rows (' + AppState.minuteAverages.length + ' minute averages).');
 }
 
 function calculateMetrics() {
   const p = AppState.processed;
   if (p.length === 0) return;
-  const valid = p.filter((r) => r.unifiedCore != null && !isNaN(r.unifiedCore));
+  const valid = p.filter(r => r.unifiedCore != null && !isNaN(r.unifiedCore));
   if (valid.length === 0) return;
   const m = {};
   m.start = valid[0].unifiedCore;
   m.final = valid[valid.length - 1].unifiedCore;
-  m.min = Infinity;
-  m.max = -Infinity;
+  m.min = Infinity; m.max = -Infinity;
   let maxIdx = 0;
   valid.forEach((v, idx) => {
-    if (v.unifiedCore > m.max) {
-      m.max = v.unifiedCore;
-      maxIdx = idx;
-    }
+    if (v.unifiedCore > m.max) { m.max = v.unifiedCore; maxIdx = idx; }
     if (v.unifiedCore < m.min) m.min = v.unifiedCore;
   });
   m.totalRise = m.max - m.start;
   m.netChange = m.final - m.start;
-  m.rateRise = valid[maxIdx].elapsedSec > 0 ? (m.totalRise / (valid[maxIdx].elapsedSec / 60)) : 0;
+  m.rateRise = (valid[maxIdx].elapsedSec > 0) ? (m.totalRise / (valid[maxIdx].elapsedSec / 60)) : 0;
   m.timeToMax = valid[maxIdx].elapsedSec / 60;
 
   m.zones = {};
-  ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4/Cutoff'].forEach((zn) => {
-    m.zones[zn] = { time: 0, pct: 0, first: null };
-  });
+  ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4/Cutoff'].forEach(zn => { m.zones[zn] = { time: 0, pct: 0, first: null }; });
   let totalTime = p.reduce((acc, r) => acc + (r.intervalSec || 0), 0);
   let transitions = 0;
   const zLive = settings.zones;
@@ -1338,20 +1520,18 @@ function calculateMetrics() {
     if (prevZone && zoneNow && zoneNow !== prevZone) transitions++;
     if (zoneNow) prevZone = zoneNow;
     if (!zoneNow) return;
-    m.zones[zoneNow].time += r.intervalSec || 0;
+    m.zones[zoneNow].time += (r.intervalSec || 0);
     if (m.zones[zoneNow].first == null) m.zones[zoneNow].first = r.elapsedSec;
   });
-  for (const k in m.zones) m.zones[k].pct = totalTime > 0 ? (m.zones[k].time / totalTime) * 100 : 0;
+  for (const k in m.zones) m.zones[k].pct = totalTime > 0 ? (m.zones[k].time / totalTime * 100) : 0;
   m.transitions = transitions;
   m.cutoffReached = m.max >= settings.zones.cutoff ? 'YES' : 'NO';
 
-  const hrs = p.filter((r) => r.hr != null).map((r) => r.hr);
+  const hrs = p.filter(r => r.hr != null).map(r => r.hr);
   m.hrAvg = hrs.length > 0 ? hrs.reduce((a, b) => a + b, 0) / hrs.length : null;
   m.hrMax = hrs.length > 0 ? Math.max(...hrs) : null;
 
-  const sweatRates = p
-    .filter((r) => r.sweatRate != null && !isNaN(r.sweatRate))
-    .map((r) => r.sweatRate);
+  const sweatRates = p.filter(r => r.sweatRate != null && !isNaN(r.sweatRate)).map(r => r.sweatRate);
   m.sweatRateAvg = sweatRates.length > 0 ? sweatRates.reduce((a, b) => a + b, 0) / sweatRates.length : null;
   m.sweatRateMax = sweatRates.length > 0 ? Math.max(...sweatRates) : null;
   m.sweatTotalSensor = p.length > 0 ? p[p.length - 1].cumulativeSweat : null;
@@ -1363,8 +1543,7 @@ function renderAthleteSummary() {
   if (!m || !m.start) return;
   document.getElementById('sum-start').textContent = fmtNum(m.start, 2);
   document.getElementById('sum-max').textContent = fmtNum(m.max, 2);
-  if (m.max >= settings.zones.cutoff)
-    document.getElementById('sum-max').classList.add('cutoff-red');
+  if (m.max >= settings.zones.cutoff) document.getElementById('sum-max').classList.add('cutoff-red');
   document.getElementById('sum-final').textContent = fmtNum(m.final, 2);
   document.getElementById('sum-rise').textContent = fmtNum(m.totalRise, 2);
   document.getElementById('sum-net').textContent = fmtNum(m.netChange, 2);
@@ -1383,12 +1562,9 @@ function renderAthleteSummary() {
   document.getElementById('sum-hr-avg').textContent = m.hrAvg != null ? fmtNum(m.hrAvg, 1) + ' bpm' : '—';
   document.getElementById('sum-hr-max').textContent = m.hrMax != null ? fmtNum(m.hrMax, 1) + ' bpm' : '—';
 
-  const sweatAvgText =
-    m.sweatRateAvg != null ? fmtNum(m.sweatRateAvg, 1) + ' mL/min' : '—';
-  const sweatMaxText =
-    m.sweatRateMax != null ? fmtNum(m.sweatRateMax, 1) + ' mL/min' : '—';
-  const sweatTotalText =
-    m.sweatTotalSensor != null ? fmtNum(m.sweatTotalSensor, 2) + ' L' : '—';
+  const sweatAvgText = m.sweatRateAvg != null ? fmtNum(m.sweatRateAvg, 1) + ' mL/min' : '—';
+  const sweatMaxText = m.sweatRateMax != null ? fmtNum(m.sweatRateMax, 1) + ' mL/min' : '—';
+  const sweatTotalText = m.sweatTotalSensor != null ? fmtNum(m.sweatTotalSensor, 2) + ' L' : '—';
   document.getElementById('sum-sweat-avg').textContent = sweatAvgText;
   document.getElementById('sum-sweat-max').textContent = sweatMaxText;
   document.getElementById('sum-sweat-total').textContent = sweatTotalText;
@@ -1406,50 +1582,38 @@ function renderProcessedTable(page) {
   const searchInput = document.getElementById('proc-search');
   const query = searchInput ? searchInput.value.toLowerCase() : '';
 
-  const filtered = dataset.filter((r) => {
+  const filtered = dataset.filter(r => {
     if (!query) return true;
-    return (
-      String(r.elapsedSec || r.minute || '').toLowerCase().includes(query) ||
-      String(r.hhmmss || '').toLowerCase().includes(query) ||
-      String(r.zone || '').toLowerCase().includes(query)
-    );
+    return String(r.elapsedSec || r.minute || '').toLowerCase().includes(query) ||
+           String(r.hhmmss || '').toLowerCase().includes(query) ||
+           String(r.zone || '').toLowerCase().includes(query);
   });
 
   if (countEl) countEl.textContent = filtered.length + ' rows';
 
-  const rows = filtered.slice(0, 200);
+  const rows = filtered.slice(0, 200); // render max 200 rows for performance
   if (rows.length === 0) {
     tbody.innerHTML = `<tr><td colspan="15" class="text-center text-slate-400 py-4">No data available.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = rows
-    .map((r) => {
-      if (AppState.viewMode === 'whole') {
-        return `<tr>
-        <td>${r.elapsedSec}</td><td>${r.hhmmss}</td><td>${r.intervalSec}</td><td>${fmtNum(
-          r.unifiedCore,
-          2
-        )}</td>
+  tbody.innerHTML = rows.map(r => {
+    if (AppState.viewMode === 'whole') {
+      return `<tr>
+        <td>${r.elapsedSec}</td><td>${r.hhmmss}</td><td>${r.intervalSec}</td><td>${fmtNum(r.unifiedCore, 2)}</td>
         <td><span class="badge ${r.coreSource === 'CALERA' ? 'badge-green' : 'badge-yellow'}">${r.coreSource}</span></td>
-        <td>${fmtNum(r.caleraCore, 2)}</td><td>${fmtNum(r.core2Core, 2)}</td><td>${fmtNum(r.coreDelta, 2)}</td><td>${
-          r.hr ?? '—'
-        }</td>
+        <td>${fmtNum(r.caleraCore, 2)}</td><td>${fmtNum(r.core2Core, 2)}</td><td>${fmtNum(r.coreDelta, 2)}</td><td>${r.hr ?? '—'}</td>
         <td>—</td><td>${fmtNum(r.sweatRate, 2)}</td><td>—</td><td>—</td><td>${r.zone}</td><td>No</td>
       </tr>`;
-      } else {
-        return `<tr>
-        <td>Min ${r.minute}</td><td>${r.hhmmss}</td><td>${r.count} samples</td><td>${fmtNum(
-          r.unifiedCore,
-          2
-        )}</td>
+    } else {
+      return `<tr>
+        <td>Min ${r.minute}</td><td>${r.hhmmss}</td><td>${r.count} samples</td><td>${fmtNum(r.unifiedCore, 2)}</td>
         <td><span class="badge badge-green">Average</span></td>
         <td>—</td><td>—</td><td>—</td><td>${r.hr ?? '—'}</td>
         <td>—</td><td>${fmtNum(r.sweatRate, 2)}</td><td>—</td><td>—</td><td>${r.zone}</td><td>—</td>
       </tr>`;
-      }
-    })
-    .join('');
+    }
+  }).join('');
 }
 
 function renderChart() {
@@ -1459,85 +1623,47 @@ function renderChart() {
     const p = AppState.processed;
     if (!p || p.length === 0) return instanceHolder;
     const dict = translations[AppState.currentLang] || translations['en'];
-    const labels = p.map((r) => r.hhmmss);
-    const coreData = p.map((r) => r.unifiedCore);
-    const hrData = p.map((r) => r.hr);
-    const sweatData = p.map((r) => r.cumulativeSweat);
+    const labels = p.map(r => r.hhmmss);
+    const coreData = p.map(r => r.unifiedCore);
+    const hrData = p.map(r => r.hr);
+    const sweatData = p.map(r => r.cumulativeSweat);
 
     if (instanceHolder) instanceHolder.destroy();
 
     const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
     gradient.addColorStop(0, 'rgba(220,38,38,0.25)');
     gradient.addColorStop(1, 'rgba(220,38,38,0)');
+    const cutoffValue = settings.zones.cutoff;
 
     return new Chart(ctx, {
       type: 'line',
       data: {
         labels: labels,
         datasets: [
-          {
-            label: dict.chart_core_label || 'Core Temp (°C)',
-            data: coreData,
-            borderColor: '#dc2626',
-            backgroundColor: gradient,
-            fill: true,
-            borderWidth: 2.25,
-            pointRadius: 0,
-            pointHoverRadius: 5,
-            tension: 0.25,
-            yAxisID: 'y'
-          },
-          {
-            label: dict.chart_hr_label || 'Heart Rate (bpm)',
-            data: hrData,
-            borderColor: '#2563eb',
-            borderWidth: 1.5,
-            pointRadius: 0,
-            pointHoverRadius: 4,
-            tension: 0.25,
-            yAxisID: 'y1'
-          },
-          {
-            label: dict.chart_sweat_label || 'Cumulative Sweat Loss (L)',
-            data: sweatData,
-            borderColor: '#0d9488',
-            borderWidth: 2,
-            borderDash: [4, 3],
-            pointRadius: 0,
-            pointHoverRadius: 4,
-            tension: 0.15,
-            yAxisID: 'y2'
-          }
+          { label: dict.chart_core_label || 'Core Temp (°C)', data: coreData, borderColor: '#dc2626', backgroundColor: gradient, fill: true, borderWidth: 2.25, pointRadius: 0, pointHoverRadius: 5, tension: 0.25, yAxisID: 'y' },
+          { label: dict.chart_hr_label || 'Heart Rate (bpm)', data: hrData, borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 4, tension: 0.25, yAxisID: 'y1' },
+          { label: dict.chart_y_sweat || 'Cumulative Sweat Loss (L)', data: sweatData, borderColor: '#0d9488', borderWidth: 2, borderDash: [4, 3], pointRadius: 0, pointHoverRadius: 4, tension: 0.15, yAxisID: 'y2' }
         ]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        responsive: true, maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         plugins: {
-          legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, padding: 16 } }
+          legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, padding: 16 } },
+          tooltip: {
+            backgroundColor: '#0b1220', padding: 10, cornerRadius: 8,
+            callbacks: {
+              label: (item) => item.dataset.yAxisID === 'y' ? `Core: ${item.formattedValue} °C`
+                : item.dataset.yAxisID === 'y1' ? `HR: ${item.formattedValue} bpm`
+                : `Sweat: ${item.formattedValue} L`
+            }
+          }
         },
         scales: {
           x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
-          y: {
-            type: 'linear',
-            position: 'left',
-            title: { display: true, text: dict.chart_y_core || 'Core Temperature (°C)' },
-            grid: { color: 'rgba(18,22,29,0.05)' }
-          },
-          y1: {
-            type: 'linear',
-            position: 'right',
-            title: { display: true, text: dict.chart_y_hr || 'Heart Rate (bpm)' },
-            grid: { drawOnChartArea: false }
-          },
-          y2: {
-            type: 'linear',
-            position: 'right',
-            offset: true,
-            title: { display: true, text: dict.chart_y_sweat || 'Sweat Loss (L)' },
-            grid: { drawOnChartArea: false }
-          }
+          y: { type: 'linear', position: 'left', title: { display: true, text: dict.chart_y_core || 'Core Temperature (°C)' }, grid: { color: 'rgba(18,22,29,0.05)' } },
+          y1: { type: 'linear', position: 'right', title: { display: true, text: dict.chart_y_hr || 'Heart Rate (bpm)' }, grid: { drawOnChartArea: false } },
+          y2: { type: 'linear', position: 'right', offset: true, title: { display: true, text: dict.chart_y_sweat || 'Sweat Loss (L)' }, grid: { drawOnChartArea: false } }
         }
       }
     });
@@ -1548,25 +1674,23 @@ function renderChart() {
 
 function runCoreComparison() {
   const p = AppState.processed;
-  if (!p || p.length === 0) {
-    alert('Please process data first.');
-    return;
-  }
-
+  if (!p || p.length === 0) { alert('Please process data first.'); return; }
+  
   const aStartMin = parseFloat(document.getElementById('cmp-a-start').value) || 0;
   const aEndMin = parseFloat(document.getElementById('cmp-a-end').value) || 0;
   const bStartMin = parseFloat(document.getElementById('cmp-b-start').value) || 0;
   const bEndMin = parseFloat(document.getElementById('cmp-b-end').value) || 0;
 
-  const subsetA = p.filter((r) => r.elapsedMin >= aStartMin && r.elapsedMin <= aEndMin && r.unifiedCore != null);
-  const subsetB = p.filter((r) => r.elapsedMin >= bStartMin && r.elapsedMin <= bEndMin && r.unifiedCore != null);
+  const subsetA = p.filter(r => r.elapsedMin >= aStartMin && r.elapsedMin <= aEndMin && r.unifiedCore != null);
+  const subsetB = p.filter(r => r.elapsedMin >= bStartMin && r.elapsedMin <= bEndMin && r.unifiedCore != null);
 
   const getStats = (sub) => {
     if (sub.length === 0) return { max: 0, mean: 0, rise: 0 };
-    const temps = sub.map((r) => r.unifiedCore);
+    const temps = sub.map(r => r.unifiedCore);
     const max = Math.max(...temps);
+    const min = Math.min(...temps);
     const mean = temps.reduce((a, b) => a + b, 0) / temps.length;
-    return { max, mean, rise: temps[temps.length - 1] - temps[0] };
+    return { max, min, mean, rise: temps[temps.length - 1] - temps[0] };
   };
 
   const statsA = getStats(subsetA);
@@ -1578,9 +1702,9 @@ function runCoreComparison() {
   document.getElementById('compare-results').classList.remove('hidden');
 
   const maxLen = Math.max(subsetA.length, subsetB.length);
-  const labels = Array.from({ length: maxLen }, (_, i) => `Pt ${i + 1}`);
-  const dataA = subsetA.map((r) => r.unifiedCore);
-  const dataB = subsetB.map((r) => r.unifiedCore);
+  const labels = Array.from({length: maxLen}, (_, i) => `Pt ${i+1}`);
+  const dataA = subsetA.map(r => r.unifiedCore);
+  const dataB = subsetB.map(r => r.unifiedCore);
 
   const ctx = document.getElementById('compareChart');
   if (compareChartInstance) compareChartInstance.destroy();
@@ -1622,37 +1746,28 @@ function renderEventsTable() {
     tbody.innerHTML = `<tr><td colspan="5" class="text-center text-slate-400 py-3">No events added.</td></tr>`;
     return;
   }
-  tbody.innerHTML = AppState.events
-    .map(
-      (ev, idx) => `<tr>
-    <td><input type="time" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.start}" onchange="AppState.events[${idx}].start = this.value" /></td>
-    <td><input type="time" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.end}" onchange="AppState.events[${idx}].end = this.value" /></td>
+  tbody.innerHTML = AppState.events.map((ev, idx) => `<tr>
+    <td><input type="time" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.start}" onchange="AppState.events[${idx}].start = this.value"></td>
+    <td><input type="time" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.end}" onchange="AppState.events[${idx}].end = this.value"></td>
     <td><select class="border rounded px-1.5 py-0.5 text-xs w-full" onchange="AppState.events[${idx}].type = this.value">
       <option value="Break" ${ev.type === 'Break' ? 'selected' : ''}>Break</option>
       <option value="Feeding" ${ev.type === 'Feeding' ? 'selected' : ''}>Feeding</option>
       <option value="Intensity" ${ev.type === 'Intensity' ? 'selected' : ''}>Intensity</option>
     </select></td>
-    <td><input type="text" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.desc}" placeholder="Description" onchange="AppState.events[${idx}].desc = this.value" /></td>
+    <td><input type="text" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.desc}" placeholder="Description" onchange="AppState.events[${idx}].desc = this.value"></td>
     <td class="no-print text-center"><button type="button" onclick="removeEventRow(${idx})" class="text-red-500 hover:text-red-700 cursor-pointer text-xs"><i class="fa-solid fa-trash"></i></button></td>
-  </tr>`
-    )
-    .join('');
+  </tr>`).join('');
 }
 
 function saveCurrentReportToArchive() {
   const m = AppState.metrics;
-  if (!m || !m.start) {
-    alert('No processed data available.');
-    return;
-  }
+  if (!m || !m.start) { alert('No processed data available.'); return; }
   const record = {
-    id: Date.now(),
-    dateSaved: new Date().toLocaleString(),
+    id: Date.now(), dateSaved: new Date().toLocaleString(),
     athlete: document.getElementById('inp-athlete').value || 'Athlete',
     activity: document.getElementById('inp-activity').value || 'Trial',
     duration: document.getElementById('sum-duration').textContent,
-    maxTemp: m.max,
-    metrics: m
+    maxTemp: m.max, metrics: m
   };
   let archive = JSON.parse(localStorage.getItem('heatReportArchive') || '[]');
   archive.unshift(record);
@@ -1670,15 +1785,11 @@ function renderArchiveTable() {
     tbody.innerHTML = `<tr><td colspan="6" class="text-center text-slate-400 py-4">${dict.msg_no_archive}</td></tr>`;
     return;
   }
-  tbody.innerHTML = archive
-    .map(
-      (rec, idx) => `<tr>
+  tbody.innerHTML = archive.map((rec, idx) => `<tr>
     <td>${rec.dateSaved}</td><td>${rec.athlete}</td><td>${rec.activity}</td><td>${rec.duration}</td>
     <td class="font-semibold">${rec.maxTemp.toFixed(2)} °C</td>
     <td><button type="button" onclick="deleteArchivedReport(${idx})" class="px-2 py-1 bg-red-50 text-red-600 rounded text-xs cursor-pointer"><i class="fa-solid fa-trash"></i></button></td>
-  </tr>`
-    )
-    .join('');
+  </tr>`).join('');
 }
 
 function deleteArchivedReport(idx) {
@@ -1701,48 +1812,34 @@ function calculateSweatMetrics() {
   const sodiumConc = parseFloat(document.getElementById('sw-sodium-conc')?.value) || 50;
 
   if (pre > 0 && post > 0) {
-    const lossMassKg = pre - post + fluid - urine;
+    const lossMassKg = (pre - post) + fluid - urine;
     const lossMassLiters = Math.max(0, lossMassKg);
     const sodiumLossMmol = lossMassLiters * sodiumConc;
     const sodiumLossMg = sodiumLossMmol * 22.99;
 
-    document.getElementById('sw-mass').textContent =
-      fmtNum(lossMassKg, 2) + ' kg (' + fmtNum(lossMassLiters, 2) + ' L)';
-    document.getElementById('sum-sweat-mass-sum').textContent =
-      fmtNum(lossMassKg, 2) + ' kg';
-    document.getElementById('sw-sodium-total').textContent =
-      fmtNum(sodiumLossMg, 0) + ' mg (' + fmtNum(sodiumLossMmol, 0) + ' mmol)';
-    document.getElementById('sum-sodium').textContent =
-      fmtNum(sodiumLossMg, 0) + ' mg';
+    document.getElementById('sw-mass').textContent = fmtNum(lossMassKg, 2) + ' kg (' + fmtNum(lossMassLiters, 2) + ' L)';
+    document.getElementById('sum-sweat-mass-sum').textContent = fmtNum(lossMassKg, 2) + ' kg';
+    document.getElementById('sw-sodium-total').textContent = fmtNum(sodiumLossMg, 0) + ' mg (' + fmtNum(sodiumLossMmol, 0) + ' mmol)';
+    document.getElementById('sum-sodium').textContent = fmtNum(sodiumLossMg, 0) + ' mg';
   }
 }
 
 function exportCSV() {
   const dataset = AppState.viewMode === 'whole' ? AppState.processed : AppState.minuteAverages;
-  if (dataset.length === 0) {
-    alert('No processed data to export.');
-    return;
-  }
-  const csv = 'data:text/csv;charset=utf-8,' + dataset.map((r) => Object.values(r).join(',')).join('\n');
+  if (dataset.length === 0) { alert('No processed data to export.'); return; }
+  const csv = "data:text/csv;charset=utf-8," + dataset.map(r => Object.values(r).join(',')).join('\n');
   const encodedUri = encodeURI(csv);
   const a = document.createElement('a');
-  a.setAttribute('href', encodedUri);
-  a.setAttribute('download', 'Heat_And_Hydration_Analysis_' + AppState.viewMode + '.csv');
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  a.setAttribute('href', encodedUri); a.setAttribute('download', 'Heat_And_Hydration_Analysis_' + AppState.viewMode + '.csv');
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
-// FIX STEP 2: Zero scroll origin PDF capture logic with fixed size
 async function exportPDF() {
-  if (AppState.processed.length === 0) {
-    alert('No processed data to export.');
-    return;
-  }
+  if (AppState.processed.length === 0) { alert('No processed data to export.'); return; }
 
   const reportTemplate = document.getElementById('pdf-report-template');
-
-  // Populate metadata fields
+  
+  // Populating field values
   const athleteName = document.getElementById('inp-athlete').value || 'Athlete';
   const sportName = document.getElementById('inp-activity').value || 'Trial';
   const envText = document.getElementById('inp-env').value || '—';
@@ -1791,9 +1888,9 @@ async function exportPDF() {
 
   // Render chart onto PDF template
   const p = AppState.processed;
-  const labels = p.map((r) => r.hhmmss);
-  const coreData = p.map((r) => r.unifiedCore);
-  const hrData = p.map((r) => r.hr);
+  const labels = p.map(r => r.hhmmss);
+  const coreData = p.map(r => r.unifiedCore);
+  const hrData = p.map(r => r.hr);
 
   if (pdfChartCoreHRInstance) pdfChartCoreHRInstance.destroy();
 
@@ -1821,36 +1918,12 @@ async function exportPDF() {
   // Make template visible to DOM renderer
   reportTemplate.classList.add('rendering-pdf');
 
-  setTimeout(() => {
-    const opt = {
-      margin: 0.2,
-      filename: 'Heat_Sweat_Hydration_Report.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: 800,
-        x: 0,
-        y: 0
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf()
-      .set(opt)
-      .from(reportTemplate)
-      .save()
-      .then(() => {
-        reportTemplate.classList.remove('rendering-pdf');
-      })
-      .catch((err) => {
-        console.error(err);
-        reportTemplate.classList.remove('rendering-pdf');
-      });
-  }, 250);
-}
-</script>
-</body>
-</html>
+  // Your custom html2pdf options
+  const opt = {
+    margin: 0.2,
+    filename: 'Heat_Sweat_Hydration_Report.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      scrollX
