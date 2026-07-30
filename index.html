@@ -399,10 +399,10 @@ table.data-table tr:hover td { background: var(--paper-alt); }
       </div>
     </div>
   </div>
-
- <!-- CHARTS TAB -->
+  
+<!-- CHARTS TAB -->
   <div id="tab-charts" class="tab-content hidden space-y-4">
-    <!-- Your existing main interactive chart -->
+    <!-- Main interactive chart -->
     <div class="card p-4">
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
         <div class="flex items-center">
@@ -418,22 +418,11 @@ table.data-table tr:hover td { background: var(--paper-alt); }
       </div>
     </div>
 
-    <!-- New Side-by-Side Additional Charts Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- Chart 1: Core Temp vs Heart Rate -->
-      <div class="card p-4">
-        <h3 class="font-semibold text-slate-700 text-sm mb-2">Core Temperature vs. Heart Rate Correlation</h3>
-        <div class="relative h-64">
-          <canvas id="chartCoreVsHr"></canvas>
-        </div>
-      </div>
-
-      <!-- Chart 5: Multi-Session Comparison -->
-      <div class="card p-4">
-        <h3 class="font-semibold text-slate-700 text-sm mb-2">Multi-Session Core Temperature Comparison</h3>
-        <div class="relative h-64">
-          <canvas id="chartCompareSessions"></canvas>
-        </div>
+    <!-- Cleaned-up & Enlarged Core Temp vs HR Chart -->
+    <div class="card p-4">
+      <h3 class="font-semibold text-slate-700 text-sm mb-2">Core Temperature vs. Heart Rate Correlation</h3>
+      <div class="relative w-full h-[420px]">
+        <canvas id="chartCoreVsHr"></canvas>
       </div>
     </div>
   </div>
@@ -992,7 +981,6 @@ function showTab(name) {
   if (name === 'charts') {
     renderChart();
     renderCoreVsHrChart();
-    renderCompareSessionsChart();
   }
   if (name === 'archive') renderArchiveTable();
 }
@@ -1047,6 +1035,21 @@ function computeMinuteAverages() {
     for (const z in b.zones) {
       if (b.zones[z] > maxCount) { maxCount = b.zones[z]; dominantZone = z; }
     }
+
+    averages.push({
+      minute: b.minute,
+      hhmmss: fmtTime(minNum * 60),
+      count: b.count,
+      unifiedCore: avgCore,
+      coreSource: 'Average',
+      hr: avgHr != null ? Math.round(avgHr) : null,
+      sweatRate: avgSweat,
+      zone: dominantZone
+    });
+  });
+
+  AppState.minuteAverages = averages;
+}
 
     averages.push({
       minute: b.minute,
@@ -1622,6 +1625,49 @@ function runCoreComparison() {
   });
 }
 
+function renderCoreVsHrChart() {
+  const ctx = document.getElementById('chartCoreVsHr');
+  if (!ctx || !AppState.processed || AppState.processed.length === 0) return;
+
+  const scatterData = AppState.processed
+    .filter(r => r.unifiedCore != null && r.hr != null && r.hr > 30)
+    .map(r => ({ x: Number(r.unifiedCore.toFixed(2)), y: r.hr }));
+
+  if (coreVsHrChartInstance) coreVsHrChartInstance.destroy();
+
+  coreVsHrChartInstance = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Core Temp vs Heart Rate',
+        data: scatterData,
+        backgroundColor: 'rgba(220, 38, 38, 0.45)',
+        pointRadius: 4,
+        pointHoverRadius: 7
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Core Temperature (°C)' },
+          type: 'linear',
+          position: 'bottom',
+          grid: { color: 'rgba(18,22,29,0.05)' }
+        },
+        y: {
+          title: { display: true, text: 'Heart Rate (bpm)' },
+          grid: { color: 'rgba(18,22,29,0.05)' }
+        }
+      }
+    }
+  });
+}
+
 function addEventRow() {
   AppState.events.push({ start: '', end: '', type: 'Break', desc: '' });
   renderEventsTable();
@@ -1756,7 +1802,10 @@ async function exportPDF() {
   reportTemplate.style.background = '#ffffff';
 
   let tempPdfChart = null;
+  let tempPdfScatterChart = null;
   const pdfCanvasCtx = document.getElementById('pdfChartCoreHR');
+  const pdfScatterCanvasCtx = document.getElementById('pdfChartCoreVsHr');
+
   if (pdfCanvasCtx && AppState.processed.length > 0) {
     const labels = AppState.processed.map(r => r.elapsedMin.toFixed(1));
     const coreData = AppState.processed.map(r => r.unifiedCore);
@@ -1797,6 +1846,43 @@ async function exportPDF() {
     });
   }
 
+  if (pdfScatterCanvasCtx && AppState.processed.length > 0) {
+    const scaleFactor = 2;
+    const computedWidth = pdfScatterCanvasCtx.parentElement ? pdfScatterCanvasCtx.parentElement.clientWidth : 750;
+    const computedHeight = 170;
+    
+    pdfScatterCanvasCtx.width = computedWidth * scaleFactor;
+    pdfScatterCanvasCtx.height = computedHeight * scaleFactor;
+    pdfScatterCanvasCtx.style.width = computedWidth + 'px';
+    pdfScatterCanvasCtx.style.height = computedHeight + 'px';
+
+    const scatterDataForPdf = AppState.processed
+      .filter(r => r.unifiedCore != null && r.hr != null && r.hr > 30)
+      .map(r => ({ x: Number(r.unifiedCore.toFixed(2)), y: r.hr }));
+
+    tempPdfScatterChart = new Chart(pdfScatterCanvasCtx, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          label: 'Core Temp vs Heart Rate',
+          data: scatterDataForPdf,
+          backgroundColor: 'rgba(220, 38, 38, 0.5)',
+          pointRadius: 2.5
+        }]
+      },
+      options: {
+        responsive: false,
+        animation: false,
+        devicePixelRatio: scaleFactor,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { type: 'linear', position: 'bottom', title: { display: true, text: 'Core Temperature (°C)' } },
+          y: { title: { display: true, text: 'Heart Rate (bpm)' } }
+        }
+      }
+    });
+  }
+
   setTimeout(async () => {
     if (typeof html2pdf !== 'undefined') {
       const options = {
@@ -1815,12 +1901,14 @@ async function exportPDF() {
         window.print();
       } finally {
         if (tempPdfChart) tempPdfChart.destroy();
+        if (tempPdfScatterChart) tempPdfScatterChart.destroy();
         reportTemplate.removeAttribute('style');
         reportTemplate.classList.add('hidden');
       }
     } else {
       window.print();
       if (tempPdfChart) tempPdfChart.destroy();
+      if (tempPdfScatterChart) tempPdfScatterChart.destroy();
       reportTemplate.removeAttribute('style');
       reportTemplate.classList.add('hidden');
     }
