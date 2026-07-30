@@ -1048,21 +1048,7 @@ function computeMinuteAverages() {
       if (b.zones[z] > maxCount) { maxCount = b.zones[z]; dominantZone = z; }
     }
 
-    averages.push({
-      minute: b.minute,
-      hhmmss: fmtTime(minNum * 60),
-      count: b.count,
-      unifiedCore: avgCore,
-      coreSource: 'Average',
-      hr: avgHr != null ? Math.round(avgHr) : null,
-      sweatRate: avgSweat,
-      zone: dominantZone
-    });
-  });
-
-  AppState.minuteAverages = averages;
-}
-    averages.push({
+  averages.push({
       minute: b.minute,
       hhmmss: fmtTime(minNum * 60),
       count: b.count,
