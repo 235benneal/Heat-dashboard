@@ -2026,13 +2026,11 @@ window.addEventListener('DOMContentLoaded', () => {
     addEventBtn.addEventListener('click', addEventRow);
   }  
 
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.getAttribute('data-target');
-      if (target && typeof showTab === 'function') showTab(target);
-    });
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.getAttribute('data-target');
+    if (target && typeof showTab === 'function') {
+      showTab(target);
+    }
   });
-}); // <--- Closes DOMContentLoaded listener
-</script>
-</body>
-</html>
+});
