@@ -1843,6 +1843,21 @@ async function exportPDF() {
   document.getElementById('pdf-sw-total').textContent = document.getElementById('sum-sweat-total').textContent || '—';
   document.getElementById('pdf-sw-sodium').textContent = document.getElementById('sw-sodium-total').textContent || '—';
 
+  // --- NEW: Pull through Time Spent in Zones to PDF ---
+  if (m.zones) {
+    const zmap = { 'Zone 1': 'z1', 'Zone 2': 'z2', 'Zone 3': 'z3', 'Zone 4/Cutoff': 'z4' };
+    for (const k in zmap) {
+      const zd = m.zones[k];
+      const timeEl = document.getElementById('pdf-' + zmap[k] + '-time');
+      const pctEl = document.getElementById('pdf-' + zmap[k] + '-pct');
+      const firstEl = document.getElementById('pdf-' + zmap[k] + '-first');
+      
+      if (timeEl) timeEl.textContent = (zd.time / 60).toFixed(1) + ' min';
+      if (pctEl) pctEl.textContent = zd.pct.toFixed(1) + '%';
+      if (firstEl) firstEl.textContent = zd.first != null ? fmtTime(zd.first) : '—';
+    }
+  }
+
   if (typeof updateZoneLabelsDisplay === 'function') updateZoneLabelsDisplay();
 
   reportTemplate.classList.remove('hidden');
@@ -1903,10 +1918,11 @@ async function exportPDF() {
     const computedWidth = pdfScatterCanvasCtx.parentElement.clientWidth;
     const computedHeight = 140;
 
-    pdfScatterCanvasCtx.width = computedWidth * scaleFactor;
+  pdfScatterCanvasCtx.width = computedWidth * scaleFactor;
     pdfScatterCanvasCtx.height = computedHeight * scaleFactor;
 
     pdfScatterCanvasCtx.style.display = 'block';
+    pdfScatterCanvasCtx.style.margin = '0 auto'; // <-- NEW: Centers the canvas
     pdfScatterCanvasCtx.style.width = '100%';
     pdfScatterCanvasCtx.style.maxWidth = '100%';
     pdfScatterCanvasCtx.style.height = computedHeight + 'px';
@@ -1925,7 +1941,7 @@ async function exportPDF() {
 
     const maxCore = Math.max(...scatterDataForPdf.map(p => p.x));
 
-   tempPdfScatterChart = new Chart(pdfScatterCanvasCtx, {
+    tempPdfScatterChart = new Chart(pdfScatterCanvasCtx, {
         type: 'scatter',
         data: {
             datasets: [{
