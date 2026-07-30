@@ -2652,26 +2652,12 @@ async function exportPDF() {
   
   const reportTemplate = document.getElementById('pdf-report-template');
   
-  // 1. Force the template to be visible and block layout
-  reportTemplate.classList.remove('hidden');
-  reportTemplate.style.display = 'block';
-  reportTemplate.style.position = 'absolute';
-  reportTemplate.style.left = '0';
-  reportTemplate.style.top = '0';
-  reportTemplate.style.width = '794px';
-  reportTemplate.style.background = '#ffffff';
-
-  // Update text values...
-  const athleteName = document.getElementById('inp-athlete').value || 'Athlete';
-  const sportName = document.getElementById('inp-activity').value || 'Trial';
-  const envText = document.getElementById('inp-env').value || '—';
-  const durationText = document.getElementById('sum-duration').textContent || '—';
-
+  // Populate fields...
   document.getElementById('pdf-rep-date').textContent = new Date().toLocaleDateString();
-  document.getElementById('pdf-meta-athlete').textContent = athleteName;
-  document.getElementById('pdf-meta-sport').textContent = sportName;
-  document.getElementById('pdf-meta-duration').textContent = durationText;
-  document.getElementById('pdf-meta-env').textContent = envText;
+  document.getElementById('pdf-meta-athlete').textContent = document.getElementById('inp-athlete').value || 'Athlete';
+  document.getElementById('pdf-meta-sport').textContent = document.getElementById('inp-activity').value || 'Trial';
+  document.getElementById('pdf-meta-duration').textContent = document.getElementById('sum-duration').textContent || '—';
+  document.getElementById('pdf-meta-env').textContent = document.getElementById('inp-env').value || '—';
 
   const m = AppState.metrics || {};
   document.getElementById('pdf-val-start').textContent = fmtNum(m.start, 2);
@@ -2681,44 +2667,60 @@ async function exportPDF() {
   document.getElementById('pdf-val-maxhr').textContent = m.hrMax != null ? fmtNum(m.hrMax, 0) : '—';
   document.getElementById('pdf-val-cutoff').textContent = m.cutoffReached || 'NO';
 
-  // Give the browser 300ms to fully paint the layout and chart before capturing
-  setTimeout(() => {
+  document.getElementById('pdf-sw-pre').textContent = (document.getElementById('sw-pre').value || '—') + ' kg';
+  document.getElementById('pdf-sw-post').textContent = (document.getElementById('sw-post').value || '—') + ' kg';
+  document.getElementById('pdf-sw-fluid').textContent = (document.getElementById('sw-fluid').value || '0') + ' L consumed';
+  document.getElementById('pdf-sw-mass').textContent = document.getElementById('sw-mass').textContent || '—';
+  document.getElementById('pdf-sw-avg').textContent = document.getElementById('sum-sweat-avg').textContent || '—';
+  document.getElementById('pdf-sw-max').textContent = document.getElementById('sum-sweat-max').textContent || '—';
+  document.getElementById('pdf-sw-total').textContent = document.getElementById('sum-sweat-total').textContent || '—';
+  document.getElementById('pdf-sw-sodium').textContent = document.getElementById('sw-sodium-total').textContent || '—';
+
+  updateZoneLabelsDisplay();
+
+  // FIX: Force it into a centered, visible block instead of absolute left-edge positioning
+  reportTemplate.classList.remove('hidden');
+  reportTemplate.style.display = 'block';
+  reportTemplate.style.position = 'relative';
+  reportTemplate.style.margin = '0 auto';
+  reportTemplate.style.width = '794px';
+  reportTemplate.style.background = '#ffffff';
+
+  if (pdfChartCoreHRInstance) pdfChartCoreHRInstance.resize();
+
+  setTimeout(async () => {
     if (typeof html2pdf !== 'undefined') {
       const options = {
-        margin: [10, 10, 10, 10],
+        margin: 10,
         filename: 'Heat_Sweat_Hydration_Report.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
           scale: 2,
           useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          windowWidth: 794
+          logging: false,
+          backgroundColor: '#ffffff'
         },
-        jsPDF: {
-          unit: 'mm',
-          format: 'a4',
-          orientation: 'portrait'
-        },
-        pagebreak: { mode: ['css', 'legacy'] }
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
-      html2pdf().set(options).from(reportTemplate).save().then(() => {
-        // Cleanup after save
+      try {
+        await html2pdf().set(options).from(reportTemplate).save();
+      } catch (err) {
+        console.error("PDF Export Error:", err);
+        window.print();
+      } finally {
+        // Clean up styles and re-hide
         reportTemplate.removeAttribute('style');
         reportTemplate.classList.add('hidden');
-      }).catch((err) => {
-        console.error('PDF Export Error:', err);
-        reportTemplate.removeAttribute('style');
-        reportTemplate.classList.add('hidden');
-      });
+      }
     } else {
       window.print();
       reportTemplate.removeAttribute('style');
       reportTemplate.classList.add('hidden');
     }
-  }, 300);
+  }, 400);
 }
+
 window.addEventListener('DOMContentLoaded', () => { 
   loadSettings(); 
   renderEventsTable();
