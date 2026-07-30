@@ -2659,14 +2659,21 @@ function exportCSV() {
 
 async function exportPDF() {
   if (AppState.processed.length === 0) { alert('No processed data to export.'); return; }
-
   const reportTemplate = document.getElementById('pdf-report-template');
   reportTemplate.classList.remove('hidden');
 
-  // Fixed width — matches A4 portrait content area once scaled, and is
-  // independent of the browser viewport, so nothing gets clipped.
-  reportTemplate.style.width = '750px';
-  reportTemplate.style.maxWidth = '750px';
+  reportTemplate.style.position = 'absolute';
+  reportTemplate.style.left = '0';
+  reportTemplate.style.top = '0';
+  reportTemplate.style.width = '210mm';
+  reportTemplate.style.maxWidth = '210mm';
+  reportTemplate.style.minWidth = '210mm';
+  reportTemplate.style.margin = '0';
+  reportTemplate.style.padding = '15mm';
+  reportTemplate.style.background = '#fff';
+  reportTemplate.style.boxSizing = 'border-box';
+  reportTemplate.style.transform = 'none';
+  reportTemplate.style.zoom = '1';
 
   const athleteName = document.getElementById('inp-athlete').value || 'Athlete';
   const sportName = document.getElementById('inp-activity').value || 'Trial';
@@ -2734,7 +2741,7 @@ async function exportPDF() {
       responsive: true,
       maintainAspectRatio: false,
       animation: false,
-      layout: { padding: { left: 5, right: 15, top: 5, bottom: 5 } }, // Balanced padding to prevent right-axis cutoff
+      layout: { padding: { left: 5, right: 15, top: 5, bottom: 5 } },
       scales: {
         x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
         y: { position: 'left', title: { display: true, text: 'Core (°C)' } },
@@ -2758,33 +2765,60 @@ async function exportPDF() {
 
   requestAnimationFrame(() => requestAnimationFrame(() => {
     if (typeof html2pdf !== 'undefined') {
-  html2pdf().set({
-  margin: [0.3, 0.3, 0.3, 0.3],
-  filename: 'Heat_Sweat_Hydration_Report.pdf',
-  image: { type: 'jpeg', quality: 0.98 },
-  html2canvas: {
-    scale: 2,
-    useCORS: true,
-    letterRendering: true,
-    scrollX: 0,
-    scrollY: 0,
-    windowWidth: reportTemplate.offsetWidth
-  },
-  jsPDF: {
-    unit: 'in',
-    format: 'a4',
-    orientation: 'portrait'
-  },
-  pagebreak: {
-    mode: ['avoid-all', 'css']
-  }
-}).from(reportTemplate).save().then(() => {
+      const options = {
+        margin: [10, 10, 10, 10],
+        filename: 'Heat_Sweat_Hydration_Report.pdf',
+        image: {
+          type: 'jpeg',
+          quality: 1
+        },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: 794
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+        },
+        pagebreak: {
+          mode: ['css', 'legacy']
+        }
+      };
+
+      html2pdf().set(options).from(reportTemplate).save().then(() => {
+        reportTemplate.style.width = '794px';
+        reportTemplate.style.maxWidth = '794px';
+        reportTemplate.style.minWidth = '794px';
+        reportTemplate.style.transform = 'none';
+        reportTemplate.style.zoom = '1';
+
+        reportTemplate.removeAttribute('style');
         reportTemplate.classList.add('hidden');
       }).catch(() => {
+        reportTemplate.style.width = '794px';
+        reportTemplate.style.maxWidth = '794px';
+        reportTemplate.style.minWidth = '794px';
+        reportTemplate.style.transform = 'none';
+        reportTemplate.style.zoom = '1';
+
+        reportTemplate.removeAttribute('style');
         reportTemplate.classList.add('hidden');
       });
     } else {
       window.print();
+      reportTemplate.style.width = '794px';
+      reportTemplate.style.maxWidth = '794px';
+      reportTemplate.style.minWidth = '794px';
+      reportTemplate.style.transform = 'none';
+      reportTemplate.style.zoom = '1';
+
+      reportTemplate.removeAttribute('style');
       reportTemplate.classList.add('hidden');
     }
   }));
