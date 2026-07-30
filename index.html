@@ -439,6 +439,7 @@ table.data-table tr:hover td { background: var(--paper-alt); }
         <canvas id="chartCoreVsHr"></canvas>
       </div>
     </div>
+  </div>
 
   <!-- COMPARE LENGTHS TAB -->
   <div id="tab-compare" class="tab-content hidden">
@@ -986,7 +987,6 @@ function classifyZone(core, z) {
   return 'Zone 4/Cutoff';
   
 }
-
 function showTab(name) {
   // Hide all tab contents
   document.querySelectorAll('.tab-content').forEach(el => {
