@@ -1028,6 +1028,7 @@ function showTab(name) {
     renderArchiveTable();
   }
 }
+
 function setViewMode(mode) {
   AppState.viewMode = mode;
   const btnWhole = document.getElementById('btn-view-whole');
@@ -1036,13 +1037,13 @@ function setViewMode(mode) {
   const thInterval = document.getElementById('th-interval-label');
 
   if (mode === 'whole') {
-    btnWhole.className = "px-3 py-1 rounded text-xs font-medium bg-white shadow-sm text-slate-900 cursor-pointer";
-    btnMinute.className = "px-3 py-1 rounded text-xs font-medium text-slate-600 hover:text-slate-900 cursor-pointer";
+    if (btnWhole) btnWhole.className = "px-3 py-1 rounded text-xs font-medium bg-white shadow-sm text-slate-900 cursor-pointer";
+    if (btnMinute) btnMinute.className = "px-3 py-1 rounded text-xs font-medium text-slate-600 hover:text-slate-900 cursor-pointer";
     if (thTime) thTime.textContent = "Elapsed (s)";
     if (thInterval) thInterval.textContent = "Interval (s)";
   } else {
-    btnMinute.className = "px-3 py-1 rounded text-xs font-medium bg-white shadow-sm text-slate-900 cursor-pointer";
-    btnWhole.className = "px-3 py-1 rounded text-xs font-medium text-slate-600 hover:text-slate-900 cursor-pointer";
+    if (btnMinute) btnMinute.className = "px-3 py-1 rounded text-xs font-medium bg-white shadow-sm text-slate-900 cursor-pointer";
+    if (btnWhole) btnWhole.className = "px-3 py-1 rounded text-xs font-medium text-slate-600 hover:text-slate-900 cursor-pointer";
     if (thTime) thTime.textContent = "Minute (min)";
     if (thInterval) thInterval.textContent = "Samples Count";
   }
