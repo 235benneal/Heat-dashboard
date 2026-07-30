@@ -1802,16 +1802,50 @@ function calculateSweatMetrics() {
   const urine = parseFloat(document.getElementById('sw-urine')?.value) || 0;
   const sodiumConc = parseFloat(document.getElementById('sw-sodium-conc')?.value) || 50;
 
-if (pre > 0 && post > 0) {
-    const lossMassKg = (pre - post) + fluid - urine;
-    const lossMassLiters = Math.max(0, lossMassKg);
-    const sodiumLossMmol = lossMassLiters * sodiumConc;
-    const sodiumLossMg = sodiumLossMmol * 22.99;
+  let lossMassKg = 0;
+  let lossMassLiters = 0;
+  let hasMassData = false;
+
+  // 1. Calculate Estimated Mass Loss (if Pre and Post are entered)
+  if (pre > 0 && post > 0) {
+    lossMassKg = (pre - post) + fluid - urine;
+    lossMassLiters = Math.max(0, lossMassKg);
+    hasMassData = true;
 
     document.getElementById('sw-mass').textContent = fmtNum(lossMassKg, 2) + ' kg (' + fmtNum(lossMassLiters, 2) + ' L)';
     document.getElementById('sum-sweat-mass-sum').textContent = fmtNum(lossMassKg, 2) + ' kg';
+  } else {
+    document.getElementById('sw-mass').textContent = '—';
+    document.getElementById('sum-sweat-mass-sum').textContent = '—';
+  }
+
+  // 2. Check if FLOWBIO sensor data is present
+  const hasFlowbio = AppState.metrics && AppState.metrics.sweatTotalSensor != null && AppState.metrics.sweatTotalSensor > 0;
+  
+  let sodiumLossMg = 0;
+  let sodiumLossMmol = 0;
+  let calculated = false;
+
+  // 3. Apply the appropriate Sodium logic
+  if (hasFlowbio) {
+    // If FLOWBIO is present: Use FLOWBIO total volume + user's custom inputted concentration (mmol/L)
+    sodiumLossMmol = AppState.metrics.sweatTotalSensor * sodiumConc;
+    sodiumLossMg = sodiumLossMmol * 22.99;
+    calculated = true;
+  } else if (hasMassData) {
+    // If NO FLOWBIO is present: Default to exactly 800mg per Liter of body mass lost
+    sodiumLossMg = lossMassLiters * 800;
+    sodiumLossMmol = sodiumLossMg / 22.99;
+    calculated = true;
+  }
+
+  // 4. Update the Dashboard & PDF Elements
+  if (calculated) {
     document.getElementById('sw-sodium-total').textContent = fmtNum(sodiumLossMg, 0) + ' mg (' + fmtNum(sodiumLossMmol, 0) + ' mmol)';
     document.getElementById('sum-sodium').textContent = fmtNum(sodiumLossMg, 0) + ' mg';
+  } else {
+    document.getElementById('sw-sodium-total').textContent = '—';
+    document.getElementById('sum-sodium').textContent = '—';
   }
 }
 
