@@ -1487,9 +1487,10 @@ function renderCoreVsHrChart() {
   const ctx = document.getElementById('chartCoreVsHr');
   if (!ctx || !AppState.processed || AppState.processed.length === 0) return;
 
+  // Option 1: Filter valid points and take every 15th point to eliminate clutter
   const scatterData = AppState.processed
-    .filter(r => r.unifiedCore != null && r.hr != null)
-    .map(r => ({ x: r.unifiedCore, y: r.hr }));
+    .filter((r, index) => r.unifiedCore != null && r.hr != null && r.hr > 30 && index % 15 === 0)
+    .map(r => ({ x: Number(r.unifiedCore.toFixed(2)), y: r.hr }));
 
   if (coreVsHrChartInstance) coreVsHrChartInstance.destroy();
 
@@ -1499,21 +1500,27 @@ function renderCoreVsHrChart() {
       datasets: [{
         label: 'Core Temp vs Heart Rate',
         data: scatterData,
-        backgroundColor: 'rgba(220, 38, 38, 0.6)',
-        pointRadius: 3
+        backgroundColor: 'rgba(220, 38, 38, 0.4)',
+        pointRadius: 3,
+        pointHoverRadius: 5
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
       scales: {
         x: {
           title: { display: true, text: 'Core Temperature (°C)' },
           type: 'linear',
-          position: 'bottom'
+          position: 'bottom',
+          grid: { color: 'rgba(18,22,29,0.05)' }
         },
         y: {
-          title: { display: true, text: 'Heart Rate (bpm)' }
+          title: { display: true, text: 'Heart Rate (bpm)' },
+          grid: { color: 'rgba(18,22,29,0.05)' }
         }
       }
     }
