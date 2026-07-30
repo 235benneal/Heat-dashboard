@@ -659,15 +659,16 @@ table.data-table tr:hover td { background: var(--paper-alt); }
   </div>
 
   <!-- Chart Panel: Core Temperature vs. Heart Rate Correlation (Add this right below) -->
-  <div class="mb-4">
-    <div class="text-xs font-bold text-slate-700 uppercase mb-1.5 flex justify-between">
-      <span>Core Temperature vs. Heart Rate Correlation</span>
-    </div>
-    <div class="relative w-full h-[170px] border border-slate-200 rounded-lg bg-white p-2">
-      <canvas id="pdfChartCoreVsHr" style="width: 100%; height: 100%;"></canvas>
-    </div>
+<div class="mb-4">
+  <div class="text-xs font-bold text-slate-700 uppercase mb-1.5 flex justify-between">
+    <span>Core Temperature vs. Heart Rate Correlation</span>
   </div>
 
+  <div class="relative w-full h-[170px] border border-slate-200 rounded-lg bg-white p-2 overflow-hidden">
+    <canvas id="pdfChartCoreVsHr"></canvas>
+  </div>
+</div>
+  
   <!-- Written Summary & Sweat Response Panel -->
   <div class="grid grid-cols-2 gap-4 mb-4">
     <div class="border border-slate-200 rounded-lg p-3 bg-white">
@@ -1873,47 +1874,85 @@ async function exportPDF() {
   }
 
   if (pdfScatterCanvasCtx && AppState.processed.length > 0) {
+
     const scaleFactor = 2;
-    const computedWidth = pdfScatterCanvasCtx.parentElement ? pdfScatterCanvasCtx.parentElement.clientWidth : 750;
+    const computedWidth = pdfScatterCanvasCtx.parentElement.clientWidth;
     const computedHeight = 140;
-    
+
     pdfScatterCanvasCtx.width = computedWidth * scaleFactor;
     pdfScatterCanvasCtx.height = computedHeight * scaleFactor;
-    pdfScatterCanvasCtx.style.width = computedWidth + 'px';
+
+    pdfScatterCanvasCtx.style.display = 'block';
+    pdfScatterCanvasCtx.style.width = '100%';
+    pdfScatterCanvasCtx.style.maxWidth = '100%';
     pdfScatterCanvasCtx.style.height = computedHeight + 'px';
 
     const scatterDataForPdf = AppState.processed
-      .filter((r, index) => r.unifiedCore != null && r.hr != null && r.hr > 30 && index % 15 === 0)
-      .map(r => ({ x: Number(r.unifiedCore.toFixed(2)), y: r.hr }));
+        .filter((r, index) =>
+            r.unifiedCore != null &&
+            r.hr != null &&
+            r.hr > 30 &&
+            index % 15 === 0
+        )
+        .map(r => ({
+            x: Number(r.unifiedCore.toFixed(2)),
+            y: r.hr
+        }));
+
+    const maxCore = Math.max(...scatterDataForPdf.map(p => p.x));
 
     tempPdfScatterChart = new Chart(pdfScatterCanvasCtx, {
-      type: 'scatter',
-      data: {
-        datasets: [{
-          label: 'Core Temp vs Heart Rate',
-          data: scatterDataForPdf,
-          backgroundColor: 'rgba(220, 38, 38, 0.4)',
-          pointRadius: 2
-        }]
-      },
-      options: {
-        responsive: false,
-        animation: false,
-        devicePixelRatio: scaleFactor,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { 
-            type: 'linear', 
-            position: 'bottom', 
-            min: 35.0,
-            max: 39.5, 
-            title: { display: true, text: 'Core Temperature (°C)' } 
-          },
-          y: { title: { display: true, text: 'Heart Rate (bpm)' } }
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'Core Temp vs Heart Rate',
+                data: scatterDataForPdf,
+                backgroundColor: 'rgba(220, 38, 38, 0.4)',
+                pointRadius: 2
+            }]
+        },
+        options: {
+            responsive: false,
+            animation: false,
+            devicePixelRatio: scaleFactor,
+
+            layout: {
+                padding: {
+                    left: 5,
+                    right: 5,
+                    top: 5,
+                    bottom: 5
+                }
+            },
+
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    min: 35,
+                    max: Math.ceil((maxCore + 0.1) * 10) / 10,
+                    title: {
+                        display: true,
+                        text: 'Core Temperature (°C)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Heart Rate (bpm)'
+                    }
+                }
+            }
         }
-      }
     });
-  }
+
+}
   
   setTimeout(async () => {
     if (typeof html2pdf !== 'undefined') {
