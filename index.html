@@ -988,13 +988,21 @@ function classifyZone(core, z) {
 }
 
 function showTab(name) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-  const targetTab = document.getElementById('tab-' + name);
-  if (targetTab) targetTab.classList.remove('hidden');
+  // Hide all tab contents
+  document.querySelectorAll('.tab-content').forEach(el => {
+    el.classList.add('hidden');
+  });
 
-  document.querySelectorAll('.tab-btn').forEach(el => { 
-    el.classList.remove('active'); 
-    el.classList.add('text-slate-600'); 
+  // Show the target tab content
+  const targetTab = document.getElementById('tab-' + name);
+  if (targetTab) {
+    targetTab.classList.remove('hidden');
+  }
+
+  // Update button active states safely
+  document.querySelectorAll('.tab-btn').forEach(el => {
+    el.classList.remove('active', 'bg-slate-900', 'text-white');
+    el.classList.add('text-slate-600');
   });
 
   const activeBtn = document.querySelector(`.tab-btn[data-target="${name}"]`);
@@ -1003,13 +1011,15 @@ function showTab(name) {
     activeBtn.classList.remove('text-slate-600');
   }
 
+  // Render specific tab charts or tables if needed
   if (name === 'charts') {
     renderChart();
     renderCoreVsHrChart();
   }
-  if (name === 'archive') renderArchiveTable();
+  if (name === 'archive') {
+    renderArchiveTable();
+  }
 }
-  
 function setViewMode(mode) {
   AppState.viewMode = mode;
   const btnWhole = document.getElementById('btn-view-whole');
