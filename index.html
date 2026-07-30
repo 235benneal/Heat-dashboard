@@ -2682,7 +2682,7 @@ async function exportPDF() {
   reportTemplate.classList.remove('hidden');
   reportTemplate.style.display = 'block';
   reportTemplate.style.position = 'relative';
-  reportTemplate.style.left = '540px';
+  reportTemplate.style.left = '300';
   reportTemplate.style.margin = '0 auto';
   reportTemplate.style.width = '794px';
   reportTemplate.style.background = '#ffffff';
@@ -2694,13 +2694,12 @@ async function exportPDF() {
       const options = {
         margin: [10, 10, 10, 10],
         filename: 'Heat_Sweat_Hydration_Report.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
+        image: { type: 'jpeg', quality: 1.0 },
         html2canvas: {
-          scale: 2,
+          scale: 3,
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
-          windowWidth: 1200
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['css', 'legacy'] }
