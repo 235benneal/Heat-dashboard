@@ -2679,7 +2679,7 @@ async function exportPDF() {
   updateZoneLabelsDisplay();
 
   // FIX: Force clean block rendering centered without shifting off-screen
-  reportTemplate.classList.remove('hidden');
+reportTemplate.classList.remove('hidden');
   reportTemplate.style.display = 'block';
   reportTemplate.style.position = 'relative';
   reportTemplate.style.left = '-7px';
@@ -2687,11 +2687,17 @@ async function exportPDF() {
   reportTemplate.style.width = '784px';
   reportTemplate.style.background = '#ffffff';
 
-  if (pdfChartCoreHRInstance) {
+  // Explicitly trigger your chart generation function here so it binds to the visible DOM container
+  if (typeof drawPDFChart === 'function') {
+    drawPDFChart();
+  }
+
+  if (typeof pdfChartCoreHRInstance !== 'undefined' && pdfChartCoreHRInstance) {
     pdfChartCoreHRInstance.resize();
     pdfChartCoreHRInstance.update('none');
   }
 
+  // Increased timeout to 600ms to guarantee Chart.js finishes painting pixels before the snapshot
   setTimeout(async () => {
     if (typeof html2pdf !== 'undefined') {
       const options = {
@@ -2722,7 +2728,7 @@ async function exportPDF() {
       reportTemplate.removeAttribute('style');
       reportTemplate.classList.add('hidden');
     }
-  }, 400);
+  }, 600);
 }
 
 window.addEventListener('DOMContentLoaded', () => { 
