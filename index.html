@@ -2692,7 +2692,7 @@ async function exportPDF() {
   setTimeout(async () => {
     if (typeof html2pdf !== 'undefined') {
       const options = {
-        margin: [2, 10, 5, 2],
+        margin: [10, 2, 10, 2],
         filename: 'Heat_Sweat_Hydration_Report.pdf',
         image: { type: 'jpeg', quality: 1.0 },
         html2canvas: {
