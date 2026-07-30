@@ -1665,35 +1665,60 @@ function renderCoreVsHrChart() {
   coreVsHrChartInstance = new Chart(ctx, {
     type: 'scatter',
     data: {
-      datasets: [{
-        label: 'Core Temp vs Heart Rate',
-        data: scatterData,
-        backgroundColor: 'rgba(220, 38, 38, 0.45)',
-        pointRadius: 4,
-        pointHoverRadius: 7
-      }]
+        datasets: [{
+            label: 'Core Temp vs Heart Rate',
+            data: scatterData,
+            backgroundColor: 'rgba(220, 38, 38, 0.45)',
+            pointRadius: 2.5,
+            pointHoverRadius: 5,
+            clip: false
+        }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
-      },
-      scales: {
-        x: {
-          title: { display: true, text: 'Core Temperature (°C)' },
-          type: 'linear',
-          position: 'bottom',
-          grid: { color: 'rgba(18,22,29,0.05)' }
+        responsive: true,
+        maintainAspectRatio: false,
+
+        layout: {
+            padding: {
+                left: 10,
+                right: 20,
+                top: 10,
+                bottom: 5
+            }
         },
-        y: {
-          title: { display: true, text: 'Heart Rate (bpm)' },
-          grid: { color: 'rgba(18,22,29,0.05)' }
+
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+
+        scales: {
+            x: {
+                type: 'linear',
+                position: 'bottom',
+                grace: '5%',
+                title: {
+                    display: true,
+                    text: 'Core Temperature (°C)'
+                },
+                grid: {
+                    color: 'rgba(18,22,29,0.05)'
+                }
+            },
+            y: {
+                grace: '5%',
+                title: {
+                    display: true,
+                    text: 'Heart Rate (bpm)'
+                },
+                grid: {
+                    color: 'rgba(18,22,29,0.05)'
+                }
+            }
         }
-      }
     }
-  });
-}
+});
 
 function addEventRow() {
   AppState.events.push({ start: '', end: '', type: 'Break', desc: '' });
