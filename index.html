@@ -400,8 +400,9 @@ table.data-table tr:hover td { background: var(--paper-alt); }
     </div>
   </div>
 
-  <!-- CHARTS TAB -->
-  <div id="tab-charts" class="tab-content hidden">
+ <!-- CHARTS TAB -->
+  <div id="tab-charts" class="tab-content hidden space-y-4">
+    <!-- Your existing main interactive chart -->
     <div class="card p-4">
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
         <div class="flex items-center">
@@ -414,6 +415,25 @@ table.data-table tr:hover td { background: var(--paper-alt); }
       </div>
       <div class="relative w-full h-[450px]">
         <canvas id="thermalChartStandalone"></canvas>
+      </div>
+    </div>
+
+    <!-- New Side-by-Side Additional Charts Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Chart 1: Core Temp vs Heart Rate -->
+      <div class="card p-4">
+        <h3 class="font-semibold text-slate-700 text-sm mb-2">Core Temperature vs. Heart Rate Correlation</h3>
+        <div class="relative h-64">
+          <canvas id="chartCoreVsHr"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 5: Multi-Session Comparison -->
+      <div class="card p-4">
+        <h3 class="font-semibold text-slate-700 text-sm mb-2">Multi-Session Core Temperature Comparison</h3>
+        <div class="relative h-64">
+          <canvas id="chartCompareSessions"></canvas>
+        </div>
       </div>
     </div>
   </div>
@@ -1915,8 +1935,89 @@ function changeLanguage(langCode) {
   updateZoneLabelsDisplay();
 
   if (AppState.processed.length > 0) {
-    renderChart();
-  }
+   let coreVsHrChartInstance = null;
+let compareSessionsChartInstance = null;
+
+function renderCoreVsHrChart() {
+  const ctx = document.getElementById('chartCoreVsHr');
+  if (!ctx || !AppState.processed || AppState.processed.length === 0) return;
+
+  const scatterData = AppState.processed
+    .filter(r => r.unifiedCore != null && r.hr != null)
+    .map(r => ({ x: r.unifiedCore, y: r.hr }));
+
+  if (coreVsHrChartInstance) coreVsHrChartInstance.destroy();
+
+  coreVsHrChartInstance = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Core Temp vs Heart Rate',
+        data: scatterData,
+        backgroundColor: 'rgba(220, 38, 38, 0.6)',
+        pointRadius: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          title: { display: true, text: 'Core Temperature (°C)' },
+          type: 'linear',
+          position: 'bottom'
+        },
+        y: {
+          title: { display: true, text: 'Heart Rate (bpm)' }
+        }
+      }
+    }
+  });
+}
+
+function renderCompareSessionsChart() {
+  const ctx = document.getElementById('chartCompareSessions');
+  if (!ctx) return;
+
+  const archive = JSON.parse(localStorage.getItem('heatReportArchive') || '[]');
+  if (archive.length === 0) return;
+
+  const colors = ['#dc2626', '#2563eb', '#0d9488', '#d97706', '#9333ea', '#db2777'];
+
+  const datasets = archive.slice(0, 5).map((rec, index) => {
+    const sessionData = rec.metrics && rec.metrics.minuteAverages ? rec.metrics.minuteAverages : [];
+    
+    return {
+      label: `${rec.athlete} (${rec.activity} - ${rec.dateSaved.split(',')[0]})`,
+      data: sessionData.map(m => m.core),
+      borderColor: colors[index % colors.length],
+      borderWidth: 2,
+      pointRadius: 0,
+      fill: false
+    };
+  });
+
+  if (compareSessionsChartInstance) compareSessionsChartInstance.destroy();
+
+  compareSessionsChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          type: 'linear',
+          title: { display: true, text: 'Elapsed Minutes' }
+        },
+        y: {
+          title: { display: true, text: 'Core Temperature (°C)' }
+        }
+      }
+    }
+  });
 }
 
 function updateZoneLabelsDisplay() {
@@ -2008,7 +2109,11 @@ function showTab(name) {
     activeBtn.classList.remove('text-slate-600');
   }
 
-  if (name === 'charts') renderChart();
+  if (name === 'charts') {
+    renderChart();
+    renderCoreVsHrChart();
+    renderCompareSessionsChart();
+  }
   if (name === 'archive') renderArchiveTable();
 }
 
