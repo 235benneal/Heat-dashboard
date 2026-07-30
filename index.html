@@ -2726,11 +2726,9 @@ async function exportPDF() {
     }
   });
 
-  // Make template visible to DOM renderer
+  // Temporarily reveal the template so html2canvas can measure and capture it safely
   reportTemplate.classList.remove('hidden');
-  reportTemplate.classList.add('rendering-pdf');
 
-  // New html2pdf configuration
   const opt = {
     margin: 0.2,
     filename: 'Heat_Sweat_Hydration_Report.pdf',
@@ -2740,21 +2738,19 @@ async function exportPDF() {
       useCORS: true,
       scrollX: 0,
       scrollY: 0,
-      windowWidth: 800,
-      x: 0,
-      y: 0
+      windowWidth: 800
     },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
-  html2pdf().set(opt).from(reportTemplate).save().then(() => {
-    reportTemplate.classList.remove('rendering-pdf');
+  try {
+    await html2pdf().set(opt).from(reportTemplate).save();
+  } catch (err) {
+    console.error("PDF generation failed:", err);
+  } finally {
+    // Always hide the template again, even if generation encounters an error
     reportTemplate.classList.add('hidden');
-  }).catch(err => {
-    console.error(err);
-    reportTemplate.classList.remove('rendering-pdf');
-    reportTemplate.classList.add('hidden');
-  });
+  }
 }
 
 window.addEventListener('DOMContentLoaded', () => { 
