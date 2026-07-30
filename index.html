@@ -1260,6 +1260,7 @@ function processAllData() {
   const allTimes = new Set();
   normCalera.forEach(r => allTimes.add(Math.round(r.elapsed)));
   normCore.forEach(r => allTimes.add(Math.round(r.elapsed)));
+  normEnv.forEach(r => allTimes.add(Math.round(r.elapsed)));
   const master = Array.from(allTimes).sort((a, b) => a - b);
 
   const calMap = new Map(); normCalera.forEach(r => calMap.set(Math.round(r.elapsed), r));
@@ -1278,9 +1279,21 @@ function processAllData() {
 
     let cal = calMap.get(t);
     let cor = coreMap.get(t);
+    let env = envMap.get(t);
+
     const calCore = cal ? parseFloat(cal.raw[settings.mapCalera.core]) : null;
     const calQuality = cal ? cal.raw[settings.mapCalera.quality] : null;
     const corCore = cor ? parseFloat(cor.raw[settings.mapCore.core]) : null;
+
+    // Pull Skin Temp: Prioritize CALERA (temp_a0 converted from milli-Celsius if needed), fallback to Core 2
+    let skinVal = null;
+    if (cal && cal.raw[settings.mapCalera.skin] != null) {
+      const rawSkin = parseFloat(cal.raw[settings.mapCalera.skin]);
+      skinVal = rawSkin > 100 ? rawSkin / 1000 : rawSkin;
+    } else if (cor && settings.mapCore.skin && cor.raw[settings.mapCore.skin] != null) {
+      skinVal = parseFloat(cor.raw[settings.mapCore.skin]);
+    }
+    row.skinTemp = skinVal;
 
     let unified = null, source = 'None';
     if (calCore != null && isValidQuality(calQuality, settings.sensors.validQuality)) { unified = calCore; source = 'CALERA'; }
@@ -1292,6 +1305,11 @@ function processAllData() {
     row.core2Core = corCore;
     row.coreDelta = (calCore != null && corCore != null) ? (calCore - corCore) : null;
     row.hr = cor ? parseFloat(cor.raw[settings.mapCore.hr]) : null;
+
+    // Environmental mappings (matches Kestrel/environmental logger formats)
+    row.ambient = env ? parseFloat(env.raw[settings.mapEnv.ambient]) : null;
+    row.rh = env ? parseFloat(env.raw[settings.mapEnv.rh]) : null;
+    row.wbgt = env && settings.mapEnv.wbgt ? parseFloat(env.raw[settings.mapEnv.wbgt]) : null;
 
     let fl = flowMap.get(t);
     let sweatRateVal = fl ? parseFloat(fl.raw['sweat_rate']) : null;
@@ -1359,6 +1377,18 @@ function calculateMetrics() {
   m.sweatRateAvg = sweatRates.length > 0 ? sweatRates.reduce((a, b) => a + b, 0) / sweatRates.length : null;
   m.sweatRateMax = sweatRates.length > 0 ? Math.max(...sweatRates) : null;
   m.sweatTotalSensor = p.length > 0 ? p[p.length - 1].cumulativeSweat : null;
+
+  // Environmental & Skin Temperature Averages Calculation
+  const ambVals = p.filter(r => r.ambient != null && !isNaN(r.ambient)).map(r => r.ambient);
+  const rhVals = p.filter(r => r.rh != null && !isNaN(r.rh)).map(r => r.rh);
+  const wbgtVals = p.filter(r => r.wbgt != null && !isNaN(r.wbgt)).map(r => r.wbgt);
+  const skinVals = p.filter(r => r.skinTemp != null && !isNaN(r.skinTemp)).map(r => r.skinTemp);
+
+  m.envAmbientAvg = ambVals.length > 0 ? ambVals.reduce((a, b) => a + b, 0) / ambVals.length : null;
+  m.envRhAvg = rhVals.length > 0 ? rhVals.reduce((a, b) => a + b, 0) / rhVals.length : null;
+  m.envWbgtAvg = wbgtVals.length > 0 ? wbgtVals.reduce((a, b) => a + b, 0) / wbgtVals.length : null;
+  m.skinAvg = skinVals.length > 0 ? skinVals.reduce((a, b) => a + b, 0) / skinVals.length : null;
+
   AppState.metrics = m;
 }
 
@@ -1374,6 +1404,12 @@ function renderAthleteSummary() {
   document.getElementById('sum-rate').textContent = fmtNum(m.rateRise, 3);
   document.getElementById('sum-timetomax').textContent = fmtNum(m.timeToMax, 1);
   document.getElementById('sum-cutoff').textContent = m.cutoffReached;
+
+  // Bind Environmental Averages to Dashboard Tiles
+  document.getElementById('sum-env-ambient').textContent = m.envAmbientAvg != null ? fmtNum(m.envAmbientAvg, 1) : '—';
+  document.getElementById('sum-env-rh').textContent = m.envRhAvg != null ? fmtNum(m.envRhAvg, 1) : '—';
+  document.getElementById('sum-env-wbgt').textContent = m.envWbgtAvg != null ? fmtNum(m.envWbgtAvg, 1) : '—';
+  document.getElementById('sum-env-skin').textContent = m.skinAvg != null ? fmtNum(m.skinAvg, 1) : '—';
 
   const dur = AppState.processed.length > 0 ? AppState.processed[AppState.processed.length - 1].elapsedSec : 0;
   document.getElementById('sum-duration').textContent = fmtTime(dur);
@@ -1399,78 +1435,6 @@ function renderAthleteSummary() {
   document.getElementById('sw-max').textContent = sweatMaxText;
   document.getElementById('sw-total').textContent = sweatTotalText;
 }
-
-function renderProcessedTable(page) {
-  const tbody = document.getElementById('processed-tbody');
-  const countEl = document.getElementById('proc-count');
-  if (!tbody) return;
-
-  const dataset = AppState.viewMode === 'whole' ? AppState.processed : AppState.minuteAverages;
-  const searchInput = document.getElementById('proc-search');
-  const query = searchInput ? searchInput.value.toLowerCase() : '';
-
-  const filtered = dataset.filter(r => {
-    if (!query) return true;
-    return String(r.elapsedSec || r.minute || '').toLowerCase().includes(query) ||
-           String(r.hhmmss || '').toLowerCase().includes(query) ||
-           String(r.zone || '').toLowerCase().includes(query);
-  });
-
-  if (countEl) countEl.textContent = filtered.length + ' rows';
-
-  const rows = filtered.slice(0, 200);
-  if (rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="15" class="text-center text-slate-400 py-4">No data available.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = rows.map(r => {
-    if (AppState.viewMode === 'whole') {
-      return `<tr>
-        <td>${r.elapsedSec}</td><td>${r.hhmmss}</td><td>${r.intervalSec}</td><td>${fmtNum(r.unifiedCore, 2)}</td>
-        <td><span class="badge ${r.coreSource === 'CALERA' ? 'badge-green' : 'badge-yellow'}">${r.coreSource}</span></td>
-        <td>${fmtNum(r.caleraCore, 2)}</td><td>${fmtNum(r.core2Core, 2)}</td><td>${fmtNum(r.coreDelta, 2)}</td><td>${r.hr ?? '—'}</td>
-        <td>—</td><td>${fmtNum(r.sweatRate, 2)}</td><td>—</td><td>—</td><td>${r.zone}</td><td>No</td>
-      </tr>`;
-    } else {
-      return `<tr>
-        <td>Min ${r.minute}</td><td>${r.hhmmss}</td><td>${r.count} samples</td><td>${fmtNum(r.unifiedCore, 2)}</td>
-        <td><span class="badge badge-green">Average</span></td>
-        <td>—</td><td>—</td><td>—</td><td>${r.hr ?? '—'}</td>
-        <td>—</td><td>${fmtNum(r.sweatRate, 2)}</td><td>—</td><td>—</td><td>${r.zone}</td><td>—</td>
-      </tr>`;
-    }
-  }).join('');
-}
-
-function renderChart() {
-  const drawChart = (canvasId, instanceHolder) => {
-    const ctx = document.getElementById(canvasId);
-    if (!ctx) return instanceHolder;
-    const p = AppState.processed;
-    if (!p || p.length === 0) return instanceHolder;
-    const dict = translations[AppState.currentLang] || translations['en'];
-    const labels = p.map(r => r.hhmmss);
-    const coreData = p.map(r => r.unifiedCore);
-    const hrData = p.map(r => r.hr);
-    const sweatData = p.map(r => r.cumulativeSweat);
-
-    if (instanceHolder) instanceHolder.destroy();
-
-    const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
-    gradient.addColorStop(0, 'rgba(220,38,38,0.25)');
-    gradient.addColorStop(1, 'rgba(220,38,38,0)');
-    const cutoffValue = settings.zones.cutoff;
-
-    return new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [
-          { label: dict.chart_core_label || 'Core Temp (°C)', data: coreData, borderColor: '#dc2626', backgroundColor: gradient, fill: true, borderWidth: 2.25, pointRadius: 0, pointHoverRadius: 5, tension: 0.25, yAxisID: 'y' },
-          { label: dict.chart_hr_label || 'Heart Rate (bpm)', data: hrData, borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 4, tension: 0.25, yAxisID: 'y1' },
-          { label: dict.chart_sweat_label || 'Cumulative Sweat Loss (L)', data: sweatData, borderColor: '#0d9488', borderWidth: 2, borderDash: [4, 3], pointRadius: 0, pointHoverRadius: 4, tension: 0.15, yAxisID: 'y2' }
-        ]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
@@ -1782,15 +1746,62 @@ function renderArchiveTable() {
   if (!tbody) return;
   const dict = translations[AppState.currentLang] || translations['en'];
   const archive = JSON.parse(localStorage.getItem('heatReportArchive') || '[]');
+  
   if (archive.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" class="text-center text-slate-400 py-4">${dict.msg_no_archive}</td></tr>`;
     return;
   }
+  
   tbody.innerHTML = archive.map((rec, idx) => `<tr>
-    <td>${rec.dateSaved}</td><td>${rec.athlete}</td><td>${rec.activity}</td><td>${rec.duration}</td>
+    <td>${rec.dateSaved}</td>
+    <td>${rec.athlete}</td>
+    <td>${rec.activity}</td>
+    <td>${rec.duration}</td>
     <td class="font-semibold">${rec.maxTemp.toFixed(2)} °C</td>
-    <td><button type="button" onclick="deleteArchivedReport(${idx})" class="px-2 py-1 bg-red-50 text-red-600 rounded text-xs cursor-pointer"><i class="fa-solid fa-trash"></i></button></td>
+    <td class="space-x-1">
+      <button type="button" onclick="loadArchivedSession(${rec.id})" class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs cursor-pointer" title="Load into Dashboard"><i class="fa-solid fa-folder-open"></i> Load</button>
+      <button type="button" onclick="reexportArchivedPDF(${rec.id})" class="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs cursor-pointer" title="Re-create PDF"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+      <button type="button" onclick="deleteArchivedReport(${idx})" class="px-2 py-1 bg-red-50 text-red-600 rounded text-xs cursor-pointer" title="Delete"><i class="fa-solid fa-trash"></i></button>
+    </td>
   </tr>`).join('');
+}
+
+function loadArchivedSession(id) {
+  const archive = JSON.parse(localStorage.getItem('heatReportArchive') || '[]');
+  const record = archive.find(r => r.id === id);
+  if (!record || !record.snapshot) return;
+
+  AppState.processed = record.snapshot.processed || [];
+  AppState.minuteAverages = record.snapshot.minuteAverages || [];
+  AppState.metrics = record.snapshot.metrics || {};
+  AppState.events = record.snapshot.events || [];
+
+  const inp = record.snapshot.inputs || {};
+  if(document.getElementById('inp-athlete')) document.getElementById('inp-athlete').value = inp.athlete || '';
+  if(document.getElementById('inp-activity')) document.getElementById('inp-activity').value = inp.activity || '';
+  if(document.getElementById('inp-date')) document.getElementById('inp-date').value = inp.date || '';
+  if(document.getElementById('inp-time')) document.getElementById('inp-time').value = inp.time || '';
+  if(document.getElementById('inp-env')) document.getElementById('inp-env').value = inp.env || '';
+  if(document.getElementById('sw-pre')) document.getElementById('sw-pre').value = inp.pre || '';
+  if(document.getElementById('sw-post')) document.getElementById('sw-post').value = inp.post || '';
+  if(document.getElementById('sw-fluid')) document.getElementById('sw-fluid').value = inp.fluid || '';
+  if(document.getElementById('sw-urine')) document.getElementById('sw-urine').value = inp.urine || '';
+  if(document.getElementById('sw-sodium-conc')) document.getElementById('sw-sodium-conc').value = inp.sodiumConc || '50';
+
+  renderAthleteSummary();
+  renderProcessedTable(1);
+  renderEventsTable();
+  calculateSweatMetrics();
+  showTab('summary');
+
+  alert(`Loaded archive for ${record.athlete} (${record.activity}) successfully.`);
+}
+
+function reexportArchivedPDF(id) {
+  loadArchivedSession(id);
+  setTimeout(() => {
+    exportPDF();
+  }, 400);
 }
 
 function deleteArchivedReport(idx) {
@@ -1827,6 +1838,33 @@ function calculateSweatMetrics() {
   } else {
     document.getElementById('sw-mass').textContent = '—';
     document.getElementById('sum-sweat-mass-sum').textContent = '—';
+  }
+
+  // 2. Check if FLOWBIO sensor data is present
+  const hasFlowbio = AppState.metrics && AppState.metrics.sweatTotalSensor != null && AppState.metrics.sweatTotalSensor > 0;
+  
+  let sodiumLossMg = 0;
+  let sodiumLossMmol = 0;
+  let calculated = false;
+
+  // 3. Apply Sodium Logic (FLOWBIO vs Default 800mg/L rule)
+  if (hasFlowbio) {
+    sodiumLossMmol = AppState.metrics.sweatTotalSensor * sodiumConc;
+    sodiumLossMg = sodiumLossMmol * 22.99;
+    calculated = true;
+  } else if (hasMassData) {
+    sodiumLossMg = lossMassLiters * 800;
+    sodiumLossMmol = sodiumLossMg / 22.99;
+    calculated = true;
+  }
+
+  // 4. Update the Dashboard & PDF Elements
+  if (calculated) {
+    document.getElementById('sw-sodium-total').textContent = fmtNum(sodiumLossMg, 0) + ' mg (' + fmtNum(sodiumLossMmol, 0) + ' mmol)';
+    document.getElementById('sum-sodium').textContent = fmtNum(sodiumLossMg, 0) + ' mg';
+  } else {
+    document.getElementById('sw-sodium-total').textContent = '—';
+    document.getElementById('sum-sodium').textContent = '—';
   }
 
   // 2. Check if FLOWBIO sensor data is present
