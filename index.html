@@ -1925,7 +1925,7 @@ async function exportPDF() {
 
     const maxCore = Math.max(...scatterDataForPdf.map(p => p.x));
 
-    tempPdfScatterChart = new Chart(pdfScatterCanvasCtx, {
+   tempPdfScatterChart = new Chart(pdfScatterCanvasCtx, {
         type: 'scatter',
         data: {
             datasets: [{
@@ -1941,7 +1941,7 @@ async function exportPDF() {
             animation: false,
             devicePixelRatio: scaleFactor,
             layout: {
-                padding: { left: 5, right: 5, top: 5, bottom: 5 }
+                padding: { left: 10, right: 25, top: 20, bottom: 10 }
             },
             plugins: {
                 legend: { display: false }
@@ -1950,11 +1950,12 @@ async function exportPDF() {
                 x: {
                     type: 'linear',
                     position: 'bottom',
-                    min: 35,
-                    max: Math.ceil((maxCore + 0.6) * 10) / 10,
+                    suggestedMin: 35,
+                    grace: '5%',
                     title: { display: true, text: 'Core Temperature (°C)' }
                 },
                 y: {
+                    grace: '10%',
                     title: { display: true, text: 'Heart Rate (bpm)' }
                 }
             }
