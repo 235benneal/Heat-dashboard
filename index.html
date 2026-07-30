@@ -2689,7 +2689,7 @@ async function exportPDF() {
 
   // Force draw a dedicated chart instance directly onto the PDF canvas element
   let tempPdfChart = null;
-  const pdfCanvasCtx = document.getElementById('pdfChartCoreHR'); // Ensure this matches your PDF canvas ID
+  const pdfCanvasCtx = document.getElementById('pdfChartCoreHR');
   if (pdfCanvasCtx && AppState.processed.length > 0) {
     const labels = AppState.processed.map(r => r.elapsedMin.toFixed(1));
     const coreData = AppState.processed.map(r => r.unifiedCore);
@@ -2709,12 +2709,27 @@ async function exportPDF() {
       },
       options: {
         responsive: false,
-        animation: false, // Disables animation so it draws instantly
+        animation: false,
         scales: {
           x: { display: true, ticks: { maxTicksLimit: 8 } },
-          y: { type: 'linear', position: 'left' },
-          y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false } },
-          y2: { type: 'linear', position: 'right', offset: true, grid: { drawOnChartArea: false } }
+          y: { 
+            type: 'linear', 
+            position: 'left', 
+            title: { display: true, text: 'Core Temperature (°C)' } 
+          },
+          y1: { 
+            type: 'linear', 
+            position: 'right', 
+            title: { display: true, text: 'Heart Rate (bpm)' }, 
+            grid: { drawOnChartArea: false } 
+          },
+          y2: { 
+            type: 'linear', 
+            position: 'right', 
+            offset: true, 
+            title: { display: true, text: 'Sweat Loss (L)' }, 
+            grid: { drawOnChartArea: false } 
+          }
         }
       }
     });
