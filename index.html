@@ -2688,7 +2688,6 @@ async function exportPDF() {
   reportTemplate.style.background = '#ffffff';
 
   // Force draw a dedicated chart instance directly onto the PDF canvas element
-// Force draw a dedicated chart instance directly onto the PDF canvas element
   let tempPdfChart = null;
   const pdfCanvasCtx = document.getElementById('pdfChartCoreHR');
   if (pdfCanvasCtx && AppState.processed.length > 0) {
@@ -2701,7 +2700,7 @@ async function exportPDF() {
     // HIGH-RES FIX: Multiply physical canvas resolution by 2 to match html2canvas scale
     const scaleFactor = 2;
     const computedWidth = pdfCanvasCtx.parentElement ? pdfCanvasCtx.parentElement.clientWidth : 750;
-    const computedHeight = 200; // Match your container's designed height
+    const computedHeight = 180; // Match your container's designed height
     
     pdfCanvasCtx.width = computedWidth * scaleFactor;
     pdfCanvasCtx.height = computedHeight * scaleFactor;
