@@ -2652,7 +2652,7 @@ async function exportPDF() {
   
   const reportTemplate = document.getElementById('pdf-report-template');
   
-  // Populate fields...
+  // Populate text fields...
   document.getElementById('pdf-rep-date').textContent = new Date().toLocaleDateString();
   document.getElementById('pdf-meta-athlete').textContent = document.getElementById('inp-athlete').value || 'Athlete';
   document.getElementById('pdf-meta-sport').textContent = document.getElementById('inp-activity').value || 'Trial';
@@ -2676,9 +2676,9 @@ async function exportPDF() {
   document.getElementById('pdf-sw-total').textContent = document.getElementById('sum-sweat-total').textContent || '—';
   document.getElementById('pdf-sw-sodium').textContent = document.getElementById('sw-sodium-total').textContent || '—';
 
-  updateZoneLabelsDisplay();
+  if (typeof updateZoneLabelsDisplay === 'function') updateZoneLabelsDisplay();
 
-  // FIX: Force clean block rendering centered without shifting off-screen
+  // Reveal the template so canvas elements get real physical dimensions
   reportTemplate.classList.remove('hidden');
   reportTemplate.style.display = 'block';
   reportTemplate.style.position = 'relative';
@@ -2687,22 +2687,37 @@ async function exportPDF() {
   reportTemplate.style.width = '784px';
   reportTemplate.style.background = '#ffffff';
 
-  // 1. Capture the interactive chart canvas as a static image string
-  const chartCanvas = document.getElementById('pdfChartCoreHR'); // Make sure this matches your chart canvas ID
-  let chartImageTag = null;
-  
-  if (chartCanvas && typeof chartCanvas.toDataURL === 'function') {
-    const dataURL = chartCanvas.toDataURL('image/png');
-    // Find the canvas parent or container inside the template and swap it with an image
-    const chartContainer = reportTemplate.querySelector('#pdf-chart-container-id'); // Replace with your container's actual ID or query selector
-    if (chartContainer) {
-      chartImageTag = document.createElement('img');
-      chartImageTag.src = dataURL;
-      chartImageTag.style.width = '100%';
-      chartImageTag.style.height = 'auto';
-      chartCanvas.style.display = 'none'; // Hide real canvas
-      chartContainer.appendChild(chartImageTag); // Append image representation
-    }
+  // Force draw a dedicated chart instance directly onto the PDF canvas element
+  let tempPdfChart = null;
+  const pdfCanvasCtx = document.getElementById('pdfChartCoreHR'); // Ensure this matches your PDF canvas ID
+  if (pdfCanvasCtx && AppState.processed.length > 0) {
+    const labels = AppState.processed.map(r => r.elapsedMin.toFixed(1));
+    const coreData = AppState.processed.map(r => r.unifiedCore);
+    const hrData = AppState.processed.map(r => r.hr);
+    const sweatData = AppState.processed.map(r => r.cumulativeSweatLiters || 0);
+    const cutoffValue = parseFloat(document.getElementById('inp-cutoff')?.value) || 39.5;
+
+    tempPdfChart = new Chart(pdfCanvasCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'Core Temp (°C)', data: coreData, borderColor: '#dc2626', borderWidth: 2, pointRadius: 0, yAxisID: 'y' },
+          { label: 'Heart Rate (bpm)', data: hrData, borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 0, yAxisID: 'y1' },
+          { label: 'Sweat Loss (L)', data: sweatData, borderColor: '#0d9488', borderWidth: 1.5, borderDash: [4, 3], pointRadius: 0, yAxisID: 'y2' }
+        ]
+      },
+      options: {
+        responsive: false,
+        animation: false, // Disables animation so it draws instantly
+        scales: {
+          x: { display: true, ticks: { maxTicksLimit: 8 } },
+          y: { type: 'linear', position: 'left' },
+          y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false } },
+          y2: { type: 'linear', position: 'right', offset: true, grid: { drawOnChartArea: false } }
+        }
+      }
+    });
   }
 
   setTimeout(async () => {
@@ -2727,20 +2742,17 @@ async function exportPDF() {
         console.error("PDF Export Error:", err);
         window.print();
       } finally {
-        // Cleanup: remove temporary image and restore canvas visibility
-        if (chartImageTag) chartImageTag.remove();
-        if (chartCanvas) chartCanvas.style.display = '';
+        if (tempPdfChart) tempPdfChart.destroy(); // Clean up temporary chart instance
         reportTemplate.removeAttribute('style');
         reportTemplate.classList.add('hidden');
       }
     } else {
       window.print();
-      if (chartImageTag) chartImageTag.remove();
-      if (chartCanvas) chartCanvas.style.display = '';
+      if (tempPdfChart) tempPdfChart.destroy();
       reportTemplate.removeAttribute('style');
       reportTemplate.classList.add('hidden');
     }
-  }, 400);
+  }, 500);
 }
 
 window.addEventListener('DOMContentLoaded', () => { 
