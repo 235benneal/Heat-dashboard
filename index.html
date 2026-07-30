@@ -663,7 +663,6 @@ table.data-table tr:hover td { background: var(--paper-alt); }
   <div class="mb-4">
     <div class="text-xs font-bold text-slate-700 uppercase mb-1.5 flex justify-between">
       <span>Core Temperature vs. Heart Rate Correlation</span>
-      <span class="text-[10px] text-slate-400">Tcore (°C) vs HR (bpm)</span>
     </div>
     <div class="relative w-full h-[170px] border border-slate-200 rounded-lg bg-white p-2">
       <canvas id="pdfChartCoreVsHr" style="width: 100%; height: 100%;"></canvas>
@@ -1778,7 +1777,7 @@ function calculateSweatMetrics() {
   const urine = parseFloat(document.getElementById('sw-urine')?.value) || 0;
   const sodiumConc = parseFloat(document.getElementById('sw-sodium-conc')?.value) || 50;
 
-  if (pre > 0 && post > 0) {
+if (pre > 0 && post > 0) {
     const lossMassKg = (pre - post) + fluid - urine;
     const lossMassLiters = Math.max(0, lossMassKg);
     const sodiumLossMmol = lossMassLiters * sodiumConc;
@@ -1908,8 +1907,7 @@ async function exportPDF() {
             type: 'linear', 
             position: 'bottom', 
             min: 35.0,
-            max: 38.8,
-            grace: '5%',
+            max: 39.5, 
             title: { display: true, text: 'Core Temperature (°C)' } 
           },
           y: { title: { display: true, text: 'Heart Rate (bpm)' } }
