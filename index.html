@@ -2079,12 +2079,13 @@ function computeMinuteAverages() {
 }
 
 function saveSettings() {
-  settings.zones.z1Max = parseFloat(document.getElementById('set-z1max').value) || 38;
-  settings.zones.z2Min = parseFloat(document.getElementById('set-z2min').value) || 38;
-  settings.zones.z2Max = parseFloat(document.getElementById('set-z2max').value) || 38.9;
-  settings.zones.z3Min = parseFloat(document.getElementById('set-z3min').value) || 39;
-  settings.zones.z3Max = parseFloat(document.getElementById('set-z3max').value) || 39.6;
-  settings.zones.cutoff = parseFloat(document.getElementById('set-cutoff').value) || 39.7;
+  settings.zones.z1Max = parseFloat(document.getElementById('set-z1max').value) || 37.5;
+  settings.zones.z2Min = parseFloat(document.getElementById('set-z2min').value) || 37.6;
+  settings.zones.z2Max = parseFloat(document.getElementById('set-z2max').value) || 38.4;
+  settings.zones.z3Min = parseFloat(document.getElementById('set-z3min').value) || 38.5;
+  settings.zones.z3Max = parseFloat(document.getElementById('set-z3max').value) || 39.2;
+  settings.zones.z4Min = parseFloat(document.getElementById('set-z4min').value) || 39.3;
+  settings.zones.cutoff = parseFloat(document.getElementById('set-cutoff').value) || 39.2;
   
   settings.sensors.primary = document.getElementById('set-primary').value;
   settings.sensors.fallback = document.getElementById('set-fallback').checked;
@@ -2110,7 +2111,7 @@ function saveSettings() {
   localStorage.setItem('heatSettings', JSON.stringify(settings));
   updateZoneLabelsDisplay();
 
-  if (AppState.processed.length > 0) {
+  if (AppState.processed && AppState.processed.length > 0) {
     AppState.processed.forEach(r => { r.zone = classifyZone(r.unifiedCore, settings.zones); });
     computeMinuteAverages();
     calculateMetrics();
