@@ -418,9 +418,21 @@ table.data-table tr:hover td { background: var(--paper-alt); }
       </div>
     </div>
 
-    <!-- Core Temp vs HR Chart -->
+    <!-- Core Temp vs HR Chart with Tooltip Added -->
     <div class="card p-4">
-      <h3 class="font-semibold text-slate-700 text-sm mb-2">Core Temperature vs. Heart Rate Correlation</h3>
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-semibold text-slate-700 text-sm">Core Temperature vs. Heart Rate Correlation</h3>
+        <div class="relative tooltip-trigger right-aligned cursor-help no-print" ontouchstart="toggleTooltip(event, this)">
+          <i class="fa-regular fa-circle-question text-slate-400 text-xs"></i>
+          <div class="sci-tooltip">
+            <strong>How to read this chart:</strong><br>
+            • <strong>X-Axis:</strong> Internal core body temperature (°C).<br>
+            • <strong>Y-Axis:</strong> Heart rate (bpm) measuring cardiovascular effort.<br>
+            • <strong>Upward Trend:</strong> Shows how heart rate increases alongside thermal strain.<br>
+            • <strong>Clustering:</strong> Dense clouds indicate your steady-state working zones.
+          </div>
+        </div>
+      </div>
       <div class="relative w-full h-[420px]">
         <canvas id="chartCoreVsHr"></canvas>
       </div>
