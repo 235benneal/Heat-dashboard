@@ -2651,21 +2651,20 @@ function processDataArray(type, aoa) {
 
   if (headerIdx === -1) headerIdx = 0;
 
-  // Keep exact original headers to preserve setting mappings (e.g., '058 [°C]')
   const headers = (aoa[headerIdx] || []).map(h => h != null ? String(h).trim() : '');
 
   const data = [];
 
-  // 2. Loop through data rows safely
-  for (let i = headerIdx + 1; i < aoa.length; i++) {
+  // 2. Loop through data rows starting AFTER the first data row (headerIdx + 2 instead of headerIdx + 1)
+  const startRow = (type === 'env') ? headerIdx + 2 : headerIdx + 1; // <--- Misses out the first row for env data
+
+  for (let i = startRow; i < aoa.length; i++) {
     const row = aoa[i];
-    
-    // Ignore empty lines
     if (!row || row.length === 0) continue;
     
     const firstCell = String(row[0] || '').trim().toLowerCase();
     
-    // STOP RULE: Stop parsing when encountering Testo summary lines or metadata blocks
+    // Stop reading when reaching Testo metadata or summary blocks
     if (
       firstCell.includes('overall average') || 
       firstCell.includes('minimum total') || 
@@ -2676,7 +2675,6 @@ function processDataArray(type, aoa) {
       break; 
     }
 
-    // Skip blank or non-data lines
     const hasData = row.some(val => val != null && String(val).trim() !== '');
     if (!hasData) continue;
 
@@ -2685,13 +2683,13 @@ function processDataArray(type, aoa) {
       if (h) obj[h] = row[idx];
     });
 
-    // 3. Range check (-10°C to 45°C limit) to reject serial numbers
+    // Range check (-10°C to 45°C) to discard non-temperature numbers
     if (type === 'env') {
       const ambKey = Object.keys(obj).find(k => k.toLowerCase().includes('°c') || k.toLowerCase().includes('temp'));
       if (ambKey && obj[ambKey] != null) {
         const tempVal = parseFloat(obj[ambKey]);
         if (!isNaN(tempVal) && (tempVal > 45 || tempVal < -10)) {
-          continue; // Ignore non-temperature rows like serial numbers
+          continue;
         }
       }
     }
