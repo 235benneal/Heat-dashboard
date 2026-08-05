@@ -2047,6 +2047,8 @@ function classifyZone(core, z) {
 }
 
 // 2. ADD syncEventsAndBreaks RIGHT HERE
+// === START COMPLETE SCRIPT BLOCK ===
+
 // Helper parser: Converts MM:SS, HH:MM:SS, or raw seconds strings into elapsed seconds
 function parseMMSS(val) {
   if (val == null || val === '') return null;
@@ -2187,6 +2189,9 @@ function syncEventsAndBreaks() {
   if (elTotal) elTotal.textContent = typeof fmtTime === 'function' ? fmtTime(totalBreakSec) : `${Math.round(totalBreakSec)}s`;
   if (elLargest) elLargest.textContent = largestDecline < 0 ? `${largestDecline.toFixed(2)} °C` : '0.00 °C';
 
+  // Refresh Minute Averages to include isBreak tags
+  if (typeof calculateMinuteAverages === 'function') calculateMinuteAverages();
+
   // Re-render Processed Master Table to show updated "Break?" status
   if (typeof renderProcessedTable === 'function') renderProcessedTable(1);
 }
@@ -2211,8 +2216,75 @@ function setViewMode(mode) {
   renderProcessedTable(1);
 }
 
-// 4. Render Master Timeline Table (Defaults to Minute Averages)
-// Render Master Timeline Table (Handles both Raw Sec & Minute Averages correctly)
+// 4. Minute Aggregator: Populates AppState.minuteAverages with real sensor math
+function calculateMinuteAverages() {
+  const p = AppState.processed;
+  if (!p || p.length === 0) {
+    AppState.minuteAverages = [];
+    return;
+  }
+
+  const minuteGroups = {};
+
+  p.forEach(row => {
+    const min = Math.floor(row.elapsedSec / 60);
+    if (!minuteGroups[min]) {
+      minuteGroups[min] = [];
+    }
+    minuteGroups[min].push(row);
+  });
+
+  AppState.minuteAverages = Object.keys(minuteGroups).map(minKey => {
+    const rows = minuteGroups[minKey];
+    const minNum = parseInt(minKey, 10);
+    const count = rows.length;
+
+    const avgField = (key) => {
+      const valid = rows.map(r => r[key]).filter(v => v != null && !isNaN(v));
+      if (valid.length === 0) return null;
+      return valid.reduce((a, b) => a + b, 0) / valid.length;
+    };
+
+    const sourceCounts = {};
+    rows.forEach(r => {
+      if (r.coreSource) {
+        sourceCounts[r.coreSource] = (sourceCounts[r.coreSource] || 0) + 1;
+      }
+    });
+    let topSource = 'CALERA';
+    let maxCount = 0;
+    for (let src in sourceCounts) {
+      if (sourceCounts[src] > maxCount) {
+        maxCount = sourceCounts[src];
+        topSource = src;
+      }
+    }
+
+    const firstRow = rows[0] || {};
+    const avgCore = avgField('unifiedCore');
+
+    return {
+      minute: minNum + 1,
+      elapsedSec: (minNum + 1) * 60,
+      hhmmss: firstRow.hhmmss || `${String(Math.floor(minNum / 60)).padStart(2, '0')}:${String(minNum % 60).padStart(2, '0')}:00`,
+      count: count,
+      unifiedCore: avgCore,
+      coreSource: topSource,
+      caleraCore: avgField('caleraCore'),
+      core2Core: avgField('core2Core'),
+      coreDelta: avgField('coreDelta'),
+      hr: avgField('hr'),
+      skinTemp: avgField('skinTemp'),
+      sweatRate: avgField('sweatRate'),
+      ambient: avgField('ambient'),
+      rh: avgField('rh'),
+      zone: typeof classifyZone === 'function' ? classifyZone(avgCore, (window.settings && window.settings.zones) || {}) : (firstRow.zone || '—'),
+      isBreak: rows.some(r => r.isBreak)
+    };
+  });
+}
+
+// 5. Render Master Timeline Table (Handles Raw Sec & Minute Averages correctly)
 function renderProcessedTable(page = 1) {
   const tbody = document.getElementById('processed-tbody');
   if (!tbody) return;
@@ -2289,7 +2361,7 @@ function renderProcessedTable(page = 1) {
   }).join('');
 }
 
-// 5. App State Initialization (Minute Averages as Default)
+// 6. App State Initialization (Minute Averages as Default)
 window.AppState = window.AppState || {
   currentLang: 'en',
   processed: [],
@@ -2298,16 +2370,14 @@ window.AppState = window.AppState || {
   viewMode: 'minute'
 };
 
-// 6. Navigation Tab Switcher
+// 7. Navigation Tab Switcher
 function showTab(name) {
   if (!name) return;
 
-  // 1. Hide all tab content containers
   document.querySelectorAll('.tab-content').forEach(el => {
     el.classList.add('hidden');
   });
 
-  // 2. Map tab target keys to DOM IDs
   let targetId = 'tab-' + name;
   if (name === 'summary' || name === 'dashboard') {
     targetId = 'tab-summary';
@@ -2319,7 +2389,6 @@ function showTab(name) {
     targetTab.classList.remove('hidden');
   }
 
-  // 3. Update nav buttons state
   document.querySelectorAll('.tab-btn').forEach(el => {
     el.classList.remove('active', 'bg-slate-900', 'text-white');
     el.classList.add('text-slate-600');
@@ -2332,7 +2401,6 @@ function showTab(name) {
     activeBtn.classList.remove('text-slate-600');
   }
 
-  // 4. Safely render dynamic tabs
   try {
     if (name === 'processed' || name === 'tab-processed') {
       if (typeof renderProcessedTable === 'function') renderProcessedTable(1);
@@ -2348,6 +2416,7 @@ function showTab(name) {
     console.error("Tab render warning:", err);
   }
 }
+
 
   
 function setViewMode(mode) {
