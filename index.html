@@ -2033,39 +2033,49 @@ function classifyZone(core, z) {
 }
 
 function showTab(name) {
-  // Hide all tab contents
-  document.querySelectorAll('.tab-content').forEach(el => {
+  if (!name) return;
+
+  // 1. Hide all tab content containers
+  document.querySelectorAll('.tab-content, [id^="tab-"]').forEach(el => {
     el.classList.add('hidden');
+    el.style.display = 'none'; // Double safeguard against styling overrides
   });
 
-  // Show the target tab content (FIXED: added remove('hidden'))
-  const targetTab = document.getElementById('tab-' + name);
+  // 2. Find target tab (checks both 'tab-dashboard' and 'dashboard')
+  const targetTab = document.getElementById('tab-' + name) || document.getElementById(name);
+
   if (targetTab) {
     targetTab.classList.remove('hidden');
+    targetTab.style.display = 'block'; // Ensure visibility
+  } else {
+    console.error(`Tab container for "${name}" not found in DOM.`);
+    return;
   }
 
-  // Update button active states safely
-  document.querySelectorAll('.tab-btn').forEach(el => {
-    el.classList.remove('active', 'bg-slate-900', 'text-white');
-    el.classList.add('text-slate-600');
+  // 3. Reset all tab button styles
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active', 'bg-slate-900', 'text-white');
+    btn.classList.add('text-slate-600');
   });
 
-  const activeBtn = document.querySelector(`.tab-btn[data-target="${name}"]`);
+  // 4. Highlight active button
+  const activeBtn = document.querySelector(`.tab-btn[data-target="${name}"]`) || 
+                    document.querySelector(`.tab-btn[onclick*="${name}"]`);
   if (activeBtn) {
     activeBtn.classList.add('active', 'bg-slate-900', 'text-white');
     activeBtn.classList.remove('text-slate-600');
   }
 
-  // Render specific tab charts or tables if needed
+  // 5. Safely re-render charts/tables if functions exist
   if (name === 'charts') {
-    renderChart();
-    renderCoreVsHrChart();
+    if (typeof renderChart === 'function') renderChart();
+    if (typeof renderCoreVsHrChart === 'function') renderCoreVsHrChart();
   }
-  if (name === 'archive') {
+  if (name === 'archive' && typeof renderArchiveTable === 'function') {
     renderArchiveTable();
   }
 }
-
+  
 function setViewMode(mode) {
   AppState.viewMode = mode;
   const btnWhole = document.getElementById('btn-view-whole');
