@@ -2069,11 +2069,35 @@ function parseMMSS(val) {
   return null;
 }
 
+// 1. Events Table Renderer (Uses text inputs for easy MM:SS entry)
+function renderEventsTable() {
+  const tbody = document.getElementById('events-tbody');
+  if (!tbody) return;
+  if (AppState.events.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-slate-400 py-3">No events added.</td></tr>`;
+  } else {
+    tbody.innerHTML = AppState.events.map((ev, idx) => `<tr>
+      <td><input type="text" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.start || ''}" placeholder="MM:SS (e.g. 21:22)" onchange="AppState.events[${idx}].start = this.value; syncEventsAndBreaks();"></td>
+      <td><input type="text" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.end || ''}" placeholder="MM:SS (e.g. 24:22)" onchange="AppState.events[${idx}].end = this.value; syncEventsAndBreaks();"></td>
+      <td><select class="border rounded px-1.5 py-0.5 text-xs w-full" onchange="AppState.events[${idx}].type = this.value; syncEventsAndBreaks();">
+        <option value="Break" ${ev.type === 'Break' ? 'selected' : ''}>Break</option>
+        <option value="Feeding" ${ev.type === 'Feeding' ? 'selected' : ''}>Feeding</option>
+        <option value="Intensity" ${ev.type === 'Intensity' ? 'selected' : ''}>Intensity</option>
+      </select></td>
+      <td><input type="text" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.desc || ''}" placeholder="Description" onchange="AppState.events[${idx}].desc = this.value; syncEventsAndBreaks();"></td>
+      <td class="no-print text-center"><button type="button" onclick="removeEventRow(${idx})" class="text-red-500 hover:text-red-700 cursor-pointer text-xs"><i class="fa-solid fa-trash"></i></button></td>
+    </tr>`).join('');
+  }
+
+  syncEventsAndBreaks();
+}
+
+// 2. Central Sync Engine: Processes Break Kinetics & syncs Dashboard + Processed Table
 function syncEventsAndBreaks() {
   const p = AppState.processed;
   if (!p || p.length === 0) return;
 
-  // 1. Flag individual dataset rows as "isBreak" based on elapsed MM:SS
+  // Flag individual rows as "isBreak" based on configured event times
   p.forEach(row => {
     row.isBreak = false;
     row.eventType = '';
@@ -2081,11 +2105,17 @@ function syncEventsAndBreaks() {
     if (AppState.events && AppState.events.length > 0) {
       AppState.events.forEach(ev => {
         if (!ev.start || !ev.end) return;
-        const startSec = parseMMSS(ev.start);
-        const endSec = parseMMSS(ev.end);
+        let startSec = parseMMSS(ev.start);
+        let endSec = parseMMSS(ev.end);
         if (startSec == null || endSec == null) return;
 
-        // Match against row.elapsedSec
+        // Auto-correct if endSec was entered smaller than startSec
+        if (endSec < startSec) {
+          const temp = startSec;
+          startSec = endSec;
+          endSec = temp;
+        }
+
         if (row.elapsedSec >= startSec && row.elapsedSec <= endSec) {
           if (ev.type === 'Break') row.isBreak = true;
           row.eventType = ev.type;
@@ -2094,19 +2124,25 @@ function syncEventsAndBreaks() {
     }
   });
 
-  // 2. Calculate Break Kinetics
+  // Calculate Break Kinetics
   const breakEvents = AppState.events.filter(e => e.type === 'Break' && e.start && e.end);
   let totalBreakSec = 0;
   let largestDecline = 0;
   const breakTableRows = [];
 
   breakEvents.forEach((ev, idx) => {
-    const startSec = parseMMSS(ev.start);
-    const endSec = parseMMSS(ev.end);
+    let startSec = parseMMSS(ev.start);
+    let endSec = parseMMSS(ev.end);
 
     if (startSec == null || endSec == null) return;
 
-    const durationSec = Math.max(0, endSec - startSec);
+    if (endSec < startSec) {
+      const temp = startSec;
+      startSec = endSec;
+      endSec = temp;
+    }
+
+    const durationSec = endSec - startSec;
     const durationMin = durationSec / 60;
     totalBreakSec += durationSec;
 
@@ -2134,7 +2170,7 @@ function syncEventsAndBreaks() {
     </tr>`);
   });
 
-  // 3. Render Break Analysis Table
+  // Update Break Analysis Table in Events Tab
   const breaksTbody = document.getElementById('breaks-tbody');
   if (breaksTbody) {
     breaksTbody.innerHTML = breakTableRows.length > 0 
@@ -2142,7 +2178,7 @@ function syncEventsAndBreaks() {
       : `<tr><td colspan="6" class="text-center text-slate-400 py-3">No breaks recorded.</td></tr>`;
   }
 
-  // 4. Update Dashboard HR Card
+  // Update Dashboard HR Card
   const elCount = document.getElementById('sum-breaks-count');
   const elTotal = document.getElementById('sum-breaks-total');
   const elLargest = document.getElementById('sum-breaks-largest');
@@ -2151,16 +2187,97 @@ function syncEventsAndBreaks() {
   if (elTotal) elTotal.textContent = typeof fmtTime === 'function' ? fmtTime(totalBreakSec) : `${Math.round(totalBreakSec)}s`;
   if (elLargest) elLargest.textContent = largestDecline < 0 ? `${largestDecline.toFixed(2)} °C` : '0.00 °C';
 
-  // 5. Refresh Processed Table view
+  // Re-render Processed Master Table to show updated "Break?" status
   if (typeof renderProcessedTable === 'function') renderProcessedTable(1);
 }
 
-// 3. YOUR EXISTING CODE CONTINUES HERE
+// 3. Toggle View Mode ('minute' vs 'whole')
+function setViewMode(mode) {
+  AppState.viewMode = mode;
+  
+  const btnWhole = document.getElementById('btn-view-whole');
+  const btnMinute = document.getElementById('btn-view-minute');
+  
+  if (btnWhole && btnMinute) {
+    if (mode === 'minute') {
+      btnMinute.className = "px-3 py-1 rounded text-xs font-medium bg-white shadow-sm text-slate-900 cursor-pointer";
+      btnWhole.className = "px-3 py-1 rounded text-xs font-medium text-slate-600 hover:text-slate-900 cursor-pointer";
+    } else {
+      btnWhole.className = "px-3 py-1 rounded text-xs font-medium bg-white shadow-sm text-slate-900 cursor-pointer";
+      btnMinute.className = "px-3 py-1 rounded text-xs font-medium text-slate-600 hover:text-slate-900 cursor-pointer";
+    }
+  }
+  
+  renderProcessedTable(1);
+}
+
+// 4. Render Master Timeline Table (Defaults to Minute Averages)
+function renderProcessedTable(page = 1) {
+  const tbody = document.getElementById('processed-tbody');
+  if (!tbody) return;
+
+  const isMinute = (AppState.viewMode || 'minute') === 'minute';
+  const data = isMinute ? AppState.minuteAverages : AppState.processed;
+  const search = (document.getElementById('proc-search')?.value || '').toLowerCase();
+  
+  const thTime = document.getElementById('th-time-label');
+  const thInterval = document.getElementById('th-interval-label');
+  if (thTime) thTime.textContent = isMinute ? 'Minute' : 'Elapsed (s)';
+  if (thInterval) thInterval.textContent = isMinute ? 'Samples' : 'Interval (s)';
+
+  const dataset = (data && data.length > 0) ? data : (AppState.processed || []);
+
+  if (!dataset || dataset.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="15" class="text-center text-slate-400 py-4">No processed data available. Please process a session file first.</td></tr>`;
+    const countEl = document.getElementById('proc-count');
+    if (countEl) countEl.textContent = '0 rows';
+    return;
+  }
+
+  const filtered = dataset.filter(r => {
+    if (!search) return true;
+    return (r.hhmmss && r.hhmmss.toLowerCase().includes(search)) ||
+           (r.zone && r.zone.toLowerCase().includes(search)) ||
+           (r.coreSource && r.coreSource.toLowerCase().includes(search));
+  });
+
+  const countEl = document.getElementById('proc-count');
+  if (countEl) countEl.textContent = `${filtered.length} rows (${isMinute ? 'Minute Avg' : 'Raw / Sec'})`;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="15" class="text-center text-slate-400 py-4">No matching records found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.slice(0, 150).map(r => `<tr>
+    <td>${isMinute ? (r.minute != null ? r.minute : r.elapsedSec) : r.elapsedSec}</td>
+    <td>${r.hhmmss || '—'}</td>
+    <td>${isMinute ? (r.count || 1) : (r.intervalSec || 1)}</td>
+    <td class="font-semibold">${r.unifiedCore != null ? r.unifiedCore.toFixed(2) : '—'}</td>
+    <td><span class="badge ${r.coreSource === 'CALERA' ? 'badge-green' : r.coreSource === 'CORE 2' ? 'badge-yellow' : 'badge-red'}">${r.coreSource || '—'}</span></td>
+    <td>${r.caleraCore != null ? r.caleraCore.toFixed(2) : '—'}</td>
+    <td>${r.core2Core != null ? r.core2Core.toFixed(2) : '—'}</td>
+    <td>${r.coreDelta != null ? r.coreDelta.toFixed(2) : '—'}</td>
+    <td>${r.hr != null ? Math.round(r.hr) : '—'}</td>
+    <td>${r.skinTemp != null ? r.skinTemp.toFixed(1) : '—'}</td>
+    <td>${r.sweatRate != null ? r.sweatRate.toFixed(1) : '—'}</td>
+    <td>${r.ambient != null ? r.ambient.toFixed(1) : '—'}</td>
+    <td>${r.rh != null ? Math.round(r.rh) + '%' : '—'}</td>
+    <td>${r.zone || '—'}</td>
+    <td class="font-medium ${r.isBreak ? 'text-amber-600 font-semibold' : 'text-slate-400'}">${r.isBreak ? 'YES' : 'No'}</td>
+  </tr>`).join('');
+}
+
+// 5. App State Initialization (Minute Averages as Default)
 window.AppState = window.AppState || {
   currentLang: 'en',
-  processed: []
+  processed: [],
+  minuteAverages: [],
+  events: [],
+  viewMode: 'minute'
 };
 
+// 6. Navigation Tab Switcher
 function showTab(name) {
   if (!name) return;
 
@@ -2196,6 +2313,9 @@ function showTab(name) {
 
   // 4. Safely render dynamic tabs
   try {
+    if (name === 'processed' || name === 'tab-processed') {
+      if (typeof renderProcessedTable === 'function') renderProcessedTable(1);
+    }
     if (name === 'charts') {
       if (typeof renderChart === 'function') renderChart();
       if (typeof renderCoreVsHrChart === 'function') renderCoreVsHrChart();
@@ -2207,6 +2327,7 @@ function showTab(name) {
     console.error("Tab render warning:", err);
   }
 }
+
   
 function setViewMode(mode) {
   AppState.viewMode = mode;
