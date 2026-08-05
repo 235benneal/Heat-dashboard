@@ -2731,6 +2731,11 @@ function processAllData() {
   let prevTime = 0;
   let cumulativeSweatGrams = 0;
 
+  // Variables to hold environmental state across time gaps
+  let lastAmbient = null;
+  let lastRh = null;
+  let lastWbgt = null;
+
   master.forEach((t, i) => {
     const row = { elapsedSec: t, elapsedMin: t / 60, hhmmss: fmtTime(t) };
     row.intervalSec = (i === 0) ? (t > 0 ? t : 0) : t - prevTime;
@@ -2765,10 +2770,20 @@ function processAllData() {
     row.coreDelta = (calCore != null && corCore != null) ? (calCore - corCore) : null;
     row.hr = cor ? parseFloat(cor.raw[settings.mapCore.hr]) : null;
 
-    // Environmental mappings
-    row.ambient = env ? parseFloat(env.raw[settings.mapEnv.ambient]) : null;
-    row.rh = env ? parseFloat(env.raw[settings.mapEnv.rh]) : null;
-    row.wbgt = env && settings.mapEnv.wbgt ? parseFloat(env.raw[settings.mapEnv.wbgt]) : null;
+    // Environmental mapping with forward-fill persistence
+    if (env) {
+      const parsedAmb = parseFloat(env.raw[settings.mapEnv.ambient]);
+      const parsedRh = parseFloat(env.raw[settings.mapEnv.rh]);
+      const parsedWbgt = settings.mapEnv.wbgt ? parseFloat(env.raw[settings.mapEnv.wbgt]) : null;
+
+      if (!isNaN(parsedAmb)) lastAmbient = parsedAmb;
+      if (!isNaN(parsedRh)) lastRh = parsedRh;
+      if (parsedWbgt != null && !isNaN(parsedWbgt)) lastWbgt = parsedWbgt;
+    }
+
+    row.ambient = lastAmbient;
+    row.rh = lastRh;
+    row.wbgt = lastWbgt;
 
     let fl = flowMap.get(t);
     let sweatRateVal = fl ? parseFloat(fl.raw['sweat_rate']) : null;
