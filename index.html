@@ -2007,28 +2007,40 @@ function fmtNum(v, d = 2) {
   return v.toFixed(d);
 }
 
-// 1. UPDATED parseTime (Replaces your old parseTime)
-function parseTime(val) {
-  if (val == null || val === '') return null;
-  if (typeof val === 'number') return val;
-  
-  if (typeof val === 'string') {
-    val = val.trim();
-    
-    // Handles standard HTML time inputs: HH:MM or HH:MM:SS
-    if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(val)) {
-      const parts = val.split(':');
-      const hours = parseInt(parts[0], 10) || 0;
-      const minutes = parseInt(parts[1], 10) || 0;
-      const seconds = parts[2] ? parseFloat(parts[2]) : 0;
-      return hours * 3600 + minutes * 60 + seconds;
-    }
-    
-    if (/^\d+(\.\d+)?$/.test(val)) return parseFloat(val);
-    
-    const d = new Date(val);
-    if (!isNaN(d.getTime())) return d.getTime() / 1000;
+
+function parseTime(str) {
+  if (str == null || str === '') return null;
+  if (typeof str === 'number') return str;
+
+  const s = String(str).trim();
+
+  // 1. Handle European Date Format: DD/MM/YYYY HH:MM:SS (e.g. "21/10/2025 09:12:48")
+  const euMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+  if (euMatch) {
+    const day = parseInt(euMatch[1], 10);
+    const month = parseInt(euMatch[2], 10) - 1; // JS Months are 0-11
+    const year = parseInt(euMatch[3], 10);
+    const hrs = euMatch[4] ? parseInt(euMatch[4], 10) : 0;
+    const mins = euMatch[5] ? parseInt(euMatch[5], 10) : 0;
+    const secs = euMatch[6] ? parseInt(euMatch[6], 10) : 0;
+
+    const dt = new Date(year, month, day, hrs, mins, secs);
+    if (!isNaN(dt.getTime())) return dt.getTime() / 1000;
   }
+
+  // 2. Handle standard ISO or time strings
+  const parsed = Date.parse(s);
+  if (!isNaN(parsed)) return parsed / 1000;
+
+  // 3. Fallback for pure time strings (HH:MM:SS)
+  const timeMatch = s.match(/^(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/);
+  if (timeMatch) {
+    const hrs = parseInt(timeMatch[1], 10);
+    const mins = parseInt(timeMatch[2], 10);
+    const secs = timeMatch[3] ? parseInt(timeMatch[3], 10) : 0;
+    return hrs * 3600 + mins * 60 + secs;
+  }
+
   return null;
 }
 
@@ -2637,7 +2649,6 @@ function loadSettings() {
 function processDataArray(type, aoa) {
   let headerIdx = -1;
 
-  // 1. Locate header row dynamically
   for (let i = 0; i < Math.min(30, aoa.length); i++) {
     const row = aoa[i];
     if (!row) continue;
@@ -2652,13 +2663,9 @@ function processDataArray(type, aoa) {
   if (headerIdx === -1) headerIdx = 0;
 
   const headers = (aoa[headerIdx] || []).map(h => h != null ? String(h).trim() : '');
-
   const data = [];
 
-  // 2. Loop through data rows starting AFTER the first data row (headerIdx + 2 instead of headerIdx + 1)
-  const startRow = (type === 'env') ? headerIdx + 2 : headerIdx + 1; // <--- Misses out the first row for env data
-
-  for (let i = startRow; i < aoa.length; i++) {
+  for (let i = headerIdx + 1; i < aoa.length; i++) {
     const row = aoa[i];
     if (!row || row.length === 0) continue;
     
@@ -2682,17 +2689,6 @@ function processDataArray(type, aoa) {
     headers.forEach((h, idx) => {
       if (h) obj[h] = row[idx];
     });
-
-    // Range check (-10°C to 45°C) to discard non-temperature numbers
-    if (type === 'env') {
-      const ambKey = Object.keys(obj).find(k => k.toLowerCase().includes('°c') || k.toLowerCase().includes('temp'));
-      if (ambKey && obj[ambKey] != null) {
-        const tempVal = parseFloat(obj[ambKey]);
-        if (!isNaN(tempVal) && (tempVal > 45 || tempVal < -10)) {
-          continue;
-        }
-      }
-    }
 
     if (type === 'calera') {
       if (obj['cbt [mC]'] != null && !isNaN(obj['cbt [mC]'])) obj['cbt [mC]'] = obj['cbt [mC]'] / 1000;
