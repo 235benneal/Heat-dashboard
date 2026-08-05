@@ -2636,31 +2636,54 @@ function loadSettings() {
 
 function processDataArray(type, aoa) {
   let headerIdx = 0;
+  
+  // Find header row
   for (let i = 0; i < Math.min(20, aoa.length); i++) {
     const row = aoa[i];
     if (!row) continue;
     const str = row.join('').toLowerCase();
     if (type === 'calera' && (str.includes('cbt') || str.includes('timestamp'))) { headerIdx = i; break; }
-    if (type === 'env' && str.includes('date/time')) { headerIdx = i; break; }
+    if (type === 'env' && (str.includes('date/time') || str.includes('°c') || str.includes('%rh'))) { headerIdx = i; break; }
     if (type === 'core' && str.includes('core_temperature')) { headerIdx = i; break; }
     if (type === 'flowbio' && str.includes('sweat')) { headerIdx = i; break; }
   }
-  const headers = aoa[headerIdx] || [];
+
+  const rawHeaders = aoa[headerIdx] || [];
+  
+  // Clean headers (removes serial numbers like '058 ' before '[°C]')
+  const headers = rawHeaders.map(h => {
+    if (h == null) return '';
+    let cleaned = String(h).trim();
+    // Strip leading serial numbers/digits if followed by bracketed units (e.g., "058 [°C]" -> "[°C]")
+    cleaned = cleaned.replace(/^\d+\s*(?=\[)/i, ''); 
+    return cleaned;
+  });
+
   const data = [];
   for (let i = headerIdx + 1; i < aoa.length; i++) {
     const row = aoa[i];
     if (!row || row.length === 0) continue;
+    
+    // Stop parsing if we hit summary/metadata sections at the bottom of environmental CSVs
+    const firstCol = String(row[0] || '').toLowerCase();
+    if (firstCol.includes('overall average') || firstCol.includes('minimum total') || firstCol.includes('< general')) {
+      break; 
+    }
+
     const obj = {};
-    headers.forEach((h, idx) => { if (h != null) obj[String(h).trim()] = row[idx]; });
+    headers.forEach((h, idx) => { 
+      if (h) obj[h] = row[idx]; 
+    });
+
     if (type === 'calera') {
       if (obj['cbt [mC]'] != null && !isNaN(obj['cbt [mC]'])) obj['cbt [mC]'] = obj['cbt [mC]'] / 1000;
       if (obj['timestamp [us]'] != null && !isNaN(obj['timestamp [us]'])) obj['time'] = obj['timestamp [us]'] / 1000000;
     }
+    
     data.push(obj);
   }
   return data;
 }
-
 function handleFile(input, type) {
   const file = input.files[0];
   if (!file) return;
