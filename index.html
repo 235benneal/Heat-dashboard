@@ -2449,43 +2449,105 @@ function setViewMode(mode) {
 // REPLACE your current computeMinuteAverages() function with this exact block:
 function computeMinuteAverages() {
   const p = AppState.processed;
-  if (!p || p.length === 0) { AppState.minuteAverages = []; return; }
+  if (!p || p.length === 0) { 
+    AppState.minuteAverages = []; 
+    return; 
+  }
 
   const map = new Map();
+
   p.forEach(r => {
     const minNum = Math.floor(r.elapsedSec / 60);
     if (!map.has(minNum)) {
-      map.set(minNum, { minute: minNum + 1, count: 0, coreSum: 0, hrSum: 0, sweatSum: 0, zones: {} });
+      map.set(minNum, { 
+        minute: minNum + 1, 
+        count: 0, 
+        coreSum: 0, 
+        caleraSum: 0, 
+        caleraCount: 0,
+        core2Sum: 0, 
+        core2Count: 0,
+        deltaSum: 0, 
+        deltaCount: 0,
+        hrSum: 0, 
+        hrCount: 0,
+        skinSum: 0, 
+        skinCount: 0,
+        sweatSum: 0, 
+        sweatCount: 0,
+        ambSum: 0, 
+        ambCount: 0,
+        rhSum: 0, 
+        rhCount: 0,
+        sources: {}, 
+        zones: {},
+        isBreak: false
+      });
     }
-    const bucket = map.get(minNum);
-    bucket.count++;
-    if (r.unifiedCore != null) bucket.coreSum += r.unifiedCore;
-    if (r.hr != null) bucket.hrSum += r.hr;
-    if (r.sweatRate != null) bucket.sweatSum += r.sweatRate;
-    if (r.zone) bucket.zones[r.zone] = (bucket.zones[r.zone] || 0) + 1;
+    const b = map.get(minNum);
+    b.count++;
+
+    // Accumulate sensor values and track non-null record counts
+    if (r.unifiedCore != null && !isNaN(r.unifiedCore)) b.coreSum += r.unifiedCore;
+    if (r.caleraCore != null && !isNaN(r.caleraCore)) { b.caleraSum += r.caleraCore; b.caleraCount++; }
+    if (r.core2Core != null && !isNaN(r.core2Core)) { b.core2Sum += r.core2Core; b.core2Count++; }
+    if (r.coreDelta != null && !isNaN(r.coreDelta)) { b.deltaSum += r.coreDelta; b.deltaCount++; }
+    if (r.hr != null && !isNaN(r.hr)) { b.hrSum += r.hr; b.hrCount++; }
+    if (r.skinTemp != null && !isNaN(r.skinTemp)) { b.skinSum += r.skinTemp; b.skinCount++; }
+    if (r.sweatRate != null && !isNaN(r.sweatRate)) { b.sweatSum += r.sweatRate; b.sweatCount++; }
+    if (r.ambient != null && !isNaN(r.ambient)) { b.ambSum += r.ambient; b.ambCount++; }
+    if (r.rh != null && !isNaN(r.rh)) { b.rhSum += r.rh; b.rhCount++; }
+
+    if (r.coreSource) b.sources[r.coreSource] = (b.sources[r.coreSource] || 0) + 1;
+    if (r.zone) b.zones[r.zone] = (b.zones[r.zone] || 0) + 1;
+    if (r.isBreak) b.isBreak = true;
   });
 
   const averages = [];
+
   map.forEach((b, minNum) => {
-    const avgCore = b.coreSum > 0 ? b.coreSum / b.count : null;
-    const avgHr = b.hrSum > 0 ? b.hrSum / b.count : null;
-    const avgSweat = b.sweatSum > 0 ? b.sweatSum / b.count : null;
-    
-    let dominantZone = '—';
-    let maxCount = 0;
-    for (const z in b.zones) {
-      if (b.zones[z] > maxCount) { maxCount = b.zones[z]; dominantZone = z; }
+    // Calculate precise mathematical averages for every field
+    const avgCore = b.count > 0 ? b.coreSum / b.count : null;
+    const avgCalera = b.caleraCount > 0 ? b.caleraSum / b.caleraCount : null;
+    const avgCore2 = b.core2Count > 0 ? b.core2Sum / b.core2Count : null;
+    const avgDelta = b.deltaCount > 0 ? b.deltaSum / b.deltaCount : null;
+    const avgHr = b.hrCount > 0 ? b.hrSum / b.hrCount : null;
+    const avgSkin = b.skinCount > 0 ? b.skinSum / b.skinCount : null;
+    const avgSweat = b.sweatCount > 0 ? b.sweatSum / b.sweatCount : null;
+    const avgAmb = b.ambCount > 0 ? b.ambSum / b.ambCount : null;
+    const avgRh = b.rhCount > 0 ? b.rhSum / b.rhCount : null;
+
+    // Dominant source determination
+    let topSource = '—';
+    let maxSrcCount = 0;
+    for (const src in b.sources) {
+      if (b.sources[src] > maxSrcCount) { maxSrcCount = b.sources[src]; topSource = src; }
     }
 
-  averages.push({
+    // Dominant zone determination
+    let dominantZone = '—';
+    let maxZoneCount = 0;
+    for (const z in b.zones) {
+      if (b.zones[z] > maxZoneCount) { maxZoneCount = b.zones[z]; dominantZone = z; }
+    }
+
+    averages.push({
       minute: b.minute,
+      elapsedSec: b.minute * 60,
       hhmmss: fmtTime(minNum * 60),
       count: b.count,
       unifiedCore: avgCore,
-      coreSource: 'Average',
-      hr: avgHr != null ? Math.round(avgHr) : null,
+      coreSource: topSource,
+      caleraCore: avgCalera,
+      core2Core: avgCore2,
+      coreDelta: avgDelta,
+      hr: avgHr,
+      skinTemp: avgSkin,
       sweatRate: avgSweat,
-      zone: dominantZone
+      ambient: avgAmb,
+      rh: avgRh,
+      zone: dominantZone,
+      isBreak: b.isBreak
     });
   });
 
@@ -2682,7 +2744,7 @@ function processAllData() {
     const calQuality = cal ? cal.raw[settings.mapCalera.quality] : null;
     const corCore = cor ? parseFloat(cor.raw[settings.mapCore.core]) : null;
 
-    // Pull Skin Temp: Prioritize CALERA (temp_a0 converted from milli-Celsius if needed), fallback to Core 2
+    // Pull Skin Temp: Prioritize CALERA, fallback to Core 2
     let skinVal = null;
     if (cal && cal.raw[settings.mapCalera.skin] != null) {
       const rawSkin = parseFloat(cal.raw[settings.mapCalera.skin]);
@@ -2703,7 +2765,7 @@ function processAllData() {
     row.coreDelta = (calCore != null && corCore != null) ? (calCore - corCore) : null;
     row.hr = cor ? parseFloat(cor.raw[settings.mapCore.hr]) : null;
 
-    // Environmental mappings (matches Kestrel/environmental logger formats)
+    // Environmental mappings
     row.ambient = env ? parseFloat(env.raw[settings.mapEnv.ambient]) : null;
     row.rh = env ? parseFloat(env.raw[settings.mapEnv.rh]) : null;
     row.wbgt = env && settings.mapEnv.wbgt ? parseFloat(env.raw[settings.mapEnv.wbgt]) : null;
@@ -2817,7 +2879,7 @@ function renderAthleteSummary() {
     document.getElementById(zmap[k] + '-time').textContent = fmtNum(zd.time / 60, 1) + ' min';
     document.getElementById(zmap[k] + '-pct').textContent = fmtNum(zd.pct, 1) + '%';
     document.getElementById(zmap[k] + '-first').textContent = zd.first != null ? fmtTime(zd.first) : '—';
-}
+  }
   document.getElementById('sum-transitions').textContent = m.transitions;
   document.getElementById('sum-hr-avg').textContent = m.hrAvg != null ? fmtNum(m.hrAvg, 1) + ' bpm' : '—';
   document.getElementById('sum-hr-max').textContent = m.hrMax != null ? fmtNum(m.hrMax, 1) + ' bpm' : '—';
@@ -2845,7 +2907,6 @@ function renderChart() {
     const hrData = p.map(r => r.hr);
     const sweatData = p.map(r => r.cumulativeSweat);
     
-    // DEFINED HERE: Prevents "cutoffValue is not defined" JS crash
     const cutoffValue = settings.zones.cutoff || 39.7;
 
     if (instanceHolder) instanceHolder.destroy();
@@ -2916,7 +2977,7 @@ function renderCoreVsHrChart() {
     .map(r => ({ x: Number(r.unifiedCore.toFixed(2)), y: r.hr }));
 
   if (coreVsHrChartInstance) coreVsHrChartInstance.destroy();
-
+  
   coreVsHrChartInstance = new Chart(ctx, {
     type: 'scatter',
     data: {
