@@ -2212,6 +2212,7 @@ function setViewMode(mode) {
 }
 
 // 4. Render Master Timeline Table (Defaults to Minute Averages)
+// Render Master Timeline Table (Handles both Raw Sec & Minute Averages correctly)
 function renderProcessedTable(page = 1) {
   const tbody = document.getElementById('processed-tbody');
   if (!tbody) return;
@@ -2249,23 +2250,43 @@ function renderProcessedTable(page = 1) {
     return;
   }
 
-  tbody.innerHTML = filtered.slice(0, 150).map(r => `<tr>
-    <td>${isMinute ? (r.minute != null ? r.minute : r.elapsedSec) : r.elapsedSec}</td>
-    <td>${r.hhmmss || '—'}</td>
-    <td>${isMinute ? (r.count || 1) : (r.intervalSec || 1)}</td>
-    <td class="font-semibold">${r.unifiedCore != null ? r.unifiedCore.toFixed(2) : '—'}</td>
-    <td><span class="badge ${r.coreSource === 'CALERA' ? 'badge-green' : r.coreSource === 'CORE 2' ? 'badge-yellow' : 'badge-red'}">${r.coreSource || '—'}</span></td>
-    <td>${r.caleraCore != null ? r.caleraCore.toFixed(2) : '—'}</td>
-    <td>${r.core2Core != null ? r.core2Core.toFixed(2) : '—'}</td>
-    <td>${r.coreDelta != null ? r.coreDelta.toFixed(2) : '—'}</td>
-    <td>${r.hr != null ? Math.round(r.hr) : '—'}</td>
-    <td>${r.skinTemp != null ? r.skinTemp.toFixed(1) : '—'}</td>
-    <td>${r.sweatRate != null ? r.sweatRate.toFixed(1) : '—'}</td>
-    <td>${r.ambient != null ? r.ambient.toFixed(1) : '—'}</td>
-    <td>${r.rh != null ? Math.round(r.rh) + '%' : '—'}</td>
-    <td>${r.zone || '—'}</td>
-    <td class="font-medium ${r.isBreak ? 'text-amber-600 font-semibold' : 'text-slate-400'}">${r.isBreak ? 'YES' : 'No'}</td>
-  </tr>`).join('');
+  // Helper getters to support both raw row properties and averaged row properties
+  const getVal = (r, primaryKey, altKeys) => {
+    if (r[primaryKey] != null && !isNaN(r[primaryKey])) return r[primaryKey];
+    for (let k of altKeys) {
+      if (r[k] != null && !isNaN(r[k])) return r[k];
+    }
+    return null;
+  };
+
+  tbody.innerHTML = filtered.slice(0, 150).map(r => {
+    const calera = getVal(r, 'caleraCore', ['avgCaleraCore', 'calera', 'avgCalera']);
+    const core2 = getVal(r, 'core2Core', ['avgCore2Core', 'core2', 'avgCore2']);
+    const delta = getVal(r, 'coreDelta', ['avgCoreDelta', 'delta']);
+    const hr = getVal(r, 'hr', ['avgHr', 'avgHR']);
+    const skin = getVal(r, 'skinTemp', ['avgSkinTemp', 'skin', 'avgSkin']);
+    const sweat = getVal(r, 'sweatRate', ['avgSweatRate', 'sweat', 'avgSweat']);
+    const ambient = getVal(r, 'ambient', ['avgAmbient', 'temp']);
+    const rh = getVal(r, 'rh', ['avgRh', 'avgRH']);
+
+    return `<tr>
+      <td>${isMinute ? (r.minute != null ? r.minute : r.elapsedSec) : r.elapsedSec}</td>
+      <td>${r.hhmmss || '—'}</td>
+      <td>${isMinute ? (r.count || 1) : (r.intervalSec || 1)}</td>
+      <td class="font-semibold">${r.unifiedCore != null ? r.unifiedCore.toFixed(2) : (r.avgCore != null ? r.avgCore.toFixed(2) : '—')}</td>
+      <td><span class="badge ${r.coreSource === 'CALERA' ? 'badge-green' : r.coreSource === 'CORE 2' ? 'badge-yellow' : 'badge-red'}">${r.coreSource || '—'}</span></td>
+      <td>${calera != null ? calera.toFixed(2) : '—'}</td>
+      <td>${core2 != null ? core2.toFixed(2) : '—'}</td>
+      <td>${delta != null ? delta.toFixed(2) : '—'}</td>
+      <td>${hr != null ? Math.round(hr) : '—'}</td>
+      <td>${skin != null ? skin.toFixed(1) : '—'}</td>
+      <td>${sweat != null ? sweat.toFixed(1) : '—'}</td>
+      <td>${ambient != null ? ambient.toFixed(1) : '—'}</td>
+      <td>${rh != null ? Math.round(rh) + '%' : '—'}</td>
+      <td>${r.zone || '—'}</td>
+      <td class="font-medium ${r.isBreak ? 'text-amber-600 font-semibold' : 'text-slate-400'}">${r.isBreak ? 'YES' : 'No'}</td>
+    </tr>`;
+  }).join('');
 }
 
 // 5. App State Initialization (Minute Averages as Default)
