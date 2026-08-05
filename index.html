@@ -2916,6 +2916,29 @@ function removeEventRow(index) {
 }
 
 // 1. Render Events Table with live sync triggers
+// Helper parser: Converts MM:SS, HH:MM:SS, or raw seconds strings into elapsed seconds
+function parseMMSS(val) {
+  if (val == null || val === '') return null;
+  if (typeof val === 'number') return val;
+  if (typeof val === 'string') {
+    val = val.trim();
+    // Handles MM:SS format (e.g. "21:22" -> 1282 seconds)
+    if (/^\d{1,3}:\d{2}$/.test(val)) {
+      const parts = val.split(':');
+      return (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10);
+    }
+    // Handles HH:MM:SS format
+    if (/^\d{1,2}:\d{2}:\d{2}$/.test(val)) {
+      const parts = val.split(':');
+      return (parseInt(parts[0], 10) * 3600) + (parseInt(parts[1], 10) * 60) + parseFloat(parts[2]);
+    }
+    // Handles numeric seconds string
+    if (/^\d+(\.\d+)?$/.test(val)) return parseFloat(val);
+  }
+  return null;
+}
+
+// 1. Updated Events Table Renderer (Uses text inputs for easy MM:SS entry)
 function renderEventsTable() {
   const tbody = document.getElementById('events-tbody');
   if (!tbody) return;
@@ -2923,14 +2946,14 @@ function renderEventsTable() {
     tbody.innerHTML = `<tr><td colspan="5" class="text-center text-slate-400 py-3">No events added.</td></tr>`;
   } else {
     tbody.innerHTML = AppState.events.map((ev, idx) => `<tr>
-      <td><input type="time" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.start}" onchange="AppState.events[${idx}].start = this.value; syncEventsAndBreaks();"></td>
-      <td><input type="time" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.end}" onchange="AppState.events[${idx}].end = this.value; syncEventsAndBreaks();"></td>
+      <td><input type="text" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.start || ''}" placeholder="MM:SS (e.g. 21:22)" onchange="AppState.events[${idx}].start = this.value; syncEventsAndBreaks();"></td>
+      <td><input type="text" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.end || ''}" placeholder="MM:SS (e.g. 24:22)" onchange="AppState.events[${idx}].end = this.value; syncEventsAndBreaks();"></td>
       <td><select class="border rounded px-1.5 py-0.5 text-xs w-full" onchange="AppState.events[${idx}].type = this.value; syncEventsAndBreaks();">
         <option value="Break" ${ev.type === 'Break' ? 'selected' : ''}>Break</option>
         <option value="Feeding" ${ev.type === 'Feeding' ? 'selected' : ''}>Feeding</option>
         <option value="Intensity" ${ev.type === 'Intensity' ? 'selected' : ''}>Intensity</option>
       </select></td>
-      <td><input type="text" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.desc}" placeholder="Description" onchange="AppState.events[${idx}].desc = this.value; syncEventsAndBreaks();"></td>
+      <td><input type="text" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.desc || ''}" placeholder="Description" onchange="AppState.events[${idx}].desc = this.value; syncEventsAndBreaks();"></td>
       <td class="no-print text-center"><button type="button" onclick="removeEventRow(${idx})" class="text-red-500 hover:text-red-700 cursor-pointer text-xs"><i class="fa-solid fa-trash"></i></button></td>
     </tr>`).join('');
   }
@@ -2943,8 +2966,6 @@ function syncEventsAndBreaks() {
   const p = AppState.processed;
   if (!p || p.length === 0) return;
 
-  const baseStartTime = parseTime(document.getElementById('inp-time')?.value || '00:00:00') || 0;
-
   // Flag individual rows as "isBreak" based on configured event times
   p.forEach(row => {
     row.isBreak = false;
@@ -2953,12 +2974,18 @@ function syncEventsAndBreaks() {
     if (AppState.events && AppState.events.length > 0) {
       AppState.events.forEach(ev => {
         if (!ev.start || !ev.end) return;
-        const startSec = parseTime(ev.start);
-        const endSec = parseTime(ev.end);
-        
-        // Match against relative elapsed time or Time Of Day (TOD)
-        const rowTod = baseStartTime + row.elapsedSec;
-        if ((row.elapsedSec >= startSec && row.elapsedSec <= endSec) || (rowTod >= startSec && rowTod <= endSec)) {
+        let startSec = parseMMSS(ev.start);
+        let endSec = parseMMSS(ev.end);
+        if (startSec == null || endSec == null) return;
+
+        // Auto-correct if endSec was entered smaller than startSec
+        if (endSec < startSec) {
+          const temp = startSec;
+          startSec = endSec;
+          endSec = temp;
+        }
+
+        if (row.elapsedSec >= startSec && row.elapsedSec <= endSec) {
           if (ev.type === 'Break') row.isBreak = true;
           row.eventType = ev.type;
         }
@@ -2973,29 +3000,43 @@ function syncEventsAndBreaks() {
   const breakTableRows = [];
 
   breakEvents.forEach((ev, idx) => {
-    const startSec = parseTime(ev.start);
-    const endSec = parseTime(ev.end);
-    const durationMin = Math.max(0, (endSec - startSec) / 60);
-    totalBreakSec += Math.max(0, endSec - startSec);
+    let startSec = parseMMSS(ev.start);
+    let endSec = parseMMSS(ev.end);
 
-    // Locate core temperature data points at start/end of break
-    const startRow = p.find(r => r.elapsedSec >= startSec || (baseStartTime + r.elapsedSec) >= startSec) || p[0];
-    const endRow = p.find(r => r.elapsedSec >= endSec || (baseStartTime + r.elapsedSec) >= endSec) || p[p.length - 1];
-    
+    if (startSec == null || endSec == null) return;
+
+    // If End time is lower than Start time, swap them safely to calculate range
+    if (endSec < startSec) {
+      const temp = startSec;
+      startSec = endSec;
+      endSec = temp;
+    }
+
+    const durationSec = endSec - startSec;
+    const durationMin = durationSec / 60;
+    totalBreakSec += durationSec;
+
+    // Search dataset rows by relative elapsed seconds
+    const startRow = p.find(r => r.elapsedSec >= startSec) || p[0];
+    const endRow = p.find(r => r.elapsedSec >= endSec) || p[p.length - 1];
+
     const tStart = startRow ? startRow.unifiedCore : null;
     const tEnd = endRow ? endRow.unifiedCore : null;
-    let deltaT = (tStart != null && tEnd != null) ? (tEnd - tStart) : 0;
-    let rate = durationMin > 0 ? (deltaT / durationMin) : 0;
 
-    if (deltaT < largestDecline) largestDecline = deltaT;
+    let deltaT = (tStart != null && tEnd != null) ? (tEnd - tStart) : null;
+    let rate = (deltaT != null && durationMin > 0) ? (deltaT / durationMin) : 0;
+
+    if (deltaT != null && deltaT < largestDecline) {
+      largestDecline = deltaT;
+    }
 
     breakTableRows.push(`<tr>
       <td class="font-medium">#${idx + 1}</td>
       <td>${durationMin.toFixed(1)} min</td>
       <td>${tStart != null ? tStart.toFixed(2) + ' °C' : '—'}</td>
       <td>${tEnd != null ? tEnd.toFixed(2) + ' °C' : '—'}</td>
-      <td class="${deltaT < 0 ? 'text-teal-600 font-semibold' : ''}">${deltaT > 0 ? '+' : ''}${deltaT.toFixed(2)} °C</td>
-      <td>${rate.toFixed(3)} °C/min</td>
+      <td class="${deltaT != null && deltaT < 0 ? 'text-teal-600 font-semibold' : ''}">${deltaT != null ? (deltaT > 0 ? '+' : '') + deltaT.toFixed(2) + ' °C' : '—'}</td>
+      <td>${rate != null ? rate.toFixed(3) + ' °C/min' : '—'}</td>
     </tr>`);
   });
 
@@ -3007,13 +3048,13 @@ function syncEventsAndBreaks() {
       : `<tr><td colspan="6" class="text-center text-slate-400 py-3">No breaks recorded.</td></tr>`;
   }
 
-  // Update Dashboard HR & Breaks Card
+  // Update Dashboard HR Card
   const elCount = document.getElementById('sum-breaks-count');
   const elTotal = document.getElementById('sum-breaks-total');
   const elLargest = document.getElementById('sum-breaks-largest');
 
   if (elCount) elCount.textContent = breakEvents.length;
-  if (elTotal) elTotal.textContent = fmtTime(totalBreakSec);
+  if (elTotal) elTotal.textContent = typeof fmtTime === 'function' ? fmtTime(totalBreakSec) : `${Math.round(totalBreakSec)}s`;
   if (elLargest) elLargest.textContent = largestDecline < 0 ? `${largestDecline.toFixed(2)} °C` : '0.00 °C';
 
   // Re-render Processed Master Table to show updated "Break?" status
