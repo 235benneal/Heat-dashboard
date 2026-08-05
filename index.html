@@ -2047,13 +2047,33 @@ function classifyZone(core, z) {
 }
 
 // 2. ADD syncEventsAndBreaks RIGHT HERE
+// Helper parser: Converts MM:SS, HH:MM:SS, or raw seconds strings into elapsed seconds
+function parseMMSS(val) {
+  if (val == null || val === '') return null;
+  if (typeof val === 'number') return val;
+  if (typeof val === 'string') {
+    val = val.trim();
+    // Handles MM:SS format (e.g. "21:22" -> 1282 seconds)
+    if (/^\d{1,3}:\d{2}$/.test(val)) {
+      const parts = val.split(':');
+      return (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10);
+    }
+    // Handles HH:MM:SS format
+    if (/^\d{1,2}:\d{2}:\d{2}$/.test(val)) {
+      const parts = val.split(':');
+      return (parseInt(parts[0], 10) * 3600) + (parseInt(parts[1], 10) * 60) + parseFloat(parts[2]);
+    }
+    // Handles numeric seconds string
+    if (/^\d+(\.\d+)?$/.test(val)) return parseFloat(val);
+  }
+  return null;
+}
+
 function syncEventsAndBreaks() {
   const p = AppState.processed;
   if (!p || p.length === 0) return;
 
-  const sessionStartTimeStr = document.getElementById('inp-time')?.value || '';
-  const sessionStartTOD = parseTime(sessionStartTimeStr);
-
+  // 1. Flag individual dataset rows as "isBreak" based on elapsed MM:SS
   p.forEach(row => {
     row.isBreak = false;
     row.eventType = '';
@@ -2061,16 +2081,12 @@ function syncEventsAndBreaks() {
     if (AppState.events && AppState.events.length > 0) {
       AppState.events.forEach(ev => {
         if (!ev.start || !ev.end) return;
-        const startSec = parseTime(ev.start);
-        const endSec = parseTime(ev.end);
+        const startSec = parseMMSS(ev.start);
+        const endSec = parseMMSS(ev.end);
         if (startSec == null || endSec == null) return;
 
-        const rowTOD = (sessionStartTOD != null) ? (sessionStartTOD + row.elapsedSec) : null;
-
-        const matchesElapsed = (row.elapsedSec >= startSec && row.elapsedSec <= endSec);
-        const matchesTOD = (rowTOD != null && rowTOD >= startSec && rowTOD <= endSec);
-
-        if (matchesElapsed || matchesTOD) {
+        // Match against row.elapsedSec
+        if (row.elapsedSec >= startSec && row.elapsedSec <= endSec) {
           if (ev.type === 'Break') row.isBreak = true;
           row.eventType = ev.type;
         }
@@ -2078,33 +2094,25 @@ function syncEventsAndBreaks() {
     }
   });
 
+  // 2. Calculate Break Kinetics
   const breakEvents = AppState.events.filter(e => e.type === 'Break' && e.start && e.end);
   let totalBreakSec = 0;
   let largestDecline = 0;
   const breakTableRows = [];
 
   breakEvents.forEach((ev, idx) => {
-    const startSec = parseTime(ev.start);
-    const endSec = parseTime(ev.end);
+    const startSec = parseMMSS(ev.start);
+    const endSec = parseMMSS(ev.end);
 
     if (startSec == null || endSec == null) return;
 
-    let durationSec = endSec - startSec;
-    if (durationSec < 0) durationSec += 86400;
-
+    const durationSec = Math.max(0, endSec - startSec);
     const durationMin = durationSec / 60;
     totalBreakSec += durationSec;
 
-    let startRow = null;
-    let endRow = null;
-
-    if (sessionStartTOD != null) {
-      startRow = p.find(r => (sessionStartTOD + r.elapsedSec) >= startSec);
-      endRow = p.find(r => (sessionStartTOD + r.elapsedSec) >= endSec);
-    } 
-
-    if (!startRow) startRow = p.find(r => r.elapsedSec >= startSec) || p[0];
-    if (!endRow) endRow = p.find(r => r.elapsedSec >= endSec) || p[p.length - 1];
+    // Search dataset rows by relative elapsed seconds
+    const startRow = p.find(r => r.elapsedSec >= startSec) || p[0];
+    const endRow = p.find(r => r.elapsedSec >= endSec) || p[p.length - 1];
 
     const tStart = startRow ? startRow.unifiedCore : null;
     const tEnd = endRow ? endRow.unifiedCore : null;
@@ -2126,6 +2134,7 @@ function syncEventsAndBreaks() {
     </tr>`);
   });
 
+  // 3. Render Break Analysis Table
   const breaksTbody = document.getElementById('breaks-tbody');
   if (breaksTbody) {
     breaksTbody.innerHTML = breakTableRows.length > 0 
@@ -2133,14 +2142,16 @@ function syncEventsAndBreaks() {
       : `<tr><td colspan="6" class="text-center text-slate-400 py-3">No breaks recorded.</td></tr>`;
   }
 
+  // 4. Update Dashboard HR Card
   const elCount = document.getElementById('sum-breaks-count');
   const elTotal = document.getElementById('sum-breaks-total');
   const elLargest = document.getElementById('sum-breaks-largest');
 
   if (elCount) elCount.textContent = breakEvents.length;
-  if (elTotal) elTotal.textContent = fmtTime(totalBreakSec);
+  if (elTotal) elTotal.textContent = typeof fmtTime === 'function' ? fmtTime(totalBreakSec) : `${Math.round(totalBreakSec)}s`;
   if (elLargest) elLargest.textContent = largestDecline < 0 ? `${largestDecline.toFixed(2)} °C` : '0.00 °C';
 
+  // 5. Refresh Processed Table view
   if (typeof renderProcessedTable === 'function') renderProcessedTable(1);
 }
 
@@ -2152,7 +2163,6 @@ window.AppState = window.AppState || {
 
 function showTab(name) {
   if (!name) return;
-
 
   // 1. Hide all tab content containers
   document.querySelectorAll('.tab-content').forEach(el => {
