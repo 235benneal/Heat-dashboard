@@ -2797,36 +2797,144 @@ function removeEventRow(index) {
   renderEventsTable();
 }
 
+// 1. Render Events Table with live sync triggers
 function renderEventsTable() {
   const tbody = document.getElementById('events-tbody');
   if (!tbody) return;
   if (AppState.events.length === 0) {
     tbody.innerHTML = `<tr><td colspan="5" class="text-center text-slate-400 py-3">No events added.</td></tr>`;
-    return;
+  } else {
+    tbody.innerHTML = AppState.events.map((ev, idx) => `<tr>
+      <td><input type="time" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.start}" onchange="AppState.events[${idx}].start = this.value; syncEventsAndBreaks();"></td>
+      <td><input type="time" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.end}" onchange="AppState.events[${idx}].end = this.value; syncEventsAndBreaks();"></td>
+      <td><select class="border rounded px-1.5 py-0.5 text-xs w-full" onchange="AppState.events[${idx}].type = this.value; syncEventsAndBreaks();">
+        <option value="Break" ${ev.type === 'Break' ? 'selected' : ''}>Break</option>
+        <option value="Feeding" ${ev.type === 'Feeding' ? 'selected' : ''}>Feeding</option>
+        <option value="Intensity" ${ev.type === 'Intensity' ? 'selected' : ''}>Intensity</option>
+      </select></td>
+      <td><input type="text" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.desc}" placeholder="Description" onchange="AppState.events[${idx}].desc = this.value; syncEventsAndBreaks();"></td>
+      <td class="no-print text-center"><button type="button" onclick="removeEventRow(${idx})" class="text-red-500 hover:text-red-700 cursor-pointer text-xs"><i class="fa-solid fa-trash"></i></button></td>
+    </tr>`).join('');
   }
-  tbody.innerHTML = AppState.events.map((ev, idx) => `<tr>
-    <td><input type="time" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.start}" onchange="AppState.events[${idx}].start = this.value"></td>
-    <td><input type="time" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.end}" onchange="AppState.events[${idx}].end = this.value"></td>
-    <td><select class="border rounded px-1.5 py-0.5 text-xs w-full" onchange="AppState.events[${idx}].type = this.value">
-      <option value="Break" ${ev.type === 'Break' ? 'selected' : ''}>Break</option>
-      <option value="Feeding" ${ev.type === 'Feeding' ? 'selected' : ''}>Feeding</option>
-      <option value="Intensity" ${ev.type === 'Intensity' ? 'selected' : ''}>Intensity</option>
-    </select></td>
-    <td><input type="text" class="border rounded px-1.5 py-0.5 text-xs w-full" value="${ev.desc}" placeholder="Description" onchange="AppState.events[${idx}].desc = this.value"></td>
-    <td class="no-print text-center"><button type="button" onclick="removeEventRow(${idx})" class="text-red-500 hover:text-red-700 cursor-pointer text-xs"><i class="fa-solid fa-trash"></i></button></td>
-  </tr>`).join('');
+
+  syncEventsAndBreaks();
 }
 
+// 2. Central Sync Engine: Processes Break Kinetics & syncs Dashboard + Processed Table
+function syncEventsAndBreaks() {
+  const p = AppState.processed;
+  if (!p || p.length === 0) return;
+
+  const baseStartTime = parseTime(document.getElementById('inp-time')?.value || '00:00:00') || 0;
+
+  // Flag individual rows as "isBreak" based on configured event times
+  p.forEach(row => {
+    row.isBreak = false;
+    row.eventType = '';
+    
+    if (AppState.events && AppState.events.length > 0) {
+      AppState.events.forEach(ev => {
+        if (!ev.start || !ev.end) return;
+        const startSec = parseTime(ev.start);
+        const endSec = parseTime(ev.end);
+        
+        // Match against relative elapsed time or Time Of Day (TOD)
+        const rowTod = baseStartTime + row.elapsedSec;
+        if ((row.elapsedSec >= startSec && row.elapsedSec <= endSec) || (rowTod >= startSec && rowTod <= endSec)) {
+          if (ev.type === 'Break') row.isBreak = true;
+          row.eventType = ev.type;
+        }
+      });
+    }
+  });
+
+  // Calculate Break Kinetics
+  const breakEvents = AppState.events.filter(e => e.type === 'Break' && e.start && e.end);
+  let totalBreakSec = 0;
+  let largestDecline = 0;
+  const breakTableRows = [];
+
+  breakEvents.forEach((ev, idx) => {
+    const startSec = parseTime(ev.start);
+    const endSec = parseTime(ev.end);
+    const durationMin = Math.max(0, (endSec - startSec) / 60);
+    totalBreakSec += Math.max(0, endSec - startSec);
+
+    // Locate core temperature data points at start/end of break
+    const startRow = p.find(r => r.elapsedSec >= startSec || (baseStartTime + r.elapsedSec) >= startSec) || p[0];
+    const endRow = p.find(r => r.elapsedSec >= endSec || (baseStartTime + r.elapsedSec) >= endSec) || p[p.length - 1];
+    
+    const tStart = startRow ? startRow.unifiedCore : null;
+    const tEnd = endRow ? endRow.unifiedCore : null;
+    let deltaT = (tStart != null && tEnd != null) ? (tEnd - tStart) : 0;
+    let rate = durationMin > 0 ? (deltaT / durationMin) : 0;
+
+    if (deltaT < largestDecline) largestDecline = deltaT;
+
+    breakTableRows.push(`<tr>
+      <td class="font-medium">#${idx + 1}</td>
+      <td>${durationMin.toFixed(1)} min</td>
+      <td>${tStart != null ? tStart.toFixed(2) + ' °C' : '—'}</td>
+      <td>${tEnd != null ? tEnd.toFixed(2) + ' °C' : '—'}</td>
+      <td class="${deltaT < 0 ? 'text-teal-600 font-semibold' : ''}">${deltaT > 0 ? '+' : ''}${deltaT.toFixed(2)} °C</td>
+      <td>${rate.toFixed(3)} °C/min</td>
+    </tr>`);
+  });
+
+  // Update Break Analysis Table in Events Tab
+  const breaksTbody = document.getElementById('breaks-tbody');
+  if (breaksTbody) {
+    breaksTbody.innerHTML = breakTableRows.length > 0 
+      ? breakTableRows.join('') 
+      : `<tr><td colspan="6" class="text-center text-slate-400 py-3">No breaks recorded.</td></tr>`;
+  }
+
+  // Update Dashboard HR & Breaks Card
+  const elCount = document.getElementById('sum-breaks-count');
+  const elTotal = document.getElementById('sum-breaks-total');
+  const elLargest = document.getElementById('sum-breaks-largest');
+
+  if (elCount) elCount.textContent = breakEvents.length;
+  if (elTotal) elTotal.textContent = fmtTime(totalBreakSec);
+  if (elLargest) elLargest.textContent = largestDecline < 0 ? `${largestDecline.toFixed(2)} °C` : '0.00 °C';
+
+  // Re-render Processed Master Table to show updated "Break?" status
+  if (typeof renderProcessedTable === 'function') renderProcessedTable(1);
+}
+
+// 3. Save Report with full snapshot payload
 function saveCurrentReportToArchive() {
   const m = AppState.metrics;
   if (!m || !m.start) { alert('No processed data available.'); return; }
+
   const record = {
-    id: Date.now(), dateSaved: new Date().toLocaleString(),
-    athlete: document.getElementById('inp-athlete').value || 'Athlete',
-    activity: document.getElementById('inp-activity').value || 'Trial',
-    duration: document.getElementById('sum-duration').textContent,
-    maxTemp: m.max, metrics: m
+    id: Date.now(),
+    dateSaved: new Date().toLocaleString(),
+    athlete: document.getElementById('inp-athlete')?.value || 'Athlete',
+    activity: document.getElementById('inp-activity')?.value || 'Trial',
+    duration: document.getElementById('sum-duration')?.textContent || '—',
+    maxTemp: m.max,
+    metrics: m,
+    snapshot: {
+      processed: AppState.processed,
+      minuteAverages: AppState.minuteAverages,
+      metrics: AppState.metrics,
+      events: AppState.events,
+      inputs: {
+        athlete: document.getElementById('inp-athlete')?.value,
+        activity: document.getElementById('inp-activity')?.value,
+        date: document.getElementById('inp-date')?.value,
+        time: document.getElementById('inp-time')?.value,
+        env: document.getElementById('inp-env')?.value,
+        pre: document.getElementById('sw-pre')?.value,
+        post: document.getElementById('sw-post')?.value,
+        fluid: document.getElementById('sw-fluid')?.value,
+        urine: document.getElementById('sw-urine')?.value,
+        sodiumConc: document.getElementById('sw-sodium-conc')?.value
+      }
+    }
   };
+
   let archive = JSON.parse(localStorage.getItem('heatReportArchive') || '[]');
   archive.unshift(record);
   localStorage.setItem('heatReportArchive', JSON.stringify(archive));
@@ -2834,6 +2942,7 @@ function saveCurrentReportToArchive() {
   renderArchiveTable();
 }
 
+// 4. Render Archive Table
 function renderArchiveTable() {
   const tbody = document.getElementById('archive-tbody');
   if (!tbody) return;
@@ -2841,7 +2950,7 @@ function renderArchiveTable() {
   const archive = JSON.parse(localStorage.getItem('heatReportArchive') || '[]');
   
   if (archive.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-slate-400 py-4">${dict.msg_no_archive}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-slate-400 py-4">${dict.msg_no_archive || 'No saved reports in archive.'}</td></tr>`;
     return;
   }
   
@@ -2850,7 +2959,7 @@ function renderArchiveTable() {
     <td>${rec.athlete}</td>
     <td>${rec.activity}</td>
     <td>${rec.duration}</td>
-    <td class="font-semibold">${rec.maxTemp.toFixed(2)} °C</td>
+    <td class="font-semibold">${rec.maxTemp ? rec.maxTemp.toFixed(2) : '—'} °C</td>
     <td class="space-x-1">
       <button type="button" onclick="loadArchivedSession(${rec.id})" class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs cursor-pointer" title="Load into Dashboard"><i class="fa-solid fa-folder-open"></i> Load</button>
       <button type="button" onclick="reexportArchivedPDF(${rec.id})" class="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs cursor-pointer" title="Re-create PDF"><i class="fa-solid fa-file-pdf"></i> PDF</button>
@@ -2859,10 +2968,14 @@ function renderArchiveTable() {
   </tr>`).join('');
 }
 
+// 5. Restore Session state from Archive
 function loadArchivedSession(id) {
   const archive = JSON.parse(localStorage.getItem('heatReportArchive') || '[]');
   const record = archive.find(r => r.id === id);
-  if (!record || !record.snapshot) return;
+  if (!record || !record.snapshot) {
+    alert('Invalid archive record format.');
+    return;
+  }
 
   AppState.processed = record.snapshot.processed || [];
   AppState.minuteAverages = record.snapshot.minuteAverages || [];
@@ -2890,6 +3003,7 @@ function loadArchivedSession(id) {
   alert(`Loaded archive for ${record.athlete} (${record.activity}) successfully.`);
 }
 
+// 6. Quick PDF Export helper for Archive entries
 function reexportArchivedPDF(id) {
   loadArchivedSession(id);
   setTimeout(() => {
@@ -2897,6 +3011,7 @@ function reexportArchivedPDF(id) {
   }, 400);
 }
 
+// 7. Delete single record
 function deleteArchivedReport(idx) {
   let archive = JSON.parse(localStorage.getItem('heatReportArchive') || '[]');
   archive.splice(idx, 1);
@@ -2904,6 +3019,7 @@ function deleteArchivedReport(idx) {
   renderArchiveTable();
 }
 
+// 8. Clear entire archive
 function clearArchive() {
   localStorage.removeItem('heatReportArchive');
   renderArchiveTable();
