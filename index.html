@@ -2033,15 +2033,18 @@ function classifyZone(core, z) {
 }
 
 function showTab(name) {
+  // Hide all tab contents
   document.querySelectorAll('.tab-content').forEach(el => {
     el.classList.add('hidden');
   });
 
+  // Show the target tab content (FIXED: added remove('hidden'))
   const targetTab = document.getElementById('tab-' + name);
   if (targetTab) {
     targetTab.classList.remove('hidden');
   }
 
+  // Update button active states safely
   document.querySelectorAll('.tab-btn').forEach(el => {
     el.classList.remove('active', 'bg-slate-900', 'text-white');
     el.classList.add('text-slate-600');
@@ -2049,10 +2052,11 @@ function showTab(name) {
 
   const activeBtn = document.querySelector(`.tab-btn[data-target="${name}"]`);
   if (activeBtn) {
-    activeBtn.classList.add('active');
+    activeBtn.classList.add('active', 'bg-slate-900', 'text-white');
     activeBtn.classList.remove('text-slate-600');
   }
 
+  // Render specific tab charts or tables if needed
   if (name === 'charts') {
     renderChart();
     renderCoreVsHrChart();
