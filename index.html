@@ -2032,47 +2032,54 @@ function classifyZone(core, z) {
   return 'Zone 4/Cutoff';
 }
 
+// 1. ADD THIS AT THE TOP OF YOUR SCRIPT FILE
+window.AppState = window.AppState || {
+  currentLang: 'en',
+  processed: []
+};
+
+// 2. UPDATED SHOWTAB WITH SAFETY CHECKS
 function showTab(name) {
   if (!name) return;
 
-  // 1. Hide all tab content containers
-  document.querySelectorAll('.tab-content, [id^="tab-"]').forEach(el => {
+  // Hide all tab contents
+  document.querySelectorAll('.tab-content').forEach(el => {
     el.classList.add('hidden');
-    el.style.display = 'none'; // Double safeguard against styling overrides
   });
 
-  // 2. Find target tab (checks both 'tab-dashboard' and 'dashboard')
+  // Find target tab (handles both "tab-dashboard" and "dashboard")
   const targetTab = document.getElementById('tab-' + name) || document.getElementById(name);
 
   if (targetTab) {
     targetTab.classList.remove('hidden');
-    targetTab.style.display = 'block'; // Ensure visibility
   } else {
-    console.error(`Tab container for "${name}" not found in DOM.`);
-    return;
+    console.warn(`Tab element missing for: "${name}". Check your HTML ID (should be id="tab-${name}" or id="${name}")`);
   }
 
-  // 3. Reset all tab button styles
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.remove('active', 'bg-slate-900', 'text-white');
-    btn.classList.add('text-slate-600');
+  // Update tab button UI state
+  document.querySelectorAll('.tab-btn').forEach(el => {
+    el.classList.remove('active', 'bg-slate-900', 'text-white');
+    el.classList.add('text-slate-600');
   });
 
-  // 4. Highlight active button
-  const activeBtn = document.querySelector(`.tab-btn[data-target="${name}"]`) || 
+  const activeBtn = document.querySelector(`.tab-btn[data-target="${name}"]`) ||
                     document.querySelector(`.tab-btn[onclick*="${name}"]`);
   if (activeBtn) {
     activeBtn.classList.add('active', 'bg-slate-900', 'text-white');
     activeBtn.classList.remove('text-slate-600');
   }
 
-  // 5. Safely re-render charts/tables if functions exist
-  if (name === 'charts') {
-    if (typeof renderChart === 'function') renderChart();
-    if (typeof renderCoreVsHrChart === 'function') renderCoreVsHrChart();
-  }
-  if (name === 'archive' && typeof renderArchiveTable === 'function') {
-    renderArchiveTable();
+  // Safely trigger optional renders without crashing the whole tab system
+  try {
+    if (name === 'charts') {
+      if (typeof renderChart === 'function') renderChart();
+      if (typeof renderCoreVsHrChart === 'function') renderCoreVsHrChart();
+    }
+    if (name === 'archive' && typeof renderArchiveTable === 'function') {
+      renderArchiveTable();
+    }
+  } catch (err) {
+    console.error("Error rendering tab content:", err);
   }
 }
   
