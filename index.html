@@ -2289,6 +2289,13 @@ function renderProcessedTable(page = 1) {
   const tbody = document.getElementById('processed-tbody');
   if (!tbody) return;
 
+  // Auto-calculate minute averages if missing
+  if ((!AppState.minuteAverages || AppState.minuteAverages.length === 0) && AppState.processed && AppState.processed.length > 0) {
+    if (typeof calculateMinuteAverages === 'function') {
+      calculateMinuteAverages();
+    }
+  }
+
   const isMinute = (AppState.viewMode || 'minute') === 'minute';
   const data = isMinute ? AppState.minuteAverages : AppState.processed;
   const search = (document.getElementById('proc-search')?.value || '').toLowerCase();
@@ -2322,7 +2329,6 @@ function renderProcessedTable(page = 1) {
     return;
   }
 
-  // Helper getters to support both raw row properties and averaged row properties
   const getVal = (r, primaryKey, altKeys) => {
     if (r[primaryKey] != null && !isNaN(r[primaryKey])) return r[primaryKey];
     for (let k of altKeys) {
